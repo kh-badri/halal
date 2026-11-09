@@ -1,0 +1,96 @@
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/auth/session';
+import Link from 'next/link';
+import { ArrowRight, MapPin, CheckCircle2, ShieldCheck } from 'lucide-react';
+
+export default async function HomePage() {
+  const user = await getCurrentUser();
+  if (user) {
+    redirect('/rute');
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col justify-between p-6 bg-gradient-to-b from-blush/60 via-white to-sky/40">
+      <div className="pt-8 text-center">
+        <div className="w-20 h-20 mx-auto rounded-3xl bg-blush border-2 border-ink shadow-sm flex items-center justify-center p-4 mb-4">
+          <span className="text-2xl font-black text-ink tracking-tight">RTH</span>
+        </div>
+        <h1 className="text-3xl font-black text-ink tracking-tight">Road To Halal</h1>
+        <p className="text-xs text-ink/80 font-bold uppercase tracking-widest mt-1">
+          Aplikasi Persiapan Pernikahan (PWA)
+        </p>
+        <p className="text-sm text-ink/80 mt-3 max-w-xs mx-auto leading-relaxed">
+          Menemani langkah calon pengantin dari persetujuan ta’aruf sampai hari akad dan walimah, selangkah demi selangkah.
+        </p>
+      </div>
+
+      <div className="my-8 space-y-3">
+        <div className="p-4 rounded-2xl bg-white border-2 border-ink shadow-subtle flex items-start gap-3">
+          <div className="w-8 h-8 rounded-xl bg-blush border border-ink text-ink flex items-center justify-center shrink-0">
+            <MapPin size={18} />
+          </div>
+          <div>
+            <h3 className="text-xs font-black text-ink">Peta Rute 8 Tahap Berkelok</h3>
+            <p className="text-[11px] text-ink/75 mt-0.5">
+              Alur berurutan &amp; terkunci. Memastikan setiap persiapan prinsip tuntas sebelum melangkah ke tahap berikutnya.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border-2 border-ink shadow-subtle flex items-start gap-3">
+          <div className="w-8 h-8 rounded-xl bg-sky border border-ink text-ink flex items-center justify-center shrink-0">
+            <CheckCircle2 size={18} />
+          </div>
+          <div>
+            <h3 className="text-xs font-black text-ink">57 Kartu Tanya Jawab Pranikah</h3>
+            <p className="text-[11px] text-ink/75 mt-0.5">
+              Kupas tuntas prinsip keuangan, karier, tempat tinggal, anak, dan mertua sejak dini bersama pasangan.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border-2 border-ink shadow-subtle flex items-start gap-3">
+          <div className="w-8 h-8 rounded-xl bg-white border border-ink text-ink flex items-center justify-center shrink-0">
+            <ShieldCheck size={18} />
+          </div>
+          <div>
+            <h3 className="text-xs font-black text-ink">Ruang Pribadi &amp; Hak Akses</h3>
+            <p className="text-[11px] text-ink/75 mt-0.5">
+              Undang pasangan, orang tua, atau murabbi dengan hak akses Read (hanya melihat) atau Full (ikut mengisi).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3 pb-6">
+        <Link
+          href="/register"
+          className="w-full py-3.5 bg-blush border-2 border-ink text-ink font-black rounded-full text-sm shadow-sm hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2"
+        >
+          <span>Mulai Perjalanan Sekarang</span>
+          <ArrowRight size={18} />
+        </Link>
+
+        <Link
+          href="/gabung"
+          className="w-full py-3.5 bg-sky border-2 border-ink text-ink font-black rounded-full text-sm shadow-sm hover:scale-[1.01] active:scale-95 transition-all text-center block"
+        >
+          Gabung Lewat Kode Undangan
+        </Link>
+
+        <Link
+          href="/login"
+          className="w-full py-3 bg-white border border-ink/40 text-ink font-bold rounded-full text-xs hover:bg-neutral-50 active:scale-95 transition-all text-center block"
+        >
+          Masuk ke Akun Saya
+        </Link>
+
+        <p className="text-[11px] text-center text-ink/60 pt-2">
+          Dengan mendaftar, Anda menyetujui{' '}
+          <Link href="/syarat" className="underline text-ink font-semibold">Syarat</Link> &amp;{' '}
+          <Link href="/privasi" className="underline text-ink font-semibold">Kebijakan Privasi</Link>.
+        </p>
+      </div>
+    </div>
+  );
+}
