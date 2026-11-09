@@ -84,12 +84,8 @@ Anda dapat melakukan clone langsung branch `cpanel` melalui **Terminal cPanel** 
      - `SMTP_USER`: `noreply@domainanda.com`
      - `SMTP_PASS`: `PasswordEmailAnda`
      - `SMTP_FROM`: `Road To Halal <noreply@domainanda.com>`
-4. Klik **Create**.
-5. Salin perintah virtual environment yang muncul di bagian atas aplikasi Node.js cPanel (misalnya: `source /home/username/nodevenv/apps/halal/20/bin/activate && cd /home/username/apps/halal`).
-6. Jalankan instalasi dependensi di Terminal:
-   ```bash
-   npm install --production
-   ```
+4. Klik **Create** lalu klik **Run / Restart Application**.
+5. *(Catatan: Branch `cpanel` ini sudah berstatus Standalone Pre-Built, sehingga Anda **TIDAK PERLU** menjalankan `npm install` maupun `npm run build` di terminal cPanel. Aplikasi langsung siap jalan!)*
 
 ---
 
