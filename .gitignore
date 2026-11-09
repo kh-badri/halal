@@ -6,8 +6,9 @@
 # Testing
 /coverage
 
-# Next.js Build Output
-/.next/
+# Next.js Build Output (pre-built for cPanel deployment, excluding compiler cache)
+.next/cache/
+.next/trace
 /out/
 /build
 

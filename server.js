@@ -1,34 +1,46 @@
 /**
  * Road To Halal Production Server Entry for cPanel CloudLinux / Phusion Passenger
  */
-const http = require('http');
+const { createServer } = require('http');
+const { parse } = require('url');
 const path = require('path');
 const fs = require('fs');
 
-const port = process.env.PORT || 3000;
+const rawPort = process.env.PORT || 3000;
+const isNumeric = /^\d+$/.test(String(rawPort));
+const port = isNumeric ? parseInt(String(rawPort), 10) : rawPort;
 const hostname = process.env.HOSTNAME || '0.0.0.0';
 
-// Check if running from standalone output
+// If explicitly requested standalone and numeric port
 const standaloneServerPath = path.join(__dirname, '.next', 'standalone', 'server.js');
-
-if (fs.existsSync(standaloneServerPath) && process.env.RUN_STANDALONE !== 'false') {
-  // Let Next.js standalone handle it
+if (process.env.RUN_STANDALONE === 'true' && fs.existsSync(standaloneServerPath) && isNumeric) {
   require(standaloneServerPath);
 } else {
-  // Fallback to standard Next.js custom server
   const next = require('next');
   const app = next({ dev: process.env.NODE_ENV !== 'production' });
   const handle = app.getRequestHandler();
 
   app.prepare().then(() => {
-    http.createServer((req, res) => {
-      handle(req, res);
-    }).listen(port, hostname, (err) => {
-      if (err) throw err;
-      console.log(`> Road To Halal Server ready on http://${hostname}:${port}`);
+    const server = createServer((req, res) => {
+      const parsedUrl = parse(req.url, true);
+      handle(req, res, parsedUrl);
     });
+
+    if (isNumeric) {
+      server.listen(port, hostname, (err) => {
+        if (err) throw err;
+        console.log(`> Road To Halal Server ready on http://${hostname}:${port}`);
+      });
+    } else {
+      // Phusion Passenger UNIX domain socket
+      server.listen(port, (err) => {
+        if (err) throw err;
+        console.log(`> Road To Halal Server ready on Passenger socket: ${port}`);
+      });
+    }
   }).catch((ex) => {
     console.error(ex.stack);
     process.exit(1);
   });
 }
+
