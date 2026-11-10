@@ -24,7 +24,7 @@ export default function HomePage() {
         <div className="w-24 h-24 mx-auto mb-3.5 relative flex items-center justify-center">
           <div className="absolute inset-0 rounded-3xl bg-blush/60 blur-sm -z-10" />
           <img
-            src="/icons/icon-192x192.png?v=3"
+            src="/icons/icon-192x192.png?v=4"
             alt="Road To Halal Logo"
             width={96}
             height={96}
