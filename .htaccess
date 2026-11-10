@@ -7,6 +7,9 @@ DirectoryIndex index.html index.php
 Options -Indexes +FollowSymLinks
 RewriteEngine On
 
+# 0. Direct root to index.html immediately
+RewriteRule ^$ index.html [L]
+
 # 1. Force HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
