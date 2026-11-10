@@ -1248,17 +1248,35 @@ if ($route === 'members') {
     $wsFile = $wsDir . '/workspace.json';
     $workspace = readJson($wsFile);
 
+    $isOwner = ($user['id'] === ($workspace['ownerId'] ?? ''));
+    $userAccess = 'read';
+    if ($isOwner) {
+        $userAccess = 'owner';
+    } else if (!empty($workspace['members'])) {
+        foreach ($workspace['members'] as $m) {
+            if ($m['userId'] === $user['id']) {
+                $userAccess = $m['access'] ?? 'read';
+                break;
+            }
+        }
+    }
+
     if ($method === 'GET') {
         jsonResponse([
             'workspaceId' => $workspace['id'] ?? $workspaceId,
-            'ownerId' => $workspace['ownerId'] ?? $user['id'],
-            'userAccess' => 'owner',
+            'ownerId' => $workspace['ownerId'] ?? '',
+            'userAccess' => $userAccess,
             'members' => $workspace['members'] ?? [],
-            'invites' => $workspace['invites'] ?? []
+            'invites' => $isOwner ? ($workspace['invites'] ?? []) : []
         ]);
     }
 
+    // Hanya Pemilik yang boleh membuat undangan baru
     if ($method === 'POST') {
+        if (!$isOwner) {
+            jsonResponse(['error' => 'Akses ditolak: Hanya pemilik ruang yang dapat membuat undangan baru.'], 403);
+        }
+
         $access = $input['access'] ?? 'read';
         $relation = $input['relation'] ?? 'Pasangan';
         $inviteCode = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
@@ -1282,9 +1300,23 @@ if ($route === 'members') {
         ]);
     }
 
+    // Hanya Pemilik yang boleh mengubah hak akses anggota (Read <-> Full)
     if ($method === 'PATCH') {
+        if (!$isOwner) {
+            jsonResponse(['error' => 'Akses ditolak: Hanya pemilik ruang yang dapat mengubah hak akses anggota.'], 403);
+        }
+
         $targetUid = $input['userId'] ?? '';
         $access = $input['access'] ?? 'read';
+
+        if (empty($targetUid) || !in_array($access, ['read', 'full'])) {
+            jsonResponse(['error' => 'userId dan access (read/full) wajib diisi.'], 400);
+        }
+
+        if ($targetUid === ($workspace['ownerId'] ?? '')) {
+            jsonResponse(['error' => 'Hak akses pemilik ruang tidak dapat diubah.'], 400);
+        }
+
         if (!empty($workspace['members'])) {
             foreach ($workspace['members'] as &$m) {
                 if ($m['userId'] === $targetUid) {
@@ -1294,21 +1326,34 @@ if ($route === 'members') {
             }
         }
         writeJsonAtomic($wsFile, $workspace);
-        jsonResponse(['success' => true, 'members' => $workspace['members']]);
+        jsonResponse([
+            'success' => true,
+            'message' => 'Hak akses berhasil diubah menjadi ' . strtoupper($access),
+            'members' => $workspace['members']
+        ]);
     }
 
+    // Hanya Pemilik yang boleh mengeluarkan anggota atau mencabut undangan
     if ($method === 'DELETE') {
+        if (!$isOwner) {
+            jsonResponse(['error' => 'Akses ditolak: Hanya pemilik ruang yang dapat menghapus anggota atau undangan.'], 403);
+        }
+
         $targetUid = $_GET['userId'] ?? '';
         $code = strtoupper($_GET['code'] ?? '');
+
         if ($targetUid) {
+            if ($targetUid === ($workspace['ownerId'] ?? '')) {
+                jsonResponse(['error' => 'Pemilik ruang tidak dapat dihapus.'], 400);
+            }
             $workspace['members'] = array_values(array_filter($workspace['members'] ?? [], fn($m) => $m['userId'] !== $targetUid));
             writeJsonAtomic($wsFile, $workspace);
-            jsonResponse(['success' => true, 'members' => $workspace['members']]);
+            jsonResponse(['success' => true, 'message' => 'Anggota berhasil dikeluarkan.', 'members' => $workspace['members']]);
         }
         if ($code) {
             $workspace['invites'] = array_values(array_filter($workspace['invites'] ?? [], fn($i) => strtoupper($i['code'] ?? '') !== $code));
             writeJsonAtomic($wsFile, $workspace);
-            jsonResponse(['success' => true]);
+            jsonResponse(['success' => true, 'message' => 'Undangan berhasil dicabut.']);
         }
     }
 }
