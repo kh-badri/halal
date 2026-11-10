@@ -1,13 +1,22 @@
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth/session';
+'use client';
+
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, MapPin, CheckCircle2, ShieldCheck } from 'lucide-react';
 
-export default async function HomePage() {
-  const user = await getCurrentUser();
-  if (user) {
-    redirect('/rute');
-  }
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => {
+        if (res.ok) {
+          router.replace('/rute');
+        }
+      })
+      .catch(() => {});
+  }, [router]);
 
   return (
     <div className="min-h-screen flex flex-col justify-between p-6 bg-gradient-to-b from-blush/60 via-white to-sky/40">
@@ -70,14 +79,12 @@ export default async function HomePage() {
           <span>Mulai Perjalanan Sekarang</span>
           <ArrowRight size={18} />
         </Link>
-
         <Link
           href="/gabung"
           className="w-full py-3.5 bg-sky border-2 border-ink text-ink font-black rounded-full text-sm shadow-sm hover:scale-[1.01] active:scale-95 transition-all text-center block"
         >
           Gabung Lewat Kode Undangan
         </Link>
-
         <Link
           href="/login"
           className="w-full py-3 bg-white border border-ink/40 text-ink font-bold rounded-full text-xs hover:bg-neutral-50 active:scale-95 transition-all text-center block"
@@ -87,8 +94,14 @@ export default async function HomePage() {
 
         <p className="text-[11px] text-center text-ink/60 pt-2">
           Dengan mendaftar, Anda menyetujui{' '}
-          <Link href="/syarat" className="underline text-ink font-semibold">Syarat</Link> &amp;{' '}
-          <Link href="/privasi" className="underline text-ink font-semibold">Kebijakan Privasi</Link>.
+          <Link href="/syarat" className="underline text-ink font-semibold">
+            Syarat
+          </Link>{' '}
+          &amp;{' '}
+          <Link href="/privasi" className="underline text-ink font-semibold">
+            Kebijakan Privasi
+          </Link>
+          .
         </p>
       </div>
     </div>

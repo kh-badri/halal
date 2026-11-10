@@ -1,10 +1,17 @@
-import { redirect } from 'next/navigation';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function KhitbahRedirect({ searchParams }: { searchParams: { tab?: string } }) {
-  if (searchParams?.tab === 'seserahan' || searchParams?.tab === 'rundown') {
-    redirect('/tahap/proses-khitbah');
-  }
-  redirect('/tahap/kesepakatan-khitbah');
+export default function KhitbahRedirect() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/tahap/kesepakatan-khitbah');
+  }, [router]);
+
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center p-6 text-center">
+      <div className="w-10 h-10 rounded-full border-4 border-rose-500/20 border-t-rose-500 animate-spin" />
+    </div>
+  );
 }

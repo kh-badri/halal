@@ -71,8 +71,8 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
     load();
   }, []);
 
-  // Debounced auto-save for profile
-  const saveProfile = (newProfile: any) => {
+  // Fast auto-save for profile
+  const saveProfile = (newProfile: any, immediate = false) => {
     setProfileData(newProfile);
     if (isReadOnly) return;
 
@@ -89,11 +89,11 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
       } catch (e) {
         console.error('Failed to save profile:', e);
       }
-    }, 600);
+    }, immediate ? 20 : 250);
   };
 
-  // Debounced auto-save for taaruf
-  const saveTaaruf = (newTaaruf: any) => {
+  // Fast auto-save for taaruf
+  const saveTaaruf = (newTaaruf: any, immediate = false) => {
     setTaarufData(newTaaruf);
     if (isReadOnly) return;
 
@@ -110,7 +110,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
       } catch (e) {
         console.error('Failed to save taaruf:', e);
       }
-    }, 600);
+    }, immediate ? 20 : 250);
   };
 
   const handleProfileFieldChange = (field: string, value: any) => {
@@ -829,7 +829,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   type="checkbox"
                   disabled={isReadOnly}
                   checked={Boolean(taarufData?.healthExchanged)}
-                  onChange={(e) => saveTaaruf({ ...taarufData, healthExchanged: e.target.checked })}
+                  onChange={(e) => saveTaaruf({ ...taarufData, healthExchanged: e.target.checked }, true)}
                   className="w-5 h-5 rounded-lg border-2 border-ink accent-ink text-ink focus:ring-0"
                 />
                 <span className="text-xs font-black text-ink">
@@ -842,7 +842,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   type="checkbox"
                   disabled={isReadOnly}
                   checked={Boolean(taarufData?.familyExchanged)}
-                  onChange={(e) => saveTaaruf({ ...taarufData, familyExchanged: e.target.checked })}
+                  onChange={(e) => saveTaaruf({ ...taarufData, familyExchanged: e.target.checked }, true)}
                   className="w-5 h-5 rounded-lg border-2 border-ink accent-ink text-ink focus:ring-0"
                 />
                 <span className="text-xs font-black text-ink">
@@ -945,7 +945,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 saveTaaruf({
                   ...taarufData,
                   nadzor: { ...taarufData?.nadzor, checked: !taarufData?.nadzor?.checked },
-                });
+                }, true);
               }}
               className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
                 taarufData?.nadzor?.checked
@@ -1037,7 +1037,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 saveTaaruf({
                   ...taarufData,
                   istikharah: { ...taarufData?.istikharah, checked: !taarufData?.istikharah?.checked },
-                });
+                }, true);
               }}
               className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
                 taarufData?.istikharah?.checked
@@ -1156,7 +1156,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                             ...taarufData?.decisions,
                             selfDecision: opt.id,
                           },
-                        });
+                        }, true);
                       }}
                       className={`py-2 px-2 text-center rounded-xl text-xs font-bold transition-all ${
                         isSelected
@@ -1220,7 +1220,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                             ...taarufData?.decisions,
                             partnerDecision: opt.id,
                           },
-                        });
+                        }, true);
                       }}
                       className={`py-2 px-2 text-center rounded-xl text-xs font-bold transition-all ${
                         isSelected

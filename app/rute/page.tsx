@@ -1,75 +1,65 @@
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth/session';
-import { StorageAdapter } from '@/lib/storage/adapter';
-import { RouteMap, StageDataSummary } from '@/components/route/RouteMap';
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { RouteMap } from '@/components/route/RouteMap';
 import { AppHeader } from '@/components/ui/AppHeader';
-import { STAGE_ORDER, STAGE_DEFINITIONS, getStageStatus, isStageUnlocked } from '@/lib/route/stages';
-import { evaluateStageRequirements } from '@/lib/route/requirements';
-import { getMemberAccessLevel } from '@/lib/access/guard';
 
-export const dynamic = 'force-dynamic';
+export default function RutePage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [routeData, setRouteData] = useState<any>(null);
+  const [partnerName, setPartnerName] = useState('');
+  const [targetDate, setTargetDate] = useState('');
+  const [userAccess, setUserAccess] = useState<'owner' | 'full' | 'read'>('owner');
 
-export default async function RutePage() {
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect('/login');
-  }
+  useEffect(() => {
+    async function load() {
+      try {
+        const [meRes, routeRes, profRes, setRes] = await Promise.all([
+          fetch('/api/auth/me'),
+          fetch('/api/route'),
+          fetch('/api/m/profile'),
+          fetch('/api/m/settings'),
+        ]);
 
-  // Ensure user has a workspace
-  let workspaceId = user.workspaceId;
-  if (!workspaceId) {
-    const newWs = await StorageAdapter.createWorkspace(user.id, user.name);
-    workspaceId = newWs.id;
-    await StorageAdapter.updateUserAccount(user.id, { workspaceId: newWs.id });
-  }
+        if (meRes.status === 401 || routeRes.status === 401) {
+          router.replace('/login');
+          return;
+        }
 
-  const workspace = await StorageAdapter.getWorkspace(workspaceId);
-  if (!workspace) {
-    // If somehow missing, recreate
-    const newWs = await StorageAdapter.createWorkspace(user.id, user.name);
-    workspaceId = newWs.id;
-    await StorageAdapter.updateUserAccount(user.id, { workspaceId: newWs.id });
-  }
+        const rData = await routeRes.json();
+        setRouteData(rData);
+        setUserAccess(rData.access || 'owner');
 
-  const currentWorkspace = (await StorageAdapter.getWorkspace(workspaceId))!;
-  const userAccess = getMemberAccessLevel(currentWorkspace, user.id) || 'read';
+        if (profRes.ok) {
+          const pData = await profRes.json();
+          const prof = pData.data || pData;
+          setPartnerName(prof?.partner?.fullName || prof?.partner?.nickname || '');
+        }
 
-  // Get Route state
-  const route = await StorageAdapter.getWorkspaceRoute(workspaceId);
-
-  // Get Settings, Profile, Khitbah
-  const settings = (await StorageAdapter.getModule(workspaceId, 'settings')) as any;
-  const profile = (await StorageAdapter.getModule(workspaceId, 'profile')) as any;
-  const khitbah = (await StorageAdapter.getModule(workspaceId, 'khitbah')) as any;
-
-  const partnerName = profile?.partner?.fullName || profile?.partner?.nickname || '';
-  const targetDate = settings?.targetDate || khitbah?.execution?.weddingTargetDate || '';
-
-  // Evaluate requirements for each stage
-  const stages: StageDataSummary[] = await Promise.all(
-    STAGE_ORDER.map(async (key) => {
-      const def = STAGE_DEFINITIONS[key];
-      const status = getStageStatus(route, key);
-      const unlocked = isStageUnlocked(route, key);
-
-      let reqEval = null;
-      if (unlocked) {
-        reqEval = await evaluateStageRequirements(workspaceId, key);
+        if (setRes.ok) {
+          const sData = await setRes.json();
+          const sett = sData.data || sData;
+          setTargetDate(sett?.targetDate || '');
+        }
+      } catch (err) {
+        console.error('Failed to load route data:', err);
+      } finally {
+        setLoading(false);
       }
+    }
+    load();
+  }, [router]);
 
-      return {
-        key,
-        stepNumber: def.stepNumber,
-        title: def.title,
-        shortTitle: def.shortTitle,
-        subtitle: def.subtitle,
-        path: def.path,
-        status,
-        isUnlocked: unlocked,
-        requirements: reqEval,
-      };
-    })
-  );
+  if (loading || !routeData) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-12 h-12 rounded-full border-4 border-rose-500/20 border-t-rose-500 animate-spin mb-4" />
+        <p className="text-sm font-bold text-ink/70">Memuat peta rute halal...</p>
+      </div>
+    );
+  }
 
   const roleLabels: Record<string, string> = {
     owner: 'Pemilik',
@@ -86,9 +76,9 @@ export default async function RutePage() {
         isReadOnly={userAccess === 'read'}
       />
       <RouteMap
-        currentStage={route.currentStage}
-        routeStatus={route.status}
-        stages={stages}
+        currentStage={routeData.currentStage}
+        routeStatus={routeData.status}
+        stages={routeData.stages}
         targetDate={targetDate}
         partnerName={partnerName}
         userAccess={userAccess}

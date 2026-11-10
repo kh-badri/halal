@@ -1,5 +1,5 @@
 import { StageKey, STAGE_ORDER, RouteState } from '../schemas/workspace';
-export { STAGE_ORDER };
+export { STAGE_ORDER, type StageKey };
 
 export interface StageDefinition {
   key: StageKey;
