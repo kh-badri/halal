@@ -1,4 +1,4 @@
-<?php
+ï»¿<?php
 /**
  * Road To Halal - Native PHP REST API Engine for cPanel Hosting
  * Handles Auth, Workspaces, Modules, Stage Locks, File Uploads, Members, and Backup
@@ -793,8 +793,8 @@ $STAGE_ORDER = [
 ];
 
 $STAGE_DEFINITIONS = [
-    'persetujuan-taaruf' => ['stepNumber' => 1, 'title' => 'Persetujuan Ta’aruf', 'shortTitle' => 'Persetujuan', 'subtitle' => 'Biodata, Riwayat, Kesepakatan Wali & Nadzor'],
-    'proses-taaruf' => ['stepNumber' => 2, 'title' => 'Proses Ta’aruf', 'shortTitle' => 'Sesi Ta’aruf', 'subtitle' => 'Sesi Tanya Jawab Terbimbing, Visi Pernikahan & Komitmen'],
+    'persetujuan-taaruf' => ['stepNumber' => 1, 'title' => 'Persetujuan Taï¿½aruf', 'shortTitle' => 'Persetujuan', 'subtitle' => 'Biodata, Riwayat, Kesepakatan Wali & Nadzor'],
+    'proses-taaruf' => ['stepNumber' => 2, 'title' => 'Proses Taï¿½aruf', 'shortTitle' => 'Sesi Taï¿½aruf', 'subtitle' => 'Sesi Tanya Jawab Terbimbing, Visi Pernikahan & Komitmen'],
     'kesepakatan-khitbah' => ['stepNumber' => 3, 'title' => 'Kesepakatan Menuju Khitbah', 'shortTitle' => 'Kesepakatan Khitbah', 'subtitle' => 'Persetujuan Kedua Keluarga, Mahar & Waktu Lamaran'],
     'proses-khitbah' => ['stepNumber' => 4, 'title' => 'Proses Khitbah & Lamaran', 'shortTitle' => 'Hari Khitbah', 'subtitle' => 'Checklist Seserahan, Rundown & Pelaksanaan Lamaran'],
     'kesepakatan-akad' => ['stepNumber' => 5, 'title' => 'Kesepakatan Akad & Anggaran', 'shortTitle' => 'Akad & Budget', 'subtitle' => 'Tanggal & Lokasi Akad, Rincian Mahar & Target Tabungan'],
@@ -849,7 +849,7 @@ function evaluateStage($wsDir, $stageKey) {
             ['id' => 'req_mediator', 'label' => 'Data perantara (nama & kontak) terisi', 'isMet' => (bool)$mediatorComplete],
             ['id' => 'req_nadzor_istikharah', 'label' => 'Checklist Nadzor dan Istikharah tercentang', 'isMet' => (bool)($nadzorOk && $istikharahOk)],
             ['id' => 'req_exchanged', 'label' => 'Penanda riwayat kesehatan & keluarga sudah saling ditukar tercentang', 'isMet' => (bool)($healthExchanged && $familyExchanged)],
-            ['id' => 'req_decisions', 'label' => 'Keputusan Saya dan Calon sama-sama "Setuju lanjut ta’aruf"', 'isMet' => (bool)$decisionOk],
+            ['id' => 'req_decisions', 'label' => 'Keputusan Saya dan Calon sama-sama "Setuju lanjut taï¿½aruf"', 'isMet' => (bool)$decisionOk],
         ];
 
         $metCount = count(array_filter($items, fn($i) => $i['isMet']));
@@ -972,13 +972,23 @@ if ($route === 'route' && $method === 'GET') {
 
 // Route: /api/route/complete (POST)
 if ($route === 'route/complete' && $method === 'POST') {
-    $stageKey = $input['stageKey'] ?? '';
+    $routeData = readJson($wsDir . '/route.json', [
+        'workspaceId' => $workspaceId,
+        'currentStage' => 'persetujuan-taaruf',
+        'status' => 'in_progress',
+        'completed' => (object)[],
+    ]);
+
+    $stageKey = $input['stageKey'] ?? $routeData['currentStage'] ?? '';
     if (empty($stageKey)) {
-        jsonResponse(['error' => 'stageKey wajib diisi.'], 400);
+        $stageKey = 'persetujuan-taaruf';
     }
 
-    $routeData = readJson($wsDir . '/route.json');
     $completed = $routeData['completed'] ?? [];
+    if (is_object($completed)) {
+        $completed = (array)$completed;
+    }
+
     $completed[$stageKey] = [
         'completedAt' => date('c'),
         'completedBy' => $user['id']
@@ -996,14 +1006,21 @@ if ($route === 'route/complete' && $method === 'POST') {
     $routeData['updatedAt'] = date('c');
 
     writeJsonAtomic($wsDir . '/route.json', $routeData);
-    jsonResponse(['success' => true, 'route' => $routeData]);
+    $stageTitle = $STAGE_DEFINITIONS[$stageKey]['title'] ?? $stageKey;
+    jsonResponse([
+        'success' => true,
+        'previousStage' => $stageKey,
+        'nextStage' => $nextStage,
+        'route' => $routeData,
+        'message' => "Tahap \"{$stageTitle}\" berhasil diselesaikan! Bismillah."
+    ]);
 }
 
 // Route: /api/route/reopen (POST)
 if ($route === 'route/reopen' && $method === 'POST') {
-    $stageKey = $input['stageKey'] ?? '';
     $routeData = readJson($wsDir . '/route.json');
-    if (!empty($routeData['completed'][$stageKey])) {
+    $stageKey = $input['stageKey'] ?? $routeData['currentStage'] ?? '';
+    if (!empty($stageKey) && !empty($routeData['completed'][$stageKey])) {
         unset($routeData['completed'][$stageKey]);
     }
     $routeData['currentStage'] = $stageKey;

@@ -80,6 +80,7 @@ export const CompleteStageButton: React.FC<CompleteStageButtonProps> = ({
       const res = await fetch('/api/route/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stageKey }),
       });
 
       const data = await res.json();
