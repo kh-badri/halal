@@ -80,6 +80,21 @@ export const TaarufStageSchema = z.object({
   cons: z.array(z.string()).default([]),
 });
 
+export const TaarufActivityLogSchema = z.object({
+  id: z.string(),
+  timestamp: z.string(),
+  userName: z.string(),
+  userRole: z.string(),
+  action: z.string(),
+  title: z.string(),
+  questionText: z.string().default(''),
+  oldValue: z.string().optional(),
+  newValue: z.string().optional(),
+  details: z.string().optional(),
+});
+
+export type TaarufActivityLog = z.infer<typeof TaarufActivityLogSchema>;
+
 export const TaarufFileSchema = ModuleFileBaseSchema.extend({
   mediator: MediatorSchema.default({}),
   nadzor: ChecklistActionSchema.default({}),
@@ -93,6 +108,8 @@ export const TaarufFileSchema = ModuleFileBaseSchema.extend({
   privacyBlurEnabled: z.boolean().default(false),
   decisions: DecisionsSchema.default({}),
   qaCards: z.array(QACardSchema).default([]),
+  allowPartnerAnswers: z.boolean().default(false),
+  activityLogs: z.array(TaarufActivityLogSchema).default([]),
   stage: TaarufStageSchema.default({}),
 });
 

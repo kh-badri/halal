@@ -276,6 +276,8 @@ export function getDefaultWorkspaceModuleData(
           partnerNotes: '',
         },
         qaCards: [],
+        allowPartnerAnswers: false,
+        activityLogs: [],
         stage: {
           currentStage: 'kenal',
           decision: 'belum',

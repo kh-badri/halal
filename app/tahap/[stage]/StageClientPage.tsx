@@ -244,6 +244,7 @@ export default function StageClientPage({ stage }: StageClientPageProps) {
           <Stage2ProsesTaaruf
             workspaceId={workspaceId}
             isReadOnly={isReadOnly}
+            userAccess={userAccess}
             onDataChanged={handleDataChanged}
           />
         )}
