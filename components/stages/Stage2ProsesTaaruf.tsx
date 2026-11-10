@@ -1117,52 +1117,54 @@ export function Stage2ProsesTaaruf({
             return (
               <div
                 key={q.id}
-                className={`bg-white border rounded-3xl p-4 sm:p-5 shadow-sm transition-all space-y-4 ${
+                className={`bg-white border rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xs transition-all space-y-3 sm:space-y-3.5 ${
                   q.status === 'sepakat'
-                    ? 'border-emerald-200 ring-1 ring-emerald-100'
+                    ? 'border-emerald-200/90 ring-1 ring-emerald-100/70 shadow-emerald-50/50'
                     : q.status === 'dibahas'
-                    ? 'border-rose-200 ring-1 ring-rose-100'
+                    ? 'border-rose-200/90 ring-1 ring-rose-100/70 shadow-rose-50/50'
                     : q.status === 'pertimbangan'
-                    ? 'border-purple-200 ring-1 ring-purple-100'
+                    ? 'border-purple-200/90 ring-1 ring-purple-100/70 shadow-purple-50/50'
                     : q.status === 'ulang'
-                    ? 'border-amber-200 ring-1 ring-amber-100'
-                    : 'border-slate-200'
+                    ? 'border-amber-200/90 ring-1 ring-amber-100/70 shadow-amber-50/50'
+                    : 'border-slate-200/90'
                 }`}
               >
                 {/* Header Pertanyaan */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                     {/* Penanya Badge */}
                     <span
-                      className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-0.5 rounded-full border ${
+                      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
                         q.asker === 'pria'
-                          ? 'bg-blue-50 border-blue-200 text-blue-700'
-                          : 'bg-rose-50 border-rose-200 text-rose-700'
+                          ? 'bg-blue-50/80 border-blue-200/80 text-blue-700'
+                          : 'bg-rose-50/80 border-rose-200/80 text-rose-700'
                       }`}
                     >
                       <span>{q.asker === 'pria' ? '👨' : '👩'}</span>
-                      <span>Dari {q.asker === 'pria' ? (priaName || 'Catin Pria') : (wanitaName || 'Catin Perempuan')}</span>
+                      <span className="truncate max-w-[130px] sm:max-w-none">
+                        {q.asker === 'pria' ? (priaName || 'Catin Pria') : (wanitaName || 'Catin Perempuan')}
+                      </span>
                     </span>
 
                     {/* Category Badge */}
                     {q.category && (
-                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                      <span className="text-[10px] font-semibold text-slate-500 bg-slate-100/80 px-2 py-0.5 rounded-full border border-slate-200/60 hidden xs:inline-block">
                         {q.category}
                       </span>
                     )}
 
                     {/* Principle Badge */}
                     {q.principle && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full border border-rose-300">
-                        <Shield className="w-3 h-3" /> Prinsip
+                      <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-700 bg-rose-100/80 px-2 py-0.5 rounded-full border border-rose-200">
+                        <Shield className="w-2.5 h-2.5" /> Prinsip
                       </span>
                     )}
                   </div>
 
                   {/* Actions & Status */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <span
-                      className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${
+                      className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
                         q.status === 'sepakat'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                           : q.status === 'dibahas'
@@ -1185,56 +1187,60 @@ export function Stage2ProsesTaaruf({
                         : 'Belum'}
                     </span>
 
-                    {/* Tombol Edit Pertanyaan */}
                     {!isReadOnly && (
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditModal(q)}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-                        title="Edit teks atau detail pertanyaan"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-
-                    {/* Tombol Hapus Pertanyaan */}
-                    {!isReadOnly && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteQuestion(q)}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                        title="Hapus pertanyaan ini"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(q)}
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                          title="Edit teks pertanyaan"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteQuestion(q)}
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          title="Hapus pertanyaan ini"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
 
-                {/* Teks Pertanyaan */}
-                <div className="space-y-1">
-                  <h4 className="text-base font-black text-slate-900 leading-snug">
-                    “{q.question}”
-                  </h4>
+                {/* Colom Pertanyaan */}
+                <div className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-50 to-rose-50/30 rounded-2xl border border-slate-200/80">
+                  <div className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-md bg-rose-500/10 text-rose-600 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      ?
+                    </span>
+                    <h4 className="text-[13px] sm:text-[14px] font-bold text-slate-900 leading-relaxed break-words">
+                      {q.question}
+                    </h4>
+                  </div>
                 </div>
 
                 {/* DUA KOLOM JAWABAN (RESPONSIF: 1 KOLOM DI MOBILE, 2 KOLOM DI TABLET/DESKTOP) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                   {/* Kolom Jawaban Catin Pria */}
-                  <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 space-y-2">
+                  <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-black text-slate-800 flex items-center gap-1.5">
-                        <span className="text-sm">👨</span>
+                      <label className="text-[11px] font-black text-slate-700 flex items-center gap-1.5">
+                        <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px]">
+                          👨
+                        </span>
                         <span>Jawaban {priaName ? priaName : 'Catin Pria'}</span>
                       </label>
                       <div className="flex items-center gap-1">
                         {!canEditAnswers && (
-                          <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <Lock size={10} /> Terkunci
+                          <span className="text-[9px] text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 font-bold">
+                            <Lock size={9} /> Terkunci
                           </span>
                         )}
                         {userRole === 'pria' && (
-                          <span className="text-[10px] font-bold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full">
+                          <span className="text-[9px] font-bold text-blue-700 bg-blue-100/90 px-1.5 py-0.2 rounded-md">
                             Anda
                           </span>
                         )}
@@ -1255,30 +1261,32 @@ export function Stage2ProsesTaaruf({
                       onChange={(e) => updateQuestion(q.id, { answerPria: e.target.value })}
                       placeholder={
                         canEditAnswers
-                          ? `Tuliskan pandangan atau jawaban dari ${priaName ? priaName : 'catin pria'}...`
-                          : 'Pengisian jawaban dikunci oleh pemilik...'
+                          ? `Tulis jawaban dari ${priaName ? priaName : 'catin pria'}...`
+                          : 'Pengisian jawaban terkunci...'
                       }
-                      className={`w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-rose-400 focus:outline-none focus:ring-1 focus:ring-rose-200 transition-all leading-relaxed ${
+                      className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-slate-200/90 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
                         !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
                       }`}
                     />
                   </div>
 
                   {/* Kolom Jawaban Catin Perempuan */}
-                  <div className="bg-rose-50/50 border border-rose-200/70 rounded-2xl p-3.5 space-y-2">
+                  <div className="bg-rose-50/40 border border-rose-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-rose-50/60 transition-all">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-black text-rose-900 flex items-center gap-1.5">
-                        <span className="text-sm">👩</span>
+                      <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5">
+                        <span className="w-4 h-4 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center text-[10px]">
+                          👩
+                        </span>
                         <span>Jawaban {wanitaName ? wanitaName : 'Catin Perempuan'}</span>
                       </label>
                       <div className="flex items-center gap-1">
                         {!canEditAnswers && (
-                          <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <Lock size={10} /> Terkunci
+                          <span className="text-[9px] text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 font-bold">
+                            <Lock size={9} /> Terkunci
                           </span>
                         )}
                         {userRole === 'wanita' && (
-                          <span className="text-[10px] font-bold text-rose-700 bg-rose-100/80 px-2 py-0.5 rounded-full">
+                          <span className="text-[9px] font-bold text-rose-700 bg-rose-100/90 px-1.5 py-0.2 rounded-md">
                             Anda
                           </span>
                         )}
@@ -1299,24 +1307,31 @@ export function Stage2ProsesTaaruf({
                       onChange={(e) => updateQuestion(q.id, { answerWanita: e.target.value })}
                       placeholder={
                         canEditAnswers
-                          ? `Tuliskan pandangan atau tanggapan dari ${wanitaName ? wanitaName : 'catin perempuan'}...`
-                          : 'Pengisian jawaban dikunci oleh pemilik...'
+                          ? `Tulis jawaban dari ${wanitaName ? wanitaName : 'catin perempuan'}...`
+                          : 'Pengisian jawaban terkunci...'
                       }
-                      className={`w-full px-3 py-2 text-xs bg-white border border-rose-200/80 rounded-xl focus:border-rose-400 focus:outline-none focus:ring-1 focus:ring-rose-200 transition-all leading-relaxed ${
+                      className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-rose-200/90 rounded-xl focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
                         !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
                       }`}
                     />
                   </div>
                 </div>
 
-                {/* Kolom Kesimpulan / Catatan Kesepakatan Bersama */}
-                <div className="bg-amber-50/40 border border-amber-200/60 rounded-2xl p-3 space-y-1.5">
-                  <label className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                    <span>📝</span>
-                    <span>Kesimpulan / Poin Kesepakatan Bersama</span>
-                  </label>
-                  <input
-                    type="text"
+                {/* Colom Kesimpulan / Catatan Kesepakatan Bersama */}
+                <div className="bg-amber-50/40 border border-amber-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-amber-400 focus-within:bg-amber-50/70 transition-all">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-black text-amber-900 flex items-center gap-1.5">
+                      <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-[10px]">
+                        📝
+                      </span>
+                      <span>Kesimpulan / Catatan Bersama</span>
+                    </label>
+                    <span className="text-[9px] text-amber-700/80 font-medium hidden xs:inline">
+                      Diteruskan ke Tahap 3
+                    </span>
+                  </div>
+                  <textarea
+                    rows={2}
                     disabled={isReadOnly}
                     value={q.note || ''}
                     onFocus={() => {
@@ -1328,32 +1343,32 @@ export function Stage2ProsesTaaruf({
                     }}
                     onBlur={(e) => handleFieldBlur(q, 'note', e.target.value)}
                     onChange={(e) => updateQuestion(q.id, { note: e.target.value })}
-                    placeholder="Contoh: Disepakati bersama bahwa keuangan dikelola transparan dengan rekening bersama..."
-                    className="w-full px-3 py-2 text-xs bg-white border border-amber-200/80 rounded-xl focus:border-rose-400 focus:outline-none"
+                    placeholder="Tuliskan poin yang telah Anda berdua sepakati terkait hal ini..."
+                    className="w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-amber-200/90 rounded-xl focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none"
                   />
                 </div>
 
                 {/* Baris Status & Prinsip Dealbreaker */}
-                <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t border-slate-100">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
+                <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 border-t border-slate-100">
+                  <label className="flex items-center gap-2 cursor-pointer text-[11px] sm:text-xs font-bold text-slate-700 select-none">
                     <input
                       type="checkbox"
                       disabled={isReadOnly}
                       checked={Boolean(q.principle)}
                       onChange={(e) => handlePrincipleToggle(q, e.target.checked)}
-                      className="w-4 h-4 rounded border-rose-300 text-rose-600 accent-rose-500"
+                      className="w-3.5 h-3.5 rounded border-rose-300 text-rose-600 accent-rose-500"
                     />
                     <span>Tandai sebagai Prinsip (Dealbreaker)</span>
                   </label>
 
-                  <div className="flex flex-wrap sm:flex-nowrap gap-1.5 w-full sm:w-auto">
+                  <div className="flex flex-wrap gap-1 sm:gap-1.5 w-full sm:w-auto">
                     {(['belum', 'dibahas', 'pertimbangan', 'sepakat', 'ulang'] as const).map((st) => (
                       <button
                         key={st}
                         type="button"
                         disabled={isReadOnly}
                         onClick={() => handleStatusChange(q, st)}
-                        className={`flex-1 sm:flex-none px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all text-center whitespace-nowrap ${
+                        className={`flex-1 sm:flex-none px-2 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all text-center whitespace-nowrap ${
                           q.status === st
                             ? st === 'sepakat'
                               ? 'bg-emerald-600 text-white shadow-xs font-black'
@@ -1364,7 +1379,7 @@ export function Stage2ProsesTaaruf({
                               : st === 'ulang'
                               ? 'bg-amber-500 text-white shadow-xs font-black'
                               : 'bg-slate-700 text-white shadow-xs font-black'
-                            : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400'
+                            : 'bg-slate-50/80 text-slate-600 border border-slate-200/90 hover:bg-slate-100'
                         }`}
                       >
                         {st === 'belum'
