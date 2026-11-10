@@ -20,7 +20,7 @@ export default function ModulIndexPage() {
   const coreModules = [
     {
       title: 'Ta’aruf & Komitmen',
-      desc: 'Biodata mendalam, riwayat kesehatan, & 57 kartu tanya jawab pranikah',
+      desc: 'Biodata mendalam, riwayat kesehatan, & tanya jawab pranikah',
       href: '/taaruf',
       icon: Sparkles,
       color: 'bg-blush text-rose',

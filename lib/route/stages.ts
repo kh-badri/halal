@@ -26,7 +26,7 @@ export const STAGE_DEFINITIONS: Record<StageKey, StageDefinition> = {
     stepNumber: 2,
     title: 'Proses Ta’aruf (Tanya Jawab)',
     shortTitle: 'Tanya Jawab Q&A',
-    subtitle: '57 kartu diskusi prinsip pranikah',
+    subtitle: 'Tanya jawab prinsip dan kesepakatan pranikah',
     path: '/tahap/proses-taaruf',
     dataFiles: ['taaruf.json'],
   },

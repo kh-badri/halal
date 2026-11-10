@@ -36,12 +36,15 @@ export const FamilyRecordSchema = z.object({
 });
 
 export const QACardSchema = MetaSchema.extend({
-  category: z.string(),
+  category: z.string().default('Umum'),
   questionNumber: z.number().optional(),
   question: z.string(),
-  custom: z.boolean().default(false),
+  asker: z.enum(['pria', 'wanita']).default('pria'),
+  custom: z.boolean().default(true),
   answerSelf: z.string().default(''),
   answerPartner: z.string().default(''),
+  answerPria: z.string().default(''),
+  answerWanita: z.string().default(''),
   note: z.string().default(''),
   principle: z.boolean().default(false),
   status: z.enum(['belum', 'dibahas', 'sepakat', 'ulang']).default('belum'),

@@ -115,19 +115,19 @@ export async function evaluateStageRequirements(
 
       items.push({
         id: 'req_no_belum',
-        label: 'Tidak ada kartu berstatus "Belum dibahas"',
+        label: 'Tidak ada pertanyaan berstatus "Belum dibahas"',
         isMet: cards.length > 0 && !hasBelum,
       });
 
       items.push({
         id: 'req_no_ulang',
-        label: 'Tidak ada kartu berstatus "Perlu dibahas lagi"',
+        label: 'Tidak ada pertanyaan berstatus "Perlu dibahas lagi"',
         isMet: cards.length > 0 && !hasUlang,
       });
 
       items.push({
         id: 'req_principles_agreed',
-        label: 'Semua kartu bertanda Prinsip berstatus "Sepakat"',
+        label: 'Semua pertanyaan bertanda Prinsip berstatus "Sepakat"',
         isMet: allPrincipleSepakat,
       });
 

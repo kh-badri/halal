@@ -275,20 +275,7 @@ export function getDefaultWorkspaceModuleData(
           partnerDecision: 'belum', // setuju | belum | tidak
           partnerNotes: '',
         },
-        qaCards: DEFAULT_QA_CARDS.map((card) => ({
-          id: card.id,
-          createdAt: now,
-          updatedAt: now,
-          category: card.category,
-          questionNumber: card.questionNumber,
-          question: card.question,
-          custom: false,
-          answerSelf: '',
-          answerPartner: '',
-          note: '',
-          principle: card.principle || false,
-          status: 'belum', // belum | dibahas | sepakat | ulang
-        })),
+        qaCards: [],
         stage: {
           currentStage: 'kenal',
           decision: 'belum',
@@ -540,7 +527,7 @@ export function getDefaultWorkspaceModuleData(
         ...base,
         tasks: [
           { id: 'task-1', createdAt: now, updatedAt: now, title: 'Tentukan tanggal target akad bersama kedua keluarga', phase: 'awal', completed: true, priority: 'tinggi' },
-          { id: 'task-2', createdAt: now, updatedAt: now, title: 'Selesaikan pembahasan 57 kartu tanya jawab pranikah', phase: 'taaruf', completed: false, priority: 'tinggi' },
+          { id: 'task-2', createdAt: now, updatedAt: now, title: 'Selesaikan pembahasan tanya jawab pranikah', phase: 'taaruf', completed: false, priority: 'tinggi' },
           { id: 'task-3', createdAt: now, updatedAt: now, title: 'Beli dan kemas seluruh kotak seserahan lamaran', phase: 'khitbah', completed: false, priority: 'sedang' },
           { id: 'task-4', createdAt: now, updatedAt: now, title: 'Urus berkas N1-N4 ke Kelurahan & Puskesmas', phase: 'kua', completed: false, priority: 'tinggi' },
           { id: 'task-5', createdAt: now, updatedAt: now, title: 'Daftar nikah ke KUA minimal H-10 hari kerja', phase: 'kua', completed: false, priority: 'tinggi' },
