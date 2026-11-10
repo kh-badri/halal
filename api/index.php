@@ -990,7 +990,7 @@ $STAGE_ORDER = [
 
 $STAGE_DEFINITIONS = [
     'persetujuan-taaruf' => ['stepNumber' => 1, 'title' => "Persetujuan Ta'aruf", 'shortTitle' => 'Persetujuan', 'subtitle' => 'Biodata, Riwayat, Kesepakatan Wali & Nadzor'],
-    'proses-taaruf' => ['stepNumber' => 2, 'title' => "Proses Ta'aruf", 'shortTitle' => "Sesi Ta'aruf", 'subtitle' => 'Sesi Tanya Jawab Terbimbing, Visi Pernikahan & Komitmen'],
+    'proses-taaruf' => ['stepNumber' => 2, 'title' => "Proses Ta’aruf (Tanya Jawab)", 'shortTitle' => "Tanya Jawab Q&A", 'subtitle' => 'Tanya jawab prinsip dan kesepakatan pranikah'],
     'kesepakatan-khitbah' => ['stepNumber' => 3, 'title' => 'Kesepakatan Menuju Khitbah', 'shortTitle' => 'Kesepakatan Khitbah', 'subtitle' => 'Persetujuan Kedua Keluarga, Mahar & Waktu Lamaran'],
     'proses-khitbah' => ['stepNumber' => 4, 'title' => 'Proses Khitbah & Lamaran', 'shortTitle' => 'Hari Khitbah', 'subtitle' => 'Checklist Seserahan, Rundown & Pelaksanaan Lamaran'],
     'kesepakatan-akad' => ['stepNumber' => 5, 'title' => 'Kesepakatan Akad & Anggaran', 'shortTitle' => 'Akad & Budget', 'subtitle' => 'Tanggal & Lokasi Akad, Rincian Mahar & Target Tabungan'],
@@ -1060,14 +1060,15 @@ function evaluateStage($wsDir, $stageKey) {
     if ($stageKey === 'proses-taaruf') {
         $taaruf = readJson($wsDir . '/taaruf.json', []);
         $cards = $taaruf['qaCards'] ?? [];
-        $activeCards = array_filter($cards, fn($c) => empty($c['deletedAt']));
+        $isLegacyTemplate = fn($c) => empty($c['custom']) && preg_match('/^qa-\d+$/', $c['id'] ?? '') && empty($c['answerPria']) && empty($c['answerWanita']) && empty($c['answerSelf']) && empty($c['answerPartner']) && empty($c['note']) && (($c['status'] ?? 'belum') === 'belum');
+        $activeCards = array_filter($cards, fn($c) => empty($c['deletedAt']) && !$isLegacyTemplate($c));
         $hasUlang = count(array_filter($activeCards, fn($c) => ($c['status'] ?? '') === 'ulang')) > 0;
         $principleCards = array_filter($activeCards, fn($c) => !empty($c['principle']));
         $allPrincipleSepakat = count($principleCards) > 0 ? (count(array_filter($principleCards, fn($c) => ($c['status'] ?? '') === 'sepakat')) === count($principleCards)) : true;
 
         $items = [
-            ['id' => 'req_no_ulang', 'label' => 'Tidak ada kartu berstatus "Perlu dibahas lagi"', 'isMet' => count($activeCards) > 0 && !$hasUlang],
-            ['id' => 'req_principles_agreed', 'label' => 'Semua kartu bertanda Prinsip berstatus "Sepakat"', 'isMet' => (bool)$allPrincipleSepakat],
+            ['id' => 'req_no_ulang', 'label' => 'Tidak ada pertanyaan berstatus "Perlu dibahas lagi"', 'isMet' => count($activeCards) > 0 && !$hasUlang],
+            ['id' => 'req_principles_agreed', 'label' => 'Semua pertanyaan bertanda Prinsip berstatus "Sepakat"', 'isMet' => (bool)$allPrincipleSepakat],
         ];
         $metCount = count(array_filter($items, fn($i) => $i['isMet']));
         return [
