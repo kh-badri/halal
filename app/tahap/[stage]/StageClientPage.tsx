@@ -92,6 +92,16 @@ export default function StageClientPage({ stage }: StageClientPageProps) {
     }
   }, []);
 
+  // Background Live Sync: Poll route progress every 3s so checklist updates live
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        handleDataChanged();
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [handleDataChanged]);
+
   if (loading || !routeData) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">

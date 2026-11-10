@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   MessageSquare,
   Plus,
@@ -126,11 +126,72 @@ export function Stage2ProsesTaaruf({
     initialValue: string;
   } | null>(null);
 
+  // Live Sync References
+  const lastKnownUpdatedAtRef = useRef<string | null>(null);
+  const syncChannelRef = useRef<BroadcastChannel | null>(null);
+
+  // Function to fetch latest taaruf data and merge without overwriting active editing
+  const fetchLatestTaaruf = useCallback(async () => {
+    try {
+      const res = await fetch('/api/m/taaruf?t=' + Date.now(), {
+        cache: 'no-store',
+      });
+      if (!res.ok) return;
+
+      const json = await res.json();
+      const serverData = json.data || json;
+      if (!serverData) return;
+
+      const serverUpdatedAt = serverData.updatedAt || '';
+      // If server data is identical to what we already have, skip to save performance
+      if (lastKnownUpdatedAtRef.current && serverUpdatedAt === lastKnownUpdatedAtRef.current) {
+        return;
+      }
+
+      lastKnownUpdatedAtRef.current = serverUpdatedAt;
+
+      // Merge gracefully: never overwrite the field currently focused by the local user
+      setTaarufData((prevData: any) => {
+        if (!prevData) return serverData;
+
+        // If local user is actively typing in a field, preserve that field
+        if (focusedFieldRef.current) {
+          const focusedCardId = focusedFieldRef.current.cardId;
+          const focusedField = focusedFieldRef.current.field;
+          const localCard = (prevData.qaCards || []).find((c: any) => c.id === focusedCardId);
+
+          if (localCard) {
+            const mergedCards = (serverData.qaCards || []).map((sCard: any) => {
+              if (sCard.id === focusedCardId) {
+                return {
+                  ...sCard,
+                  [focusedField]: localCard[focusedField],
+                };
+              }
+              return sCard;
+            });
+
+            return {
+              ...serverData,
+              qaCards: mergedCards,
+            };
+          }
+        }
+
+        return serverData;
+      });
+
+      onDataChanged?.();
+    } catch (err) {
+      console.warn('Live sync poll error (retrying):', err);
+    }
+  }, [onDataChanged]);
+
   useEffect(() => {
     async function loadData() {
       try {
         const [taarufRes, profileRes, authRes, routeRes] = await Promise.all([
-          fetch('/api/m/taaruf'),
+          fetch('/api/m/taaruf?t=' + Date.now(), { cache: 'no-store' }),
           fetch('/api/m/profile'),
           fetch('/api/auth/me'),
           fetch('/api/route'),
@@ -138,7 +199,11 @@ export function Stage2ProsesTaaruf({
 
         if (taarufRes.ok) {
           const tJson = await taarufRes.json();
-          setTaarufData(tJson.data || tJson);
+          const tData = tJson.data || tJson;
+          setTaarufData(tData);
+          if (tData?.updatedAt) {
+            lastKnownUpdatedAtRef.current = tData.updatedAt;
+          }
         }
         if (profileRes.ok) {
           const pJson = await profileRes.json();
@@ -170,6 +235,53 @@ export function Stage2ProsesTaaruf({
     }
     loadData();
   }, []);
+
+  // Setup BroadcastChannel & Ultra-fast Live Polling (1.5s interval)
+  useEffect(() => {
+    // 1. BroadcastChannel for 0ms cross-tab sync
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      const bc = new BroadcastChannel('rth_taaruf_sync');
+      syncChannelRef.current = bc;
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'TAARUF_UPDATED') {
+          fetchLatestTaaruf();
+        }
+      };
+    }
+
+    // 2. High-speed live polling (1.5s when active, 8s when tab hidden)
+    let timer: NodeJS.Timeout;
+    const runPoll = () => {
+      const intervalMs = document.hidden ? 8000 : 1500;
+      timer = setTimeout(async () => {
+        await fetchLatestTaaruf();
+        runPoll();
+      }, intervalMs);
+    };
+    runPoll();
+
+    // 3. Immediate sync on window focus or visibility change
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchLatestTaaruf();
+      }
+    };
+    const handleFocus = () => {
+      fetchLatestTaaruf();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      if (syncChannelRef.current) {
+        syncChannelRef.current.close();
+      }
+    };
+  }, [fetchLatestTaaruf]);
 
   // Determine if current user is Workspace Owner
   const isOwner = useMemo(() => {
@@ -239,7 +351,10 @@ export function Stage2ProsesTaaruf({
   };
 
   const saveTaarufWithLog = (newData: any, newLog?: ActivityLogItem) => {
-    let dataToSave = { ...newData };
+    const nowIso = new Date().toISOString();
+    let dataToSave = { ...newData, updatedAt: nowIso };
+    lastKnownUpdatedAtRef.current = nowIso;
+
     if (newLog) {
       const existingLogs: ActivityLogItem[] = newData?.activityLogs || [];
       dataToSave.activityLogs = [newLog, ...existingLogs].slice(0, 100);
@@ -251,13 +366,27 @@ export function Stage2ProsesTaaruf({
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        await fetch('/api/m/taaruf', {
+        const res = await fetch('/api/m/taaruf', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dataToSave),
         });
+        if (res.ok) {
+          const resJson = await res.json();
+          if (resJson.data?.updatedAt) {
+            lastKnownUpdatedAtRef.current = resJson.data.updatedAt;
+          }
+        }
         showSaveIndicator();
         onDataChanged?.();
+
+        // Broadcast to other tabs immediately
+        if (syncChannelRef.current) {
+          syncChannelRef.current.postMessage({
+            type: 'TAARUF_UPDATED',
+            updatedAt: nowIso,
+          });
+        }
       } catch (err) {
         console.error('Failed to save taaruf Q&A:', err);
       }
@@ -657,9 +786,15 @@ export function Stage2ProsesTaaruf({
       <div className="bg-white border border-rose-100 rounded-3xl p-5 shadow-[0_4px_20px_rgba(240,86,124,0.06)] space-y-3.5">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 block">
-              Progres Tanya Jawab Pranikah
-            </span>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 block">
+                Progres Tanya Jawab Pranikah
+              </span>
+              <div className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Live Sync</span>
+              </div>
+            </div>
             <h3 className="text-lg font-black text-slate-900">
               {totalCount === 0 ? 'Belum Ada Pertanyaan' : `${agreedCount} dari ${totalCount} Sepakat (${progressPercent}%)`}
             </h3>
