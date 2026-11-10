@@ -1,4 +1,4 @@
----
+﻿---
 deployment:
   tasks:
     - export DEPLOYPATH1=/home/kbtechid/public_html/roadtohalal.kbtech.id
