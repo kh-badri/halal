@@ -1,0 +1,10 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH1=/home/kbtechid/public_html/roadtohalal.kbtech.id
+    - export DEPLOYPATH2=/home/kbtechid/roadtohalal.kbtech.id
+    - /bin/mkdir -p $DEPLOYPATH1 $DEPLOYPATH2
+    - /bin/cp -R * $DEPLOYPATH1/
+    - /bin/cp -R * $DEPLOYPATH2/
+    - /bin/cp .htaccess $DEPLOYPATH1/ 2>/dev/null || true
+    - /bin/cp .htaccess $DEPLOYPATH2/ 2>/dev/null || true
