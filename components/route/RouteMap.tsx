@@ -183,7 +183,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
               Bismillah, Perjalanan Menuju Halal
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
-              Ikhtiar terarah dengan menjaga adab dan syariat · Menuju ikatan suci pernikahan yang berkah
+              Panduan ikhtiar terarah menuju pernikahan yang sakinah dan berkah
             </p>
           </div>
 
