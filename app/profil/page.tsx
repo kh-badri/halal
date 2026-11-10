@@ -550,7 +550,7 @@ export default function ProfilPage() {
           <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-red-700 leading-relaxed">
             <p className="font-bold">Tindakan ini tidak dapat dibatalkan!</p>
             <p className="text-[11px] mt-1">
-              Seluruh biodata, kartu tanya jawab, data anggaran, kontak vendor, checklist KUA, dan berkas foto Anda akan dihapus permanen dari server sesuai UU Perlindungan Data Pribadi (UU PDP).
+              Seluruh biodata, tanya jawab ta’aruf, data anggaran, kontak vendor, checklist KUA, dan berkas foto Anda akan dihapus permanen dari server sesuai UU Perlindungan Data Pribadi (UU PDP).
             </p>
           </div>
 

@@ -51,9 +51,9 @@ export default function HomePage() {
             <CheckCircle2 size={18} />
           </div>
           <div>
-            <h3 className="text-xs font-black text-ink">57 Kartu Tanya Jawab Pranikah</h3>
+            <h3 className="text-xs font-black text-ink">Sesi Tanya Jawab Ta’aruf</h3>
             <p className="text-[11px] text-ink/75 mt-0.5">
-              Kupas tuntas prinsip keuangan, karier, tempat tinggal, anak, dan mertua sejak dini bersama pasangan.
+              Kupas tuntas prinsip kesepakatan, visi keluarga, finansial, dan adab pranikah secara terarah bersama calon pasangan.
             </p>
           </div>
         </div>

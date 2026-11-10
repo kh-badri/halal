@@ -90,7 +90,7 @@ export default function KalenderPage() {
   // Preparation Countdown Phases (PRD Section 9.6)
   const phases = [
     { label: 'H-180 (6 Bulan)', desc: 'Penentuan tanggal, komitmen awal & budgeting dasar', targetDays: 180 },
-    { label: 'H-90 (3 Bulan)', desc: 'Booking vendor gedung/katering, pembahasan 57 kartu Q&A', targetDays: 90 },
+    { label: 'H-90 (3 Bulan)', desc: 'Booking vendor gedung/katering, pembahasan sesi tanya jawab ta’aruf', targetDays: 90 },
     { label: 'H-60 (2 Bulan)', desc: 'Pengurusan berkas kelurahan N1-N4 & cek lab pranikah', targetDays: 60 },
     { label: 'H-30 (1 Bulan)', desc: 'Pendaftaran KUA resmi, suntik TT & fitting busana', targetDays: 30 },
     { label: 'H-14 (2 Minggu)', desc: 'Bimwin KUA, pelunasan termin vendor & sebar undangan', targetDays: 14 },
