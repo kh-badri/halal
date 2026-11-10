@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, MapPin, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { ArrowRight, MapPin, CheckCircle2, ShieldCheck, Download } from 'lucide-react';
 
 export default function HomePage() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function HomePage() {
         <div className="w-24 h-24 mx-auto mb-3.5 relative flex items-center justify-center">
           <div className="absolute inset-0 rounded-3xl bg-blush/60 blur-sm -z-10" />
           <img
-            src="/icons/icon-192x192.png"
+            src="/icons/icon-192x192.png?v=2"
             alt="Road To Halal Logo"
             width={96}
             height={96}
@@ -98,6 +98,24 @@ export default function HomePage() {
         >
           Masuk ke Akun Saya
         </Link>
+
+        {/* Tombol Cadangan Install PWA */}
+        <button
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const banner = document.querySelector('button[aria-label="Tutup"]') as HTMLElement;
+            const installBtn = document.querySelector('button:has(svg.stroke-\\[2\\.5\\])') as HTMLButtonElement;
+            if (installBtn) {
+              installBtn.click();
+            } else {
+              alert('Aplikasi dapat dipasang melalui menu browser Anda: ketuk titik tiga (⋮) atau tombol Share lalu pilih Tambah ke Layar Utama.');
+            }
+          }}
+          className="w-full py-2.5 bg-gradient-to-r from-rose-50 via-blush/40 to-rose-50 border border-rose-300 text-rose-700 font-extrabold rounded-full text-xs hover:bg-rose-100 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+        >
+          <Download size={14} className="shrink-0 stroke-[2.5]" />
+          <span>Pasang / Install Aplikasi di HP</span>
+        </button>
 
         <p className="text-[11px] text-center text-ink/60 pt-2">
           Dengan mendaftar, Anda menyetujui{' '}

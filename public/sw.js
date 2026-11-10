@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roadtohalal-cache-v1';
+const CACHE_NAME = 'roadtohalal-cache-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/rute',
@@ -6,6 +6,9 @@ const PRECACHE_ASSETS = [
   '/offline',
   '/manifest.webmanifest',
   '/favicon.ico',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/icon-maskable.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -23,6 +26,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('Road To Halal: Removing outdated cache', key);
             return caches.delete(key);
           }
         })
@@ -36,7 +40,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // For API GET requests, use Stale-While-Revalidate
+  // 1. For API GET requests, use Stale-While-Revalidate
   if ((url.pathname.startsWith('/api/m/') || url.pathname.startsWith('/api/route')) && request.method === 'GET') {
     event.respondWith(
       caches.open(CACHE_NAME).then((cache) => {
@@ -57,7 +61,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For navigation requests, network first, fallback to cached offline shell
+  // 2. For navigation requests, network first, fallback to cached offline shell
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request).catch(() => {
@@ -69,14 +73,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for static assets
-  if (
-    url.pathname.startsWith('/_next/static/') ||
-    url.pathname.startsWith('/icons/') ||
-    url.pathname.endsWith('.webp') ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.svg')
-  ) {
+  // 3. Network-First for Icons & Logos to prevent stale branding
+  if (url.pathname.startsWith('/icons/') || url.pathname === '/favicon.ico') {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const resClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, resClone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // 4. Cache-First with Network fallback for hashed Next.js assets
+  if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
       caches.match(request).then((cached) => {
         return (

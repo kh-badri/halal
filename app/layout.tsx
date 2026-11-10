@@ -14,10 +14,10 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: 'Road To Halal - Aplikasi Persiapan Pernikahan (PWA)',
   description: 'Aplikasi pendamping calon pengantin dari persetujuan ta’aruf sampai hari-H akad dan walimah.',
-  manifest: '/manifest.webmanifest',
+  manifest: '/manifest.webmanifest?v=2',
   icons: {
-    icon: '/icons/icon-192x192.png',
-    apple: '/icons/icon-192x192.png',
+    icon: '/icons/icon-192x192.png?v=2',
+    apple: '/icons/icon-192x192.png?v=2',
   },
   appleWebApp: {
     capable: true,
@@ -42,7 +42,9 @@ export default function RootLayout({
   return (
     <html lang="id" className={plusJakartaSans.variable}>
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png?v=2" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png?v=2" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png?v=2" />
       </head>
       <body className="bg-[#FAF7F8] min-h-screen text-ink flex justify-center selection:bg-rose-100 selection:text-rose-700">
         <ToastProvider>
@@ -62,6 +64,7 @@ export default function RootLayout({
                   navigator.serviceWorker.register('/sw.js').then(
                     function(reg) {
                       console.log('Road To Halal SW registered:', reg.scope);
+                      reg.update();
                     },
                     function(err) {
                       console.log('Road To Halal SW failed:', err);

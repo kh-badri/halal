@@ -6,53 +6,53 @@ import { BottomSheet } from './BottomSheet';
 
 export const PWAInstallBanner: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showBanner, setShowBanner] = useState(false);
+  // Default to showing banner if not in standalone mode
+  const [showBanner, setShowBanner] = useState(true);
   const [showIosModal, setShowIosModal] = useState(false);
   const [showManualModal, setShowManualModal] = useState(false);
   const [isIos, setIsIos] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    // Clear old permanent dismissed flag so install button always appears as requested
+    try {
+      localStorage.removeItem('roadtohalal_pwa_dismissed');
+    } catch {}
+
+    // Check if user temporarily dismissed in this current session
+    try {
+      const sessionDismissed = sessionStorage.getItem('roadtohalal_pwa_session_dismissed');
+      if (sessionDismissed === 'true') {
+        setShowBanner(false);
+      }
+    } catch {}
+
     // Check if already running in standalone PWA mode
     const standalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true;
     setIsStandalone(standalone);
-    if (standalone) return;
+    if (standalone) {
+      setShowBanner(false);
+      return;
+    }
 
     // Detect iOS Safari
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIos(isIosDevice);
 
-    const dismissed = localStorage.getItem('roadtohalal_pwa_dismissed');
-
-    // On iOS Safari, show the install banner if not dismissed
-    if (isIosDevice && !dismissed) {
-      setShowBanner(true);
-    }
-
-    // Listen for Android/Desktop Chromium beforeinstallprompt
+    // Listen for Android/Chromium beforeinstallprompt
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      if (!dismissed) {
-        setShowBanner(true);
-      }
+      setShowBanner(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // If on mobile browser and not dismissed, show banner after 1.5s
-    const timer = setTimeout(() => {
-      if (!dismissed) {
-        setShowBanner(true);
-      }
-    }, 1500);
-
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      clearTimeout(timer);
     };
   }, []);
 
@@ -73,51 +73,51 @@ export const PWAInstallBanner: React.FC = () => {
 
   const handleDismiss = () => {
     setShowBanner(false);
-    localStorage.setItem('roadtohalal_pwa_dismissed', 'true');
+    try {
+      sessionStorage.setItem('roadtohalal_pwa_session_dismissed', 'true');
+    } catch {}
   };
 
-  if (isStandalone) return null;
+  if (isStandalone || !showBanner) return null;
 
   return (
     <>
-      {showBanner && (
-        <div className="mx-4 my-2.5 p-3 bg-white border-2 border-ink rounded-2xl shadow-subtle flex items-center justify-between gap-3 animate-in fade-in duration-300">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <img
-              src="/icons/icon-192x192.png"
-              alt="Road To Halal"
-              className="w-10 h-10 rounded-xl border border-rose-200 shadow-sm object-cover shrink-0"
-            />
-            <div className="truncate">
-              <p className="text-xs font-black text-ink leading-tight">Pasang Road To Halal</p>
-              <p className="text-[11px] text-ink/70 truncate">Akses cepat di layar utama HP</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={handleInstallClick}
-              className="px-3.5 py-1.5 bg-blush border-2 border-ink text-ink text-xs font-black rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-1"
-            >
-              <Download size={13} className="shrink-0" />
-              <span>Install</span>
-            </button>
-            <button
-              onClick={handleDismiss}
-              className="p-1 text-ink/50 hover:text-ink transition-colors"
-              aria-label="Tutup"
-            >
-              <X size={15} />
-            </button>
+      <div className="mx-3.5 my-2.5 p-3 bg-white border-2 border-ink rounded-2xl shadow-subtle flex items-center justify-between gap-2.5 animate-in fade-in duration-300">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <img
+            src="/icons/icon-192x192.png?v=2"
+            alt="Road To Halal"
+            className="w-10 h-10 rounded-xl border border-rose-200 shadow-sm object-cover shrink-0"
+          />
+          <div className="truncate">
+            <p className="text-xs font-black text-ink leading-tight">Pasang Road To Halal</p>
+            <p className="text-[11px] text-ink/70 truncate">Akses cepat di layar utama HP</p>
           </div>
         </div>
-      )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={handleInstallClick}
+            className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white border-2 border-ink text-xs font-black rounded-full shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5"
+          >
+            <Download size={14} className="shrink-0 stroke-[2.5]" />
+            <span>Install</span>
+          </button>
+          <button
+            onClick={handleDismiss}
+            className="p-1 text-ink/50 hover:text-ink transition-colors"
+            aria-label="Tutup"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      </div>
 
       {/* iOS Safari Install Guide Modal */}
       <BottomSheet isOpen={showIosModal} onClose={() => setShowIosModal(false)} title="Cara Pasang di iPhone (iOS)">
         <div className="space-y-3.5 py-2 text-ink text-sm">
           <div className="flex items-center gap-3 p-3 bg-blush/30 border border-ink/20 rounded-2xl">
             <img
-              src="/icons/icon-192x192.png"
+              src="/icons/icon-192x192.png?v=2"
               alt="Road To Halal"
               className="w-12 h-12 rounded-2xl shadow-sm border border-rose-200/80 object-cover shrink-0"
             />
@@ -175,7 +175,7 @@ export const PWAInstallBanner: React.FC = () => {
         <div className="space-y-3.5 py-2 text-ink text-sm">
           <div className="flex items-center gap-3 p-3 bg-blush/30 border border-ink/20 rounded-2xl">
             <img
-              src="/icons/icon-192x192.png"
+              src="/icons/icon-192x192.png?v=2"
               alt="Road To Halal"
               className="w-12 h-12 rounded-2xl shadow-sm border border-rose-200/80 object-cover shrink-0"
             />
