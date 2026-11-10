@@ -72,10 +72,9 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
     load();
   }, []);
 
-  // Fast auto-save for profile
+  // Fast auto-save for profile (selalu diizinkan untuk biodata/profil)
   const saveProfile = (newProfile: any, immediate = false) => {
     setProfileData(newProfile);
-    if (isReadOnly) return;
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(async () => {
@@ -96,7 +95,6 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
   // Fast auto-save for taaruf
   const saveTaaruf = (newTaaruf: any, immediate = false) => {
     setTaarufData(newTaaruf);
-    if (isReadOnly) return;
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(async () => {
@@ -115,7 +113,6 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
   };
 
   const handleProfileFieldChange = (field: string, value: any) => {
-    if (isReadOnly) return;
     const currentPerson = profileData?.[personTab] || {};
     const updatedPerson = { ...currentPerson, [field]: value };
     const updated = {
@@ -126,7 +123,6 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
   };
 
   const handleHealthFieldChange = (field: string, value: any) => {
-    if (isReadOnly) return;
     const targetKey = personTab === 'self' ? 'healthSelf' : 'healthPartner';
     const current = taarufData?.[targetKey] || {};
     const updated = {
@@ -137,7 +133,6 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
   };
 
   const handleFamilyFieldChange = (field: string, value: any) => {
-    if (isReadOnly) return;
     const targetKey = personTab === 'self' ? 'familySelf' : 'familyPartner';
     const current = taarufData?.[targetKey] || {};
     const updated = {
@@ -148,7 +143,6 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isReadOnly) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -184,6 +178,9 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
   const currentPerson = profileData?.[personTab] || {};
   const currentHealth = personTab === 'self' ? taarufData?.healthSelf || {} : taarufData?.healthPartner || {};
   const currentFamily = personTab === 'self' ? taarufData?.familySelf || {} : taarufData?.familyPartner || {};
+  // Catin diperbolehkan mengedit biodata & kesehatannya sendiri walaupun berstatus read-only
+  const isBiodataDisabled = isReadOnly && personTab !== 'self';
+  const isHealthSelfDisabled = isReadOnly && personTab !== 'self';
 
   return (
     <div className="space-y-4">
@@ -298,7 +295,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 ) : (
                   <User className="w-10 h-10 text-ink/40" />
                 )}
-                {!isReadOnly && (
+                {!isBiodataDisabled && (
                   <label className="absolute inset-0 bg-ink/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white">
                     <Upload className="w-5 h-5" />
                     <input
@@ -334,7 +331,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 </label>
                 <input
                   type="text"
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.fullName || ''}
                   onChange={(e) => handleProfileFieldChange('fullName', e.target.value)}
                   placeholder="Contoh: Ahmad Fauzan"
@@ -346,7 +343,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 <label className="block text-xs font-bold text-ink mb-1">Nama Panggilan</label>
                 <input
                   type="text"
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.nickname || ''}
                   onChange={(e) => handleProfileFieldChange('nickname', e.target.value)}
                   placeholder="Contoh: Fauzan"
@@ -360,7 +357,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 </label>
                 <input
                   type="date"
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.birthDate || currentPerson.dob || ''}
                   onChange={(e) => {
                     handleProfileFieldChange('birthDate', e.target.value);
@@ -374,7 +371,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 <label className="block text-xs font-bold text-ink mb-1">Tempat Lahir</label>
                 <input
                   type="text"
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.birthPlace || ''}
                   onChange={(e) => handleProfileFieldChange('birthPlace', e.target.value)}
                   placeholder="Kota kelahiran"
@@ -388,7 +385,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 </label>
                 <input
                   type="text"
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.domicile || ''}
                   onChange={(e) => handleProfileFieldChange('domicile', e.target.value)}
                   placeholder="Kota / Kabupaten tempat tinggal"
@@ -402,7 +399,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 </label>
                 <input
                   type="text"
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.occupation || ''}
                   onChange={(e) => handleProfileFieldChange('occupation', e.target.value)}
                   placeholder="Profesi atau instansi"
@@ -416,7 +413,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 </label>
                 <input
                   type="tel"
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.phone || currentPerson.whatsapp || ''}
                   onChange={(e) => {
                     handleProfileFieldChange('phone', e.target.value);
@@ -430,7 +427,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
               <div>
                 <label className="block text-xs font-bold text-ink mb-1">Status Pernikahan</label>
                 <select
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.status || 'lajang'}
                   onChange={(e) => handleProfileFieldChange('status', e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
@@ -458,7 +455,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   </label>
                   <input
                     type="number"
-                    disabled={isReadOnly}
+                    disabled={isBiodataDisabled}
                     value={currentPerson.heightCm || ''}
                     onChange={(e) => handleProfileFieldChange('heightCm', Number(e.target.value))}
                     placeholder="Contoh: 170"
@@ -472,7 +469,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   </label>
                   <input
                     type="number"
-                    disabled={isReadOnly}
+                    disabled={isBiodataDisabled}
                     value={currentPerson.weightKg || ''}
                     onChange={(e) => handleProfileFieldChange('weightKg', Number(e.target.value))}
                     placeholder="Contoh: 65"
@@ -489,7 +486,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   </label>
                   <input
                     type="text"
-                    disabled={isReadOnly}
+                    disabled={isBiodataDisabled}
                     value={currentPerson.ethnicity || ''}
                     onChange={(e) => handleProfileFieldChange('ethnicity', e.target.value)}
                     placeholder="Contoh: Jawa, Sunda"
@@ -503,7 +500,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   </label>
                   <input
                     type="text"
-                    disabled={isReadOnly}
+                    disabled={isBiodataDisabled}
                     value={currentPerson.education || ''}
                     onChange={(e) => handleProfileFieldChange('education', e.target.value)}
                     placeholder="Contoh: S1 / D3 / SMA"
@@ -518,7 +515,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 <label className="block text-xs font-bold text-ink mb-1">Visi & Misi Pernikahan</label>
                 <textarea
                   rows={2}
-                  disabled={isReadOnly}
+                  disabled={isBiodataDisabled}
                   value={currentPerson.visionMission || ''}
                   onChange={(e) => handleProfileFieldChange('visionMission', e.target.value)}
                   placeholder="Gambarkan rumah tangga impian yang ingin dibangun bersama..."
@@ -531,7 +528,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   <label className="block text-xs font-bold text-ink mb-1">Rutinitas Ibadah & Amalan</label>
                   <textarea
                     rows={2}
-                    disabled={isReadOnly}
+                    disabled={isBiodataDisabled}
                     value={currentPerson.worshipRoutine || ''}
                     onChange={(e) => handleProfileFieldChange('worshipRoutine', e.target.value)}
                     placeholder="Kebiasaan salat berjamaah, tilawah, puasa sunnah, dll."
@@ -543,7 +540,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   <label className="block text-xs font-bold text-ink mb-1">Hafalan Qur’an & Kajian</label>
                   <textarea
                     rows={2}
-                    disabled={isReadOnly}
+                    disabled={isBiodataDisabled}
                     value={currentPerson.quranHafalan || currentPerson.routineStudy || ''}
                     onChange={(e) => {
                       handleProfileFieldChange('quranHafalan', e.target.value);
@@ -560,7 +557,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   <label className="block text-xs font-bold text-ink mb-1">Kelebihan Diri</label>
                   <input
                     type="text"
-                    disabled={isReadOnly}
+                    disabled={isBiodataDisabled}
                     value={currentPerson.strengths || ''}
                     onChange={(e) => handleProfileFieldChange('strengths', e.target.value)}
                     placeholder="Contoh: Sabar, teliti, gemar belajar"
@@ -571,7 +568,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   <label className="block text-xs font-bold text-ink mb-1">Hal yang Perlu Ditoleransi / Diperbaiki</label>
                   <input
                     type="text"
-                    disabled={isReadOnly}
+                    disabled={isBiodataDisabled}
                     value={currentPerson.weaknesses || ''}
                     onChange={(e) => handleProfileFieldChange('weaknesses', e.target.value)}
                     placeholder="Contoh: Terkadang pelupa saat lelah"
@@ -609,7 +606,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     Golongan Darah
                   </label>
                   <select
-                    disabled={isReadOnly}
+                    disabled={isHealthSelfDisabled}
                     value={currentHealth.bloodType || ''}
                     onChange={(e) => handleHealthFieldChange('bloodType', e.target.value)}
                     className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
@@ -627,7 +624,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     Rhesus (+ / -)
                   </label>
                   <select
-                    disabled={isReadOnly}
+                    disabled={isHealthSelfDisabled}
                     value={currentHealth.rhesus || ''}
                     onChange={(e) => handleHealthFieldChange('rhesus', e.target.value)}
                     className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
@@ -647,7 +644,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   </label>
                   <input
                     type="text"
-                    disabled={isReadOnly}
+                    disabled={isHealthSelfDisabled}
                     value={currentHealth.allergies || ''}
                     onChange={(e) => handleHealthFieldChange('allergies', e.target.value)}
                     placeholder="Makanan, obat, dll."
@@ -661,7 +658,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   </label>
                   <input
                     type="text"
-                    disabled={isReadOnly}
+                    disabled={isHealthSelfDisabled}
                     value={currentHealth.chronicIllness || ''}
                     onChange={(e) => handleHealthFieldChange('chronicIllness', e.target.value)}
                     placeholder="Asma, maag, dll."
@@ -677,7 +674,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 </label>
                 <textarea
                   rows={2}
-                  disabled={isReadOnly}
+                  disabled={isHealthSelfDisabled}
                   value={currentHealth.routineMedication || currentHealth.surgeryHistory || ''}
                   onChange={(e) => {
                     handleHealthFieldChange('routineMedication', e.target.value);
@@ -695,7 +692,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 </label>
                 <textarea
                   rows={2}
-                  disabled={isReadOnly}
+                  disabled={isHealthSelfDisabled}
                   value={currentHealth.labTestResults || currentHealth.notes || ''}
                   onChange={(e) => {
                     handleHealthFieldChange('labTestResults', e.target.value);
@@ -724,7 +721,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   </label>
                   <input
                     type="text"
-                    disabled={isReadOnly}
+                    disabled={isHealthSelfDisabled}
                     value={currentFamily.fatherName ? `${currentFamily.fatherName}${currentFamily.fatherOccupation ? ` (${currentFamily.fatherOccupation})` : ''}` : ''}
                     onChange={(e) => {
                       handleFamilyFieldChange('fatherName', e.target.value);
@@ -740,7 +737,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   </label>
                   <input
                     type="text"
-                    disabled={isReadOnly}
+                    disabled={isHealthSelfDisabled}
                     value={currentFamily.motherName ? `${currentFamily.motherName}${currentFamily.motherOccupation ? ` (${currentFamily.motherOccupation})` : ''}` : ''}
                     onChange={(e) => {
                       handleFamilyFieldChange('motherName', e.target.value);
@@ -761,7 +758,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 </div>
                 <input
                   type="text"
-                  disabled={isReadOnly}
+                  disabled={isHealthSelfDisabled}
                   value={currentFamily.waliNasab || ''}
                   onChange={(e) => handleFamilyFieldChange('waliNasab', e.target.value)}
                   placeholder="Contoh: Ayah Kandung / Kakak Laki-laki Seayah"
@@ -778,7 +775,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   <input
                     type="number"
                     min={1}
-                    disabled={isReadOnly}
+                    disabled={isHealthSelfDisabled}
                     value={currentFamily.childOrder || currentFamily.siblingOrder || 1}
                     onChange={(e) => {
                       const val = Number(e.target.value);
@@ -797,7 +794,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   <input
                     type="number"
                     min={1}
-                    disabled={isReadOnly}
+                    disabled={isHealthSelfDisabled}
                     value={currentFamily.siblingCount || currentFamily.siblingsCount || 1}
                     onChange={(e) => {
                       const val = Number(e.target.value);
@@ -828,7 +825,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
               <label className="flex items-center gap-3 p-3 bg-white rounded-2xl border-2 border-ink cursor-pointer hover:bg-sky/20 transition-colors">
                 <input
                   type="checkbox"
-                  disabled={isReadOnly}
+                  disabled={isHealthSelfDisabled}
                   checked={Boolean(taarufData?.healthExchanged)}
                   onChange={(e) => saveTaaruf({ ...taarufData, healthExchanged: e.target.checked }, true)}
                   className="w-5 h-5 rounded-lg border-2 border-ink accent-ink text-ink focus:ring-0"
@@ -841,7 +838,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
               <label className="flex items-center gap-3 p-3 bg-white rounded-2xl border-2 border-ink cursor-pointer hover:bg-sky/20 transition-colors">
                 <input
                   type="checkbox"
-                  disabled={isReadOnly}
+                  disabled={isHealthSelfDisabled}
                   checked={Boolean(taarufData?.familyExchanged)}
                   onChange={(e) => saveTaaruf({ ...taarufData, familyExchanged: e.target.checked }, true)}
                   className="w-5 h-5 rounded-lg border-2 border-ink accent-ink text-ink focus:ring-0"
@@ -1149,7 +1146,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     <button
                       key={opt.id}
                       type="button"
-                      disabled={isReadOnly}
+                      disabled={false}
                       onClick={() => {
                         saveTaaruf({
                           ...taarufData,
@@ -1179,7 +1176,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">Catatan Pertimbangan Saya</label>
                 <input
                   type="text"
-                  disabled={isReadOnly}
+                  disabled={false}
                   value={taarufData?.decisions?.selfNotes || ''}
                   onChange={(e) =>
                     saveTaaruf({

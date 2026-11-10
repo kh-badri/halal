@@ -50,6 +50,12 @@ export default function GabungPage() {
 
       setInvitePreview(data);
       setCode(cleanCode);
+      if (data.suggestedRole) {
+        setRole(data.suggestedRole);
+      }
+      if (data.partnerName && !name) {
+        setName(data.partnerName);
+      }
       setChecking(false);
     } catch {
       setErrorMsg('Gagal memeriksa kode. Periksa koneksi internet Anda.');
@@ -239,6 +245,11 @@ export default function GabungPage() {
                 <label className="block text-[11px] font-bold text-ink mb-1">
                   Peran
                 </label>
+                {invitePreview?.relation?.toLowerCase() === 'pasangan' && (
+                  <p className="text-[11px] text-ink/70 mb-2 bg-blush/30 px-3 py-1.5 rounded-xl border border-ink/20">
+                    Otomatis diselaraskan sebagai <strong>Catin {role === 'wanita' ? 'Wanita' : 'Pria'}</strong> untuk pasangan.
+                  </p>
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"

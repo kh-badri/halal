@@ -314,6 +314,123 @@ function getDefaultModuleData($module, $user = null) {
     return ['schemaVersion' => 1, 'rev' => 1, 'updatedAt' => $now];
 }
 
+// Helper: Check if user is the invited Partner in the workspace
+function isWorkspacePartner($user, $workspace) {
+    if (!$user || !$workspace) return false;
+    $ownerId = $workspace['ownerId'] ?? '';
+    if ($user['id'] === $ownerId) {
+        return false;
+    }
+    if (!empty($workspace['members'])) {
+        foreach ($workspace['members'] as $m) {
+            if ($m['userId'] === $user['id']) {
+                $relation = strtolower($m['relation'] ?? '');
+                if ($relation === 'pasangan') {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// Helper: Transform Profile perspective for Partner
+function transformProfileForUser($profile, $isPartner) {
+    if (!$isPartner || !is_array($profile)) return $profile;
+    $transformed = $profile;
+    $self = $profile['self'] ?? [];
+    $partner = $profile['partner'] ?? [];
+    $transformed['self'] = $partner;
+    $transformed['partner'] = $self;
+    return $transformed;
+}
+
+// Helper: Reverse Transform Profile perspective when Partner saves
+function reverseTransformProfileFromUser($input, $existing, $isPartner) {
+    if (!$isPartner) {
+        $merged = array_replace_recursive($existing, $input);
+        foreach ($input as $k => $v) { $merged[$k] = $v; }
+        return $merged;
+    }
+    $merged = $existing;
+    if (isset($input['self'])) {
+        $merged['partner'] = array_replace_recursive($existing['partner'] ?? [], $input['self']);
+    }
+    if (isset($input['partner'])) {
+        $merged['self'] = array_replace_recursive($existing['self'] ?? [], $input['partner']);
+    }
+    foreach ($input as $k => $v) {
+        if ($k !== 'self' && $k !== 'partner') {
+            $merged[$k] = $v;
+        }
+    }
+    return $merged;
+}
+
+// Helper: Transform Taaruf perspective for Partner
+function transformTaarufForUser($taaruf, $isPartner) {
+    if (!$isPartner || !is_array($taaruf)) return $taaruf;
+    $transformed = $taaruf;
+    $transformed['healthSelf'] = $taaruf['healthPartner'] ?? [];
+    $transformed['healthPartner'] = $taaruf['healthSelf'] ?? [];
+    $transformed['familySelf'] = $taaruf['familyPartner'] ?? [];
+    $transformed['familyPartner'] = $taaruf['familySelf'] ?? [];
+
+    $decisions = $taaruf['decisions'] ?? [];
+    $transformed['decisions'] = [
+        'selfDecision' => $decisions['partnerDecision'] ?? 'belum',
+        'partnerDecision' => $decisions['selfDecision'] ?? 'belum',
+        'selfNotes' => $decisions['partnerNotes'] ?? '',
+        'partnerNotes' => $decisions['selfNotes'] ?? '',
+        'notes' => $decisions['notes'] ?? ''
+    ];
+    return $transformed;
+}
+
+// Helper: Reverse Transform Taaruf perspective when Partner saves
+function reverseTransformTaarufFromUser($input, $existing, $isPartner) {
+    if (!$isPartner) {
+        $merged = array_replace_recursive($existing, $input);
+        foreach ($input as $k => $v) { $merged[$k] = $v; }
+        return $merged;
+    }
+    $merged = $existing;
+    if (isset($input['healthSelf'])) {
+        $merged['healthPartner'] = array_replace_recursive($existing['healthPartner'] ?? [], $input['healthSelf']);
+    }
+    if (isset($input['healthPartner'])) {
+        $merged['healthSelf'] = array_replace_recursive($existing['healthSelf'] ?? [], $input['healthPartner']);
+    }
+    if (isset($input['familySelf'])) {
+        $merged['familyPartner'] = array_replace_recursive($existing['familyPartner'] ?? [], $input['familySelf']);
+    }
+    if (isset($input['familyPartner'])) {
+        $merged['familySelf'] = array_replace_recursive($existing['familySelf'] ?? [], $input['familyPartner']);
+    }
+    if (isset($input['decisions'])) {
+        $dec = $existing['decisions'] ?? [];
+        if (isset($input['decisions']['selfDecision'])) {
+            $dec['partnerDecision'] = $input['decisions']['selfDecision'];
+        }
+        if (isset($input['decisions']['partnerDecision'])) {
+            $dec['selfDecision'] = $input['decisions']['partnerDecision'];
+        }
+        if (isset($input['decisions']['selfNotes'])) {
+            $dec['partnerNotes'] = $input['decisions']['selfNotes'];
+        }
+        if (isset($input['decisions']['partnerNotes'])) {
+            $dec['selfNotes'] = $input['decisions']['partnerNotes'];
+        }
+        $merged['decisions'] = $dec;
+    }
+    foreach ($input as $k => $v) {
+        if (!in_array($k, ['healthSelf', 'healthPartner', 'familySelf', 'familyPartner', 'decisions'])) {
+            $merged[$k] = $v;
+        }
+    }
+    return $merged;
+}
+
 // Parse Route
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $apiPos = strpos($uri, '/api/');
@@ -712,13 +829,24 @@ if ($route === 'members/join') {
             jsonResponse(['error' => 'Kode undangan tidak valid atau sudah kedaluwarsa'], 404);
         }
         $owner = readJson($DATA_DIR . '/users/' . ($foundWs['ownerId'] ?? '') . '/user.json');
+        $ownerRole = $owner['role'] ?? 'pria';
+        $relation = $foundInvite['relation'] ?? 'Pasangan';
+        $isPartner = (strtolower($relation) === 'pasangan');
+        $suggestedRole = $isPartner ? ($ownerRole === 'pria' ? 'wanita' : 'pria') : 'wanita';
+
+        $wsProfile = readJson($wf . '/profile.json', []);
+        $partnerName = $wsProfile['partner']['fullName'] ?? '';
+
         jsonResponse([
             'valid' => true,
             'code' => $foundInvite['code'],
             'access' => $foundInvite['access'] ?? 'read',
-            'relation' => $foundInvite['relation'] ?? 'Pasangan',
+            'relation' => $relation,
             'expiresAt' => $foundInvite['expiresAt'] ?? null,
-            'workspaceOwnerName' => $owner['name'] ?? 'Calon Pengantin'
+            'workspaceOwnerName' => $owner['name'] ?? 'Calon Pengantin',
+            'ownerRole' => $ownerRole,
+            'suggestedRole' => $suggestedRole,
+            'partnerName' => $partnerName
         ]);
     }
 
@@ -749,6 +877,29 @@ if ($route === 'members/join') {
             jsonResponse(['error' => 'Kode undangan tidak valid atau sudah kedaluwarsa'], 404);
         }
 
+        $owner = readJson($DATA_DIR . '/users/' . ($foundWs['ownerId'] ?? '') . '/user.json');
+        $ownerRole = $owner['role'] ?? 'pria';
+        $relation = $foundInvite['relation'] ?? 'Pasangan';
+        $isPartner = (strtolower($relation) === 'pasangan');
+
+        // Otomatis tentukan role pasangan (berlawanan dari pemilik)
+        if ($isPartner) {
+            $role = ($ownerRole === 'pria') ? 'wanita' : 'pria';
+        }
+
+        // Sinkronisasi nama dengan profile.json pasangan bila sudah pernah diisikan pemilik
+        $wsProfileFile = $foundWsDir . '/profile.json';
+        $wsProfile = readJson($wsProfileFile, []);
+        if ($isPartner) {
+            if (empty($name) && !empty($wsProfile['partner']['fullName'])) {
+                $name = $wsProfile['partner']['fullName'];
+            } else if (!empty($name) && empty($wsProfile['partner']['fullName'])) {
+                $wsProfile['partner']['fullName'] = $name;
+                $wsProfile['partner']['nickname'] = explode(' ', $name)[0];
+                writeJsonAtomic($wsProfileFile, $wsProfile);
+            }
+        }
+
         $user = getCurrentUser($DATA_DIR);
         if (!$user) {
             if (empty($name) || strlen($password) < 6 || empty($identifier)) {
@@ -776,6 +927,12 @@ if ($route === 'members/join') {
             ];
             writeJsonAtomic($DATA_DIR . '/users/' . $userId . '/user.json', $user);
             writeJsonAtomic($DATA_DIR . '/users/' . $userId . '/auth.json', $auth);
+        } else {
+            // Update existing user role if partner
+            if ($isPartner) {
+                $user['role'] = $role;
+                writeJsonAtomic($DATA_DIR . '/users/' . $user['id'] . '/user.json', $user);
+            }
         }
 
         $members = $foundWs['members'] ?? [];
@@ -783,9 +940,9 @@ if ($route === 'members/join') {
             'userId' => $user['id'],
             'name' => $user['name'],
             'identifier' => $user['identifier'] ?? '',
-            'role' => $user['role'] ?? 'wanita',
+            'role' => $role,
             'access' => $foundInvite['access'] ?? 'read',
-            'relation' => $foundInvite['relation'] ?? 'Pasangan',
+            'relation' => $relation,
             'joinedAt' => date('c')
         ];
         $foundWs['members'] = $members;
@@ -999,12 +1156,28 @@ if ($route === 'route' && $method === 'GET') {
         ];
     }
 
+    $workspace = readJson($wsDir . '/workspace.json');
+    $userAccess = 'owner';
+    if ($user['id'] !== ($workspace['ownerId'] ?? '')) {
+        $userAccess = 'read';
+        if (!empty($workspace['members'])) {
+            foreach ($workspace['members'] as $m) {
+                if ($m['userId'] === $user['id']) {
+                    $userAccess = $m['access'] ?? 'read';
+                    break;
+                }
+            }
+        }
+    }
+    $isPartner = isWorkspacePartner($user, $workspace);
+
     jsonResponse([
         'workspaceId' => $workspaceId,
         'currentStage' => $currentStage,
         'status' => $routeData['status'] ?? 'in_progress',
         'completed' => $completed,
-        'access' => 'owner',
+        'access' => $userAccess,
+        'isPartner' => $isPartner,
         'stages' => $stages
     ]);
 }
@@ -1145,38 +1318,90 @@ if (preg_match('#^m/([a-zA-Z0-9_-]+)$#', $route, $matches)) {
     $module = $matches[1];
     $moduleFile = $wsDir . '/' . $module . '.json';
 
+    $workspace = readJson($wsDir . '/workspace.json');
+    $userAccess = 'owner';
+    if ($user['id'] !== ($workspace['ownerId'] ?? '')) {
+        $userAccess = 'read';
+        if (!empty($workspace['members'])) {
+            foreach ($workspace['members'] as $m) {
+                if ($m['userId'] === $user['id']) {
+                    $userAccess = $m['access'] ?? 'read';
+                    break;
+                }
+            }
+        }
+    }
+    $isPartner = isWorkspacePartner($user, $workspace);
+
     if ($method === 'GET') {
         $default = getDefaultModuleData($module, $user);
         $data = readJson($moduleFile, $default);
-        // Ensure default structure is completely populated
         $data = array_replace_recursive($default, $data);
+
+        // Jika user adalah pasangan, sajikan sudut pandang data (self vs partner)
+        if ($isPartner) {
+            if ($module === 'profile') {
+                $data = transformProfileForUser($data, true);
+            } else if ($module === 'taaruf') {
+                $data = transformTaarufForUser($data, true);
+            }
+        }
+
+        // Pasangan diizinkan mengedit biodata/profile & taaruf miliknya walaupun access utama read
+        $effectiveAccess = ($isPartner && ($module === 'profile' || $module === 'taaruf')) ? 'full' : $userAccess;
+
         jsonResponse([
             'success' => true,
-            'access' => 'owner',
+            'access' => $effectiveAccess,
             'data' => $data
         ]);
     }
 
     if ($method === 'POST' || $method === 'PATCH' || $method === 'PUT') {
+        // Cek izin akses: anggota dengan akses read-only HANYA boleh edit profile & taaruf jika dia pasangan
+        if ($userAccess === 'read' && !($isPartner && ($module === 'profile' || $module === 'taaruf'))) {
+            jsonResponse(['error' => 'Akses hanya baca (read-only). Anda tidak dapat mengubah data modul ini.'], 403);
+        }
+
         $default = getDefaultModuleData($module, $user);
         $existing = readJson($moduleFile, $default);
-        $merged = array_replace_recursive($existing, $input);
-        // Replace top level fields directly if provided
-        foreach ($input as $k => $v) {
-            $merged[$k] = $v;
+        $existing = array_replace_recursive($default, $existing);
+
+        if ($isPartner) {
+            if ($module === 'profile') {
+                $merged = reverseTransformProfileFromUser($input, $existing, true);
+            } else if ($module === 'taaruf') {
+                $merged = reverseTransformTaarufFromUser($input, $existing, true);
+            } else {
+                $merged = array_replace_recursive($existing, $input);
+                foreach ($input as $k => $v) { $merged[$k] = $v; }
+            }
+        } else {
+            $merged = array_replace_recursive($existing, $input);
+            foreach ($input as $k => $v) { $merged[$k] = $v; }
         }
+
         $merged['updatedAt'] = date('c');
         writeJsonAtomic($moduleFile, $merged);
 
-        // Sync name to user.json if profile self fullName changed
+        // Sync name to user.json if fullName changed
         if ($module === 'profile' && !empty($input['self']['fullName'])) {
             $user['name'] = $input['self']['fullName'];
             writeJsonAtomic($DATA_DIR . '/users/' . $user['id'] . '/user.json', $user);
         }
 
+        $responseData = $merged;
+        if ($isPartner) {
+            if ($module === 'profile') {
+                $responseData = transformProfileForUser($merged, true);
+            } else if ($module === 'taaruf') {
+                $responseData = transformTaarufForUser($merged, true);
+            }
+        }
+
         jsonResponse([
             'success' => true,
-            'data' => $merged
+            'data' => $responseData
         ]);
     }
 }
