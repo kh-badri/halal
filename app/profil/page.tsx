@@ -307,7 +307,13 @@ export default function ProfilPage() {
 
               <div className="flex justify-between py-1.5 border-b border-blush/60">
                 <span className="text-ink/65">Status Pernikahan</span>
-                <span className="font-bold text-ink capitalize">{person.status || 'Lajang'}</span>
+                <span className="font-bold text-ink">
+                  {person.status === 'duda'
+                    ? 'Duda'
+                    : person.status === 'janda'
+                    ? 'Janda'
+                    : 'Belum Pernah Menikah'}
+                </span>
               </div>
 
               <div className="flex justify-between py-1.5 border-b border-blush/60">

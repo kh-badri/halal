@@ -432,7 +432,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   onChange={(e) => handleProfileFieldChange('status', e.target.value)}
                   className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
                 >
-                  <option value="lajang">Lajang (Belum Pernah Menikah)</option>
+                  <option value="lajang">Belum Pernah Menikah</option>
                   <option value="duda">Duda</option>
                   <option value="janda">Janda</option>
                 </select>

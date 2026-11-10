@@ -183,9 +183,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
               Bismillah, Perjalanan Menuju Halal
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
-              {partnerName
-                ? `Langkah terarah bersama ${partnerName} · Ikhtiar terbaik menuju ikatan suci`
-                : 'Satu per satu tahap terarah, tenang, dan berkah menuju akad'}
+              Ikhtiar terarah dengan menjaga adab dan syariat · Menuju ikatan suci pernikahan yang berkah
             </p>
           </div>
 
