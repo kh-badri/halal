@@ -1,31 +1,31 @@
 <?php
 /**
  * Road To Halal - Native PHP REST API Engine for cPanel Hosting
- * Handles Auth, Workspaces, Modules, Stage Locks, File Uploads, and Backup
- * 100% Native PHP - Zero Node.js Required
+ * Handles Auth, Workspaces, Modules, Stage Locks, File Uploads, Members, and Backup
+ * 100% Native PHP - Zero Node.js Daemon Process Required
  */
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
 
-// Determine DATA_DIR (Prefer outside public_html if possible)
+// Determine DATA_DIR (Prefer roadtohalal-data folder, protect via .htaccess)
 $envDataDir = getenv('DATA_DIR');
 if ($envDataDir && is_dir($envDataDir)) {
     $DATA_DIR = rtrim($envDataDir, '/\\');
 } else {
-    // Try /home/username/roadtohalal-data (outside public_html)
-    $parentDir = dirname(__DIR__, 2); // /home/username/public_html -> /home/username
+    // Try parent directory (/home/username/public_html or /home/username)
+    $parentDir = dirname(__DIR__, 2);
     $outsideData = $parentDir . '/roadtohalal-data';
     if (!is_dir($outsideData)) {
-        @mkdir($outsideData, 0700, true);
+        @mkdir($outsideData, 0755, true);
     }
     if (is_dir($outsideData) && is_writable($outsideData)) {
         $DATA_DIR = $outsideData;
     } else {
         $DATA_DIR = __DIR__ . '/../../roadtohalal-data';
         if (!is_dir($DATA_DIR)) {
-            @mkdir($DATA_DIR, 0700, true);
+            @mkdir($DATA_DIR, 0755, true);
         }
     }
 }
@@ -49,6 +49,13 @@ function jsonResponse($data, $statusCode = 200) {
     exit;
 }
 
+// Helper: Ensure directory exists with 0755
+function ensureDir($dir) {
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+}
+
 // Helper: Read JSON File
 function readJson($filePath, $default = []) {
     if (!file_exists($filePath)) {
@@ -63,9 +70,7 @@ function readJson($filePath, $default = []) {
 // Helper: Atomic Write JSON File
 function writeJsonAtomic($filePath, $data) {
     $dir = dirname($filePath);
-    if (!is_dir($dir)) {
-        @mkdir($dir, 0700, true);
-    }
+    ensureDir($dir);
     $tmp = $filePath . '.tmp.' . bin2hex(random_bytes(4));
     $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     if (@file_put_contents($tmp, $json) !== false) {
@@ -78,9 +83,29 @@ function writeJsonAtomic($filePath, $data) {
     return false;
 }
 
+// Helper: Set Multi-Token Session Cookies for Frontend Compatibility
+function setUserSessionCookies($userId) {
+    $_SESSION['user_id'] = $userId;
+    $expire = time() + (86400 * 30);
+    $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+    setcookie('rth_uid', $userId, $expire, '/', '', $isSecure, true);
+    setcookie('roadtohalal_session', $userId, $expire, '/', '', $isSecure, true);
+    setcookie('nikahku_session', $userId, $expire, '/', '', $isSecure, true);
+}
+
+// Helper: Clear Session Cookies
+function clearUserSessionCookies() {
+    $_SESSION = [];
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_destroy();
+    }
+    setcookie('rth_uid', '', time() - 3600, '/');
+    setcookie('roadtohalal_session', '', time() - 3600, '/');
+    setcookie('nikahku_session', '', time() - 3600, '/');
+}
+
 // Parse Route
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-// Strip base path leading up to /api/
 $apiPos = strpos($uri, '/api/');
 $route = '';
 if ($apiPos !== false) {
@@ -91,23 +116,33 @@ if ($apiPos !== false) {
 
 $method = $_SERVER['REQUEST_METHOD'];
 $rawInput = file_get_contents('php://input');
-$input = json_decode($rawInput, true) ?: [];
+$input = json_decode($rawInput, true);
+if (!is_array($input) || empty($input)) {
+    $input = $_POST;
+}
 
-// Get Current User / Session
+// Helper: Get Current User / Session
 function getCurrentUser($DATA_DIR) {
+    $uid = null;
     if (!empty($_SESSION['user_id'])) {
-        $userFile = $DATA_DIR . '/users/' . $_SESSION['user_id'] . '/user.json';
-        if (file_exists($userFile)) {
-            return readJson($userFile);
-        }
+        $uid = $_SESSION['user_id'];
+    } else if (!empty($_COOKIE['rth_uid'])) {
+        $uid = $_COOKIE['rth_uid'];
+    } else if (!empty($_COOKIE['roadtohalal_session'])) {
+        $uid = $_COOKIE['roadtohalal_session'];
+    } else if (!empty($_COOKIE['nikahku_session'])) {
+        $uid = $_COOKIE['nikahku_session'];
     }
-    // Check fallback cookie
-    if (!empty($_COOKIE['rth_uid'])) {
-        $userFile = $DATA_DIR . '/users/' . preg_replace('/[^a-zA-Z0-9_-]/', '', $_COOKIE['rth_uid']) . '/user.json';
+
+    if ($uid) {
+        $cleanUid = preg_replace('/[^a-zA-Z0-9_-]/', '', $uid);
+        $userFile = $DATA_DIR . '/users/' . $cleanUid . '/user.json';
         if (file_exists($userFile)) {
             $user = readJson($userFile);
-            $_SESSION['user_id'] = $user['id'];
-            return $user;
+            if (!empty($user['id'])) {
+                $_SESSION['user_id'] = $user['id'];
+                return $user;
+            }
         }
     }
     return null;
@@ -119,21 +154,39 @@ if ($route === 'auth/me') {
     if (!$user) {
         jsonResponse(['authenticated' => false, 'user' => null], 401);
     }
-    jsonResponse(['authenticated' => true, 'user' => $user]);
+    $wsId = $user['workspaceId'] ?? null;
+    $ws = null;
+    $access = 'owner';
+    if ($wsId) {
+        $ws = readJson($DATA_DIR . '/workspaces/' . $wsId . '/workspace.json');
+        if (!empty($ws['members'])) {
+            foreach ($ws['members'] as $m) {
+                if ($m['userId'] === $user['id']) {
+                    $access = $m['access'] ?? 'owner';
+                    break;
+                }
+            }
+        }
+    }
+    jsonResponse([
+        'authenticated' => true,
+        'user' => $user,
+        'workspace' => $ws,
+        'access' => $access
+    ]);
 }
 
 // Route: /api/auth/login
 if ($route === 'auth/login' && $method === 'POST') {
-    $email = trim(strtolower($input['email'] ?? ''));
+    $identifier = trim(strtolower($input['identifier'] ?? $input['email'] ?? $input['username'] ?? ''));
     $password = $input['password'] ?? '';
 
-    if (empty($email) || empty($password)) {
-        jsonResponse(['error' => 'Email dan kata sandi wajib diisi.'], 400);
+    if (empty($identifier) || empty($password)) {
+        jsonResponse(['error' => 'Email atau username dan kata sandi wajib diisi.'], 400);
     }
 
-    // Scan users directory
     $usersDir = $DATA_DIR . '/users';
-    if (!is_dir($usersDir)) @mkdir($usersDir, 0700, true);
+    ensureDir($usersDir);
 
     $matchedUser = null;
     $matchedAuth = null;
@@ -141,22 +194,29 @@ if ($route === 'auth/login' && $method === 'POST') {
 
     foreach ($userFolders as $uf) {
         $uData = readJson($uf . '/user.json');
-        if (!empty($uData['email']) && strtolower($uData['email']) === $email) {
+        $uEmail = strtolower($uData['email'] ?? '');
+        $uUsername = strtolower($uData['username'] ?? '');
+        $uIden = strtolower($uData['identifier'] ?? '');
+        if ($uEmail === $identifier || $uUsername === $identifier || $uIden === $identifier) {
             $matchedUser = $uData;
             $matchedAuth = readJson($uf . '/auth.json');
             break;
         }
     }
 
-    // Default admin fallback if first run
+    // Default owner auto-initialization if system has 0 registered users
     if (!$matchedUser && count($userFolders) === 0) {
         $userId = 'usr_' . bin2hex(random_bytes(6));
         $wsId = 'ws_' . bin2hex(random_bytes(6));
+        $isEmail = strpos($identifier, '@') !== false;
         $matchedUser = [
             'id' => $userId,
             'name' => 'Calon Pengantin',
-            'email' => $email,
-            'role' => 'user',
+            'identifier' => $identifier,
+            'email' => $isEmail ? $identifier : ($identifier . '@roadtohalal.id'),
+            'username' => !$isEmail ? $identifier : explode('@', $identifier)[0],
+            'role' => 'pria',
+            'isAdmin' => true,
             'workspaceId' => $wsId,
             'status' => 'active',
             'createdAt' => date('c'),
@@ -167,51 +227,88 @@ if ($route === 'auth/login' && $method === 'POST') {
             'passwordHash' => password_hash($password, PASSWORD_BCRYPT),
             'createdAt' => date('c')
         ];
+        $wsDir = $DATA_DIR . '/workspaces/' . $wsId;
+        ensureDir($wsDir);
+        $workspace = [
+            'id' => $wsId,
+            'name' => 'Persiapan Pernikahan Calon Pengantin',
+            'ownerId' => $userId,
+            'members' => [
+                [
+                    'userId' => $userId,
+                    'name' => 'Calon Pengantin',
+                    'identifier' => $identifier,
+                    'role' => 'pria',
+                    'access' => 'owner',
+                    'joinedAt' => date('c')
+                ]
+            ],
+            'status' => 'in_progress',
+            'createdAt' => date('c'),
+            'updatedAt' => date('c')
+        ];
+        $routeInit = [
+            'workspaceId' => $wsId,
+            'currentStage' => 'persetujuan-taaruf',
+            'status' => 'in_progress',
+            'completed' => (object)[],
+            'updatedAt' => date('c')
+        ];
         writeJsonAtomic($usersDir . '/' . $userId . '/user.json', $matchedUser);
         writeJsonAtomic($usersDir . '/' . $userId . '/auth.json', $matchedAuth);
+        writeJsonAtomic($wsDir . '/workspace.json', $workspace);
+        writeJsonAtomic($wsDir . '/route.json', $routeInit);
     }
 
     if ($matchedUser && $matchedAuth) {
-        if (password_verify($password, $matchedAuth['passwordHash'])) {
-            $_SESSION['user_id'] = $matchedUser['id'];
-            setcookie('rth_uid', $matchedUser['id'], time() + (86400 * 30), '/', '', isset($_SERVER['HTTPS']), true);
+        if (password_verify($password, $matchedAuth['passwordHash'] ?? '')) {
+            setUserSessionCookies($matchedUser['id']);
             jsonResponse(['success' => true, 'user' => $matchedUser]);
         }
     }
 
-    jsonResponse(['error' => 'Email atau kata sandi tidak sesuai.'], 401);
+    jsonResponse(['error' => 'Email/username atau password salah.'], 401);
 }
 
 // Route: /api/auth/register
 if ($route === 'auth/register' && $method === 'POST') {
-    $email = trim(strtolower($input['email'] ?? ''));
+    $identifier = trim(strtolower($input['identifier'] ?? $input['email'] ?? $input['username'] ?? ''));
     $password = $input['password'] ?? '';
     $name = trim($input['name'] ?? 'Calon Pengantin');
+    $role = $input['role'] ?? 'pria';
+    $targetDate = $input['targetDate'] ?? null;
 
-    if (empty($email) || strlen($password) < 6) {
-        jsonResponse(['error' => 'Email wajib diisi dan kata sandi minimal 6 karakter.'], 400);
+    if (empty($identifier) || strlen($password) < 6) {
+        jsonResponse(['error' => 'Email atau username wajib diisi dan kata sandi minimal 6 karakter.'], 400);
     }
 
     $usersDir = $DATA_DIR . '/users';
-    if (!is_dir($usersDir)) @mkdir($usersDir, 0700, true);
+    ensureDir($usersDir);
 
     // Check duplicate
     $userFolders = glob($usersDir . '/*', GLOB_ONLYDIR) ?: [];
     foreach ($userFolders as $uf) {
         $uData = readJson($uf . '/user.json');
-        if (!empty($uData['email']) && strtolower($uData['email']) === $email) {
-            jsonResponse(['error' => 'Email ini sudah terdaftar. Silakan login.'], 400);
+        $uEmail = strtolower($uData['email'] ?? '');
+        $uUsername = strtolower($uData['username'] ?? '');
+        $uIden = strtolower($uData['identifier'] ?? '');
+        if ($uEmail === $identifier || $uUsername === $identifier || $uIden === $identifier) {
+            jsonResponse(['error' => 'Email atau username ini sudah terdaftar. Silakan masuk.'], 400);
         }
     }
 
     $userId = 'usr_' . bin2hex(random_bytes(6));
     $wsId = 'ws_' . bin2hex(random_bytes(6));
+    $isEmail = strpos($identifier, '@') !== false;
 
     $user = [
         'id' => $userId,
         'name' => $name,
-        'email' => $email,
-        'role' => 'user',
+        'identifier' => $identifier,
+        'email' => $isEmail ? $identifier : ($identifier . '@roadtohalal.id'),
+        'username' => !$isEmail ? $identifier : explode('@', $identifier)[0],
+        'role' => $role,
+        'isAdmin' => true,
         'workspaceId' => $wsId,
         'status' => 'active',
         'createdAt' => date('c'),
@@ -224,9 +321,8 @@ if ($route === 'auth/register' && $method === 'POST') {
         'createdAt' => date('c')
     ];
 
-    // Initialize Workspace
     $wsDir = $DATA_DIR . '/workspaces/' . $wsId;
-    @mkdir($wsDir, 0700, true);
+    ensureDir($wsDir);
 
     $workspace = [
         'id' => $wsId,
@@ -236,7 +332,8 @@ if ($route === 'auth/register' && $method === 'POST') {
             [
                 'userId' => $userId,
                 'name' => $name,
-                'email' => $email,
+                'identifier' => $identifier,
+                'role' => $role,
                 'access' => 'owner',
                 'joinedAt' => date('c')
             ]
@@ -254,23 +351,220 @@ if ($route === 'auth/register' && $method === 'POST') {
         'updatedAt' => date('c')
     ];
 
+    $profileInit = [
+        'self' => [
+            'fullName' => $name,
+            'nickname' => explode(' ', $name)[0]
+        ],
+        'user' => [
+            'fullName' => $name
+        ],
+        'partner' => (object)[]
+    ];
+
+    $settingsInit = [
+        'targetDate' => $targetDate ?: ''
+    ];
+
     writeJsonAtomic($usersDir . '/' . $userId . '/user.json', $user);
     writeJsonAtomic($usersDir . '/' . $userId . '/auth.json', $auth);
     writeJsonAtomic($wsDir . '/workspace.json', $workspace);
     writeJsonAtomic($wsDir . '/route.json', $routeInit);
+    writeJsonAtomic($wsDir . '/profile.json', $profileInit);
+    writeJsonAtomic($wsDir . '/settings.json', $settingsInit);
 
-    $_SESSION['user_id'] = $userId;
-    setcookie('rth_uid', $userId, time() + (86400 * 30), '/', '', isset($_SERVER['HTTPS']), true);
+    setUserSessionCookies($userId);
 
-    jsonResponse(['success' => true, 'user' => $user]);
+    jsonResponse([
+        'success' => true,
+        'user' => $user,
+        'workspace' => [
+            'id' => $wsId,
+            'ownerId' => $userId
+        ]
+    ]);
 }
 
 // Route: /api/auth/logout
 if ($route === 'auth/logout') {
-    $_SESSION = [];
-    session_destroy();
-    setcookie('rth_uid', '', time() - 3600, '/');
+    clearUserSessionCookies();
     jsonResponse(['success' => true]);
+}
+
+// Route: /api/auth/change-password
+if ($route === 'auth/change-password' && $method === 'POST') {
+    $user = getCurrentUser($DATA_DIR);
+    if (!$user) {
+        jsonResponse(['error' => 'Sesi berakhir, silakan login kembali.'], 401);
+    }
+    $currentPassword = $input['currentPassword'] ?? '';
+    $newPassword = $input['newPassword'] ?? '';
+
+    if (empty($currentPassword) || strlen($newPassword) < 6) {
+        jsonResponse(['error' => 'Password baru minimal 6 karakter.'], 400);
+    }
+
+    $authFile = $DATA_DIR . '/users/' . $user['id'] . '/auth.json';
+    $auth = readJson($authFile);
+    if (!password_verify($currentPassword, $auth['passwordHash'] ?? '')) {
+        jsonResponse(['error' => 'Password lama tidak cocok.'], 400);
+    }
+
+    $auth['passwordHash'] = password_hash($newPassword, PASSWORD_BCRYPT);
+    $auth['updatedAt'] = date('c');
+    writeJsonAtomic($authFile, $auth);
+
+    jsonResponse(['success' => true, 'message' => 'Password berhasil diperbarui.']);
+}
+
+// Route: /api/account
+if ($route === 'account') {
+    $user = getCurrentUser($DATA_DIR);
+    if (!$user) {
+        jsonResponse(['error' => 'Sesi telah berakhir.'], 401);
+    }
+
+    if ($method === 'PATCH') {
+        $name = trim($input['name'] ?? '');
+        if (strlen($name) < 2) {
+            jsonResponse(['error' => 'Nama tidak valid'], 400);
+        }
+        $user['name'] = $name;
+        $user['updatedAt'] = date('c');
+        writeJsonAtomic($DATA_DIR . '/users/' . $user['id'] . '/user.json', $user);
+        jsonResponse(['success' => true, 'user' => $user]);
+    }
+
+    if ($method === 'DELETE') {
+        $uDir = $DATA_DIR . '/users/' . $user['id'];
+        if (is_dir($uDir)) {
+            array_map('unlink', glob("$uDir/*.*"));
+            @rmdir($uDir);
+        }
+        clearUserSessionCookies();
+        jsonResponse(['success' => true, 'message' => 'Akun berhasil dihapus.']);
+    }
+}
+
+// Route: /api/members/join (Invite Acceptance)
+if ($route === 'members/join') {
+    if ($method === 'GET') {
+        $code = strtoupper(trim($_GET['code'] ?? ''));
+        if (empty($code)) {
+            jsonResponse(['error' => 'Kode undangan wajib disertakan'], 400);
+        }
+        $wsFolders = glob($DATA_DIR . '/workspaces/*', GLOB_ONLYDIR) ?: [];
+        $foundInvite = null;
+        $foundWs = null;
+        foreach ($wsFolders as $wf) {
+            $wsData = readJson($wf . '/workspace.json');
+            $invites = $wsData['invites'] ?? [];
+            foreach ($invites as $inv) {
+                if (strtoupper($inv['code'] ?? '') === $code) {
+                    $foundInvite = $inv;
+                    $foundWs = $wsData;
+                    break 2;
+                }
+            }
+        }
+        if (!$foundInvite || !$foundWs) {
+            jsonResponse(['error' => 'Kode undangan tidak valid atau sudah kedaluwarsa'], 404);
+        }
+        $owner = readJson($DATA_DIR . '/users/' . ($foundWs['ownerId'] ?? '') . '/user.json');
+        jsonResponse([
+            'valid' => true,
+            'code' => $foundInvite['code'],
+            'access' => $foundInvite['access'] ?? 'read',
+            'relation' => $foundInvite['relation'] ?? 'Pasangan',
+            'expiresAt' => $foundInvite['expiresAt'] ?? null,
+            'workspaceOwnerName' => $owner['name'] ?? 'Calon Pengantin'
+        ]);
+    }
+
+    if ($method === 'POST') {
+        $code = strtoupper(trim($input['code'] ?? ''));
+        $name = trim($input['name'] ?? '');
+        $password = $input['password'] ?? '';
+        $identifier = trim(strtolower($input['identifier'] ?? ''));
+        $role = $input['role'] ?? 'wanita';
+
+        $wsFolders = glob($DATA_DIR . '/workspaces/*', GLOB_ONLYDIR) ?: [];
+        $foundInvite = null;
+        $foundWsDir = null;
+        $foundWs = null;
+        foreach ($wsFolders as $wf) {
+            $wsData = readJson($wf . '/workspace.json');
+            $invites = $wsData['invites'] ?? [];
+            foreach ($invites as $inv) {
+                if (strtoupper($inv['code'] ?? '') === $code) {
+                    $foundInvite = $inv;
+                    $foundWsDir = $wf;
+                    $foundWs = $wsData;
+                    break 2;
+                }
+            }
+        }
+        if (!$foundInvite || !$foundWs) {
+            jsonResponse(['error' => 'Kode undangan tidak valid atau sudah kedaluwarsa'], 404);
+        }
+
+        $user = getCurrentUser($DATA_DIR);
+        if (!$user) {
+            if (empty($name) || strlen($password) < 6 || empty($identifier)) {
+                jsonResponse(['error' => 'Nama, email/username, dan password (min 6 karakter) wajib diisi.'], 400);
+            }
+            $userId = 'usr_' . bin2hex(random_bytes(6));
+            $isEmail = strpos($identifier, '@') !== false;
+            $user = [
+                'id' => $userId,
+                'name' => $name,
+                'identifier' => $identifier,
+                'email' => $isEmail ? $identifier : ($identifier . '@roadtohalal.id'),
+                'username' => !$isEmail ? $identifier : explode('@', $identifier)[0],
+                'role' => $role,
+                'isAdmin' => false,
+                'workspaceId' => $foundWs['id'],
+                'status' => 'active',
+                'createdAt' => date('c'),
+                'updatedAt' => date('c')
+            ];
+            $auth = [
+                'userId' => $userId,
+                'passwordHash' => password_hash($password, PASSWORD_BCRYPT),
+                'createdAt' => date('c')
+            ];
+            writeJsonAtomic($DATA_DIR . '/users/' . $userId . '/user.json', $user);
+            writeJsonAtomic($DATA_DIR . '/users/' . $userId . '/auth.json', $auth);
+        }
+
+        $members = $foundWs['members'] ?? [];
+        $members[] = [
+            'userId' => $user['id'],
+            'name' => $user['name'],
+            'identifier' => $user['identifier'] ?? '',
+            'role' => $user['role'] ?? 'wanita',
+            'access' => $foundInvite['access'] ?? 'read',
+            'relation' => $foundInvite['relation'] ?? 'Pasangan',
+            'joinedAt' => date('c')
+        ];
+        $foundWs['members'] = $members;
+        $foundWs['invites'] = array_values(array_filter($foundWs['invites'] ?? [], fn($i) => strtoupper($i['code'] ?? '') !== $code));
+        writeJsonAtomic($foundWsDir . '/workspace.json', $foundWs);
+
+        $user['workspaceId'] = $foundWs['id'];
+        writeJsonAtomic($DATA_DIR . '/users/' . $user['id'] . '/user.json', $user);
+
+        setUserSessionCookies($user['id']);
+
+        jsonResponse([
+            'success' => true,
+            'message' => 'Berhasil bergabung ke ruang persiapan!',
+            'workspace' => [
+                'id' => $foundWs['id'],
+                'access' => $foundInvite['access'] ?? 'read'
+            ]
+        ]);
+    }
 }
 
 // Protect all following routes with Auth
@@ -281,7 +575,7 @@ if (!$user) {
 
 $workspaceId = $user['workspaceId'] ?? 'ws_default';
 $wsDir = $DATA_DIR . '/workspaces/' . $workspaceId;
-if (!is_dir($wsDir)) @mkdir($wsDir, 0700, true);
+ensureDir($wsDir);
 
 // STAGE DEFINITIONS
 $STAGE_ORDER = [
@@ -314,7 +608,7 @@ function evaluateStage($wsDir, $stageKey) {
         $taaruf = readJson($wsDir . '/taaruf.json');
         $profile = readJson($wsDir . '/profile.json');
 
-        $hasMyBio = !empty($profile['user']['fullName']) && !empty($profile['user']['birthDate']);
+        $hasMyBio = !empty($profile['user']['fullName']) || !empty($profile['self']['fullName']);
         $hasPartnerBio = !empty($profile['partner']['fullName']);
         $hasHealth = !empty($taaruf['myHealth']['bloodType']);
         $hasFamily = !empty($taaruf['myFamily']['fatherName']) && !empty($taaruf['myFamily']['guardianRelation']);
@@ -402,7 +696,6 @@ function evaluateStage($wsDir, $stageKey) {
         ];
     }
 
-    // Default for stages 5-8
     return [
         'canComplete' => true,
         'totalRequirements' => 1,
@@ -433,7 +726,6 @@ if ($route === 'route' && $method === 'GET') {
         $isDone = !empty($completed[$sKey]);
         $isCurrent = ($sKey === $currentStage);
 
-        // Unlocked logic
         $unlocked = false;
         if ($isDone || $isCurrent) {
             $unlocked = true;
@@ -484,7 +776,6 @@ if ($route === 'route/complete' && $method === 'POST') {
         'completedBy' => $user['id']
     ];
 
-    // Find next stage
     $currentIndex = array_search($stageKey, $STAGE_ORDER);
     $nextStage = $stageKey;
     if ($currentIndex !== false && isset($STAGE_ORDER[$currentIndex + 1])) {
@@ -513,6 +804,76 @@ if ($route === 'route/reopen' && $method === 'POST') {
 
     writeJsonAtomic($wsDir . '/route.json', $routeData);
     jsonResponse(['success' => true, 'route' => $routeData]);
+}
+
+// Route: /api/members (List, Invite, Access, Remove)
+if ($route === 'members') {
+    $wsFile = $wsDir . '/workspace.json';
+    $workspace = readJson($wsFile);
+
+    if ($method === 'GET') {
+        jsonResponse([
+            'workspaceId' => $workspace['id'] ?? $workspaceId,
+            'ownerId' => $workspace['ownerId'] ?? $user['id'],
+            'userAccess' => 'owner',
+            'members' => $workspace['members'] ?? [],
+            'invites' => $workspace['invites'] ?? []
+        ]);
+    }
+
+    if ($method === 'POST') {
+        $access = $input['access'] ?? 'read';
+        $relation = $input['relation'] ?? 'Pasangan';
+        $inviteCode = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
+        $invite = [
+            'code' => $inviteCode,
+            'access' => $access,
+            'relation' => $relation,
+            'workspaceId' => $workspaceId,
+            'createdAt' => date('c'),
+            'expiresAt' => date('c', time() + (86400 * 14))
+        ];
+        $invites = $workspace['invites'] ?? [];
+        $invites[] = $invite;
+        $workspace['invites'] = $invites;
+        writeJsonAtomic($wsFile, $workspace);
+
+        jsonResponse([
+            'success' => true,
+            'invite' => $invite,
+            'message' => 'Undangan berhasil dibuat.'
+        ]);
+    }
+
+    if ($method === 'PATCH') {
+        $targetUid = $input['userId'] ?? '';
+        $access = $input['access'] ?? 'read';
+        if (!empty($workspace['members'])) {
+            foreach ($workspace['members'] as &$m) {
+                if ($m['userId'] === $targetUid) {
+                    $m['access'] = $access;
+                    break;
+                }
+            }
+        }
+        writeJsonAtomic($wsFile, $workspace);
+        jsonResponse(['success' => true, 'members' => $workspace['members']]);
+    }
+
+    if ($method === 'DELETE') {
+        $targetUid = $_GET['userId'] ?? '';
+        $code = strtoupper($_GET['code'] ?? '');
+        if ($targetUid) {
+            $workspace['members'] = array_values(array_filter($workspace['members'] ?? [], fn($m) => $m['userId'] !== $targetUid));
+            writeJsonAtomic($wsFile, $workspace);
+            jsonResponse(['success' => true, 'members' => $workspace['members']]);
+        }
+        if ($code) {
+            $workspace['invites'] = array_values(array_filter($workspace['invites'] ?? [], fn($i) => strtoupper($i['code'] ?? '') !== $code));
+            writeJsonAtomic($wsFile, $workspace);
+            jsonResponse(['success' => true]);
+        }
+    }
 }
 
 // Route: /api/m/{module}
@@ -548,7 +909,7 @@ if ($route === 'files' && $method === 'POST') {
     }
 
     $uploadDir = $DATA_DIR . '/uploads/' . $workspaceId;
-    if (!is_dir($uploadDir)) @mkdir($uploadDir, 0700, true);
+    ensureDir($uploadDir);
 
     $fileId = bin2hex(random_bytes(8)) . '.' . $ext;
     $dest = $uploadDir . '/' . $fileId;
@@ -588,6 +949,40 @@ if ($route === 'files' && $method === 'GET') {
     header('Content-Length: ' . filesize($filePath));
     readfile($filePath);
     exit;
+}
+
+// Route: /api/admin/stats
+if ($route === 'admin/stats') {
+    $userFolders = glob($DATA_DIR . '/users/*', GLOB_ONLYDIR) ?: [];
+    $wsFolders = glob($DATA_DIR . '/workspaces/*', GLOB_ONLYDIR) ?: [];
+    jsonResponse([
+        'totalUsers' => count($userFolders),
+        'totalWorkspaces' => count($wsFolders),
+        'activeToday' => count($userFolders),
+        'storageUsedMb' => 1.2
+    ]);
+}
+
+// Route: /api/admin/users
+if ($route === 'admin/users') {
+    $userFolders = glob($DATA_DIR . '/users/*', GLOB_ONLYDIR) ?: [];
+    $users = [];
+    foreach ($userFolders as $uf) {
+        $u = readJson($uf . '/user.json');
+        if (!empty($u['id'])) {
+            $users[] = [
+                'id' => $u['id'],
+                'name' => $u['name'],
+                'identifier' => $u['identifier'] ?? $u['email'] ?? '',
+                'role' => $u['role'] ?? 'user',
+                'isAdmin' => !empty($u['isAdmin']),
+                'isDisabled' => !empty($u['isDisabled']),
+                'createdAt' => $u['createdAt'] ?? date('c'),
+                'lastLoginAt' => $u['lastLoginAt'] ?? null
+            ];
+        }
+    }
+    jsonResponse(['users' => $users]);
 }
 
 // Default 404
