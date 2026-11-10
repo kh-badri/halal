@@ -70,10 +70,12 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col justify-between p-6 bg-gradient-to-b from-sky/30 via-white to-blush/30">
       <div className="pt-6">
-        <Link href="/" className="inline-flex items-center gap-2 mb-4 text-ink font-black text-sm">
-          <div className="w-7 h-7 rounded-full bg-blush border-2 border-ink flex items-center justify-center text-xs">
-            RTH
-          </div>
+        <Link href="/" className="inline-flex items-center gap-2 mb-4 text-ink font-black text-sm group">
+          <img
+            src="/icons/icon-192x192.png"
+            alt="Road To Halal"
+            className="w-7 h-7 rounded-xl border border-ink/20 shadow-sm object-cover group-hover:scale-105 transition-transform"
+          />
           <span>Road To Halal</span>
         </Link>
 

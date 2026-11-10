@@ -66,9 +66,11 @@ export const PWAInstallBanner: React.FC = () => {
       {showAndroidBanner && (
         <div className="mx-4 my-2.5 p-3 bg-white border-2 border-ink rounded-2xl shadow-subtle flex items-center justify-between gap-3 animate-in fade-in duration-300">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-blush border border-ink text-ink flex items-center justify-center shrink-0">
-              <Download size={16} />
-            </div>
+            <img
+              src="/icons/icon-192x192.png"
+              alt="Road To Halal"
+              className="w-9 h-9 rounded-xl border border-ink/20 shadow-sm object-cover shrink-0"
+            />
             <div className="truncate">
               <p className="text-xs font-black text-ink leading-tight">Pasang Road To Halal</p>
               <p className="text-[11px] text-ink/70 truncate">Akses cepat &amp; nyaman di layar utama</p>
@@ -95,6 +97,17 @@ export const PWAInstallBanner: React.FC = () => {
       {/* iOS Safari Install Guide Modal */}
       <BottomSheet isOpen={showIosModal} onClose={() => setShowIosModal(false)} title="Cara Pasang di iPhone (iOS)">
         <div className="space-y-3.5 py-2 text-ink text-sm">
+          <div className="flex items-center gap-3 p-3 bg-blush/30 border border-ink/20 rounded-2xl">
+            <img
+              src="/icons/icon-192x192.png"
+              alt="Road To Halal"
+              className="w-11 h-11 rounded-2xl shadow-sm border border-rose-200/80 object-cover shrink-0"
+            />
+            <div>
+              <p className="text-xs font-black text-ink">Road To Halal</p>
+              <p className="text-[11px] text-ink/70">Aplikasi Persiapan Pernikahan</p>
+            </div>
+          </div>
           <p className="text-xs text-ink/75 leading-relaxed">
             Pasang Road To Halal di layar utama iPhone Anda tanpa melalui App Store:
           </p>
