@@ -43,7 +43,15 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        setErrorMsg(`Server merespons kode ${res.status}. Silakan coba lagi.`);
+        setLoading(false);
+        return;
+      }
+
       if (!res.ok) {
         setErrorMsg(data.error || 'Pendaftaran gagal. Silakan coba lagi.');
         setLoading(false);

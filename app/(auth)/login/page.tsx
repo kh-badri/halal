@@ -28,14 +28,22 @@ export default function LoginPage() {
         body: JSON.stringify({ identifier, password }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        setErrorMsg(`Server merespons kode ${res.status}. Silakan coba beberapa saat lagi.`);
+        setLoading(false);
+        return;
+      }
+
       if (!res.ok) {
         setErrorMsg(data.error || 'Login gagal. Periksa kembali email dan password.');
         setLoading(false);
         return;
       }
 
-      showToast({ message: `Selamat datang kembali, ${data.user.name}!`, type: 'success' });
+      showToast({ message: `Selamat datang kembali, ${data.user?.name || 'Calon Pengantin'}!`, type: 'success' });
       router.push('/rute');
       router.refresh();
     } catch {

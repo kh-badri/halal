@@ -76,7 +76,15 @@ export default function GabungPage() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        setErrorMsg(`Server merespons kode ${res.status}. Silakan coba lagi.`);
+        setLoading(false);
+        return;
+      }
+
       if (!res.ok) {
         setErrorMsg(data.error || 'Gagal bergabung ke workspace.');
         setLoading(false);
