@@ -788,15 +788,9 @@ export function Stage2ProsesTaaruf({
       <div className="bg-white border border-rose-100 rounded-3xl p-5 shadow-[0_4px_20px_rgba(240,86,124,0.06)] space-y-3.5">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 block">
-                Progres Tanya Jawab Pranikah
-              </span>
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold shadow-xs whitespace-nowrap">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Live</span>
-              </div>
-            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 block mb-0.5">
+              Progres Tanya Jawab Pranikah
+            </span>
             <h3 className="text-lg font-black text-slate-900">
               {totalCount === 0 ? 'Belum Ada Pertanyaan' : `${agreedCount} dari ${totalCount} Sepakat (${progressPercent}%)`}
             </h3>
