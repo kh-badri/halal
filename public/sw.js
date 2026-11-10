@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roadtohalal-cache-v2';
+const CACHE_NAME = 'roadtohalal-cache-v3';
 const PRECACHE_ASSETS = [
   '/',
   '/rute',

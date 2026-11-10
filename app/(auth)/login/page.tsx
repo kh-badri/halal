@@ -57,7 +57,7 @@ export default function LoginPage() {
       <div className="pt-8">
         <Link href="/" className="inline-flex items-center gap-2 mb-6 text-ink font-black text-sm group">
           <img
-            src="/icons/icon-192x192.png?v=2"
+            src="/icons/icon-192x192.png?v=3"
             alt="Road To Halal"
             className="w-7 h-7 rounded-xl border border-ink/20 shadow-sm object-cover group-hover:scale-105 transition-transform"
           />

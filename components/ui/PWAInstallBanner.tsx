@@ -85,7 +85,7 @@ export const PWAInstallBanner: React.FC = () => {
       <div className="mx-3.5 my-2.5 p-3 bg-white border-2 border-ink rounded-2xl shadow-subtle flex items-center justify-between gap-2.5 animate-in fade-in duration-300">
         <div className="flex items-center gap-2.5 min-w-0">
           <img
-            src="/icons/icon-192x192.png?v=2"
+            src="/icons/icon-192x192.png?v=3"
             alt="Road To Halal"
             className="w-10 h-10 rounded-xl border border-rose-200 shadow-sm object-cover shrink-0"
           />
@@ -117,7 +117,7 @@ export const PWAInstallBanner: React.FC = () => {
         <div className="space-y-3.5 py-2 text-ink text-sm">
           <div className="flex items-center gap-3 p-3 bg-blush/30 border border-ink/20 rounded-2xl">
             <img
-              src="/icons/icon-192x192.png?v=2"
+              src="/icons/icon-192x192.png?v=3"
               alt="Road To Halal"
               className="w-12 h-12 rounded-2xl shadow-sm border border-rose-200/80 object-cover shrink-0"
             />
@@ -175,7 +175,7 @@ export const PWAInstallBanner: React.FC = () => {
         <div className="space-y-3.5 py-2 text-ink text-sm">
           <div className="flex items-center gap-3 p-3 bg-blush/30 border border-ink/20 rounded-2xl">
             <img
-              src="/icons/icon-192x192.png?v=2"
+              src="/icons/icon-192x192.png?v=3"
               alt="Road To Halal"
               className="w-12 h-12 rounded-2xl shadow-sm border border-rose-200/80 object-cover shrink-0"
             />
