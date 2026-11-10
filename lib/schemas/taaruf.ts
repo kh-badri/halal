@@ -47,7 +47,7 @@ export const QACardSchema = MetaSchema.extend({
   answerWanita: z.string().default(''),
   note: z.string().default(''),
   principle: z.boolean().default(false),
-  status: z.enum(['belum', 'dibahas', 'sepakat', 'ulang']).default('belum'),
+  status: z.enum(['belum', 'dibahas', 'sepakat', 'ulang', 'pertimbangan']).default('belum'),
 });
 
 export type QACard = z.infer<typeof QACardSchema>;

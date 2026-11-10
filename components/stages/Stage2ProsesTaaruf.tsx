@@ -44,7 +44,7 @@ interface QuestionItem {
   answerPria: string;
   answerWanita: string;
   note: string;
-  status: 'belum' | 'dibahas' | 'sepakat' | 'ulang';
+  status: 'belum' | 'dibahas' | 'sepakat' | 'ulang' | 'pertimbangan';
   principle: boolean;
   category?: string;
   createdAt?: string;
@@ -69,6 +69,7 @@ interface ActivityLogItem {
 const STATUS_LABELS: Record<string, string> = {
   belum: 'Belum Dibahas',
   dibahas: 'Sedang Dibahas',
+  pertimbangan: 'Dipertimbangkan',
   sepakat: 'Sepakat',
   ulang: 'Perlu Bahas Ulang',
 };
@@ -436,6 +437,7 @@ export function Stage2ProsesTaaruf({
   const totalCount = questions.length;
   const agreedCount = questions.filter((q) => q.status === 'sepakat').length;
   const discussedCount = questions.filter((q) => q.status === 'dibahas').length;
+  const considerationCount = questions.filter((q) => q.status === 'pertimbangan').length;
   const rediscussCount = questions.filter((q) => q.status === 'ulang').length;
   const unhandledCount = questions.filter((q) => q.status === 'belum').length;
   const principleQuestions = questions.filter((q) => q.principle);
@@ -537,7 +539,7 @@ export function Stage2ProsesTaaruf({
   };
 
   // Status Change with Log
-  const handleStatusChange = (card: QuestionItem, newStatus: 'belum' | 'dibahas' | 'sepakat' | 'ulang') => {
+  const handleStatusChange = (card: QuestionItem, newStatus: 'belum' | 'dibahas' | 'sepakat' | 'ulang' | 'pertimbangan') => {
     if (isReadOnly || card.status === newStatus) return;
 
     const oldLabel = STATUS_LABELS[card.status] || card.status;
@@ -838,22 +840,26 @@ export function Stage2ProsesTaaruf({
         </div>
 
         {/* Stats Pills */}
-        <div className="grid grid-cols-4 gap-2 pt-0.5 text-center">
-          <div className="p-2 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl">
+        <div className="grid grid-cols-5 gap-1.5 pt-0.5 text-center">
+          <div className="p-1.5 sm:p-2 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl">
             <span className="text-xs font-black text-emerald-800 block">{agreedCount}</span>
-            <span className="text-[10px] font-bold text-emerald-600">Sepakat</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600 truncate block">Sepakat</span>
           </div>
-          <div className="p-2 bg-rose-50/80 border border-rose-200/80 rounded-2xl">
+          <div className="p-1.5 sm:p-2 bg-rose-50/80 border border-rose-200/80 rounded-2xl">
             <span className="text-xs font-black text-rose-700 block">{discussedCount}</span>
-            <span className="text-[10px] font-bold text-rose-500">Dibahas</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-rose-500 truncate block">Dibahas</span>
           </div>
-          <div className="p-2 bg-amber-50/80 border border-amber-200/80 rounded-2xl">
+          <div className="p-1.5 sm:p-2 bg-purple-50/80 border border-purple-200/80 rounded-2xl">
+            <span className="text-xs font-black text-purple-800 block">{considerationCount}</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-purple-600 truncate block" title="Dipertimbangkan">Dipertimbangkan</span>
+          </div>
+          <div className="p-1.5 sm:p-2 bg-amber-50/80 border border-amber-200/80 rounded-2xl">
             <span className="text-xs font-black text-amber-800 block">{rediscussCount}</span>
-            <span className="text-[10px] font-bold text-amber-600">Bahas Ulang</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-amber-600 truncate block">Bahas Ulang</span>
           </div>
-          <div className="p-2 bg-slate-50 border border-slate-200 rounded-2xl">
+          <div className="p-1.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-2xl">
             <span className="text-xs font-black text-slate-700 block">{unhandledCount}</span>
-            <span className="text-[10px] font-bold text-slate-400">Belum</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 truncate block">Belum</span>
           </div>
         </div>
 
@@ -1122,6 +1128,8 @@ export function Stage2ProsesTaaruf({
                     ? 'border-emerald-200 ring-1 ring-emerald-100'
                     : q.status === 'dibahas'
                     ? 'border-rose-200 ring-1 ring-rose-100'
+                    : q.status === 'pertimbangan'
+                    ? 'border-purple-200 ring-1 ring-purple-100'
                     : q.status === 'ulang'
                     ? 'border-amber-200 ring-1 ring-amber-100'
                     : 'border-slate-200'
@@ -1165,6 +1173,8 @@ export function Stage2ProsesTaaruf({
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                           : q.status === 'dibahas'
                           ? 'bg-rose-50 text-rose-700 border-rose-300'
+                          : q.status === 'pertimbangan'
+                          ? 'bg-purple-50 text-purple-700 border-purple-300'
                           : q.status === 'ulang'
                           ? 'bg-amber-50 text-amber-800 border-amber-300'
                           : 'bg-slate-50 text-slate-500 border-slate-200'
@@ -1174,6 +1184,8 @@ export function Stage2ProsesTaaruf({
                         ? 'Sepakat'
                         : q.status === 'dibahas'
                         ? 'Dibahas'
+                        : q.status === 'pertimbangan'
+                        ? 'Dipertimbangkan'
                         : q.status === 'ulang'
                         ? 'Bahas Ulang'
                         : 'Belum'}
@@ -1340,19 +1352,21 @@ export function Stage2ProsesTaaruf({
                     <span>Tandai sebagai Prinsip (Dealbreaker)</span>
                   </label>
 
-                  <div className="grid grid-cols-4 gap-1.5 w-full sm:w-auto">
-                    {(['belum', 'dibahas', 'sepakat', 'ulang'] as const).map((st) => (
+                  <div className="flex flex-wrap sm:flex-nowrap gap-1.5 w-full sm:w-auto">
+                    {(['belum', 'dibahas', 'pertimbangan', 'sepakat', 'ulang'] as const).map((st) => (
                       <button
                         key={st}
                         type="button"
                         disabled={isReadOnly}
                         onClick={() => handleStatusChange(q, st)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        className={`flex-1 sm:flex-none px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all text-center whitespace-nowrap ${
                           q.status === st
                             ? st === 'sepakat'
                               ? 'bg-emerald-600 text-white shadow-xs font-black'
                               : st === 'dibahas'
                               ? 'bg-rose-500 text-white shadow-xs font-black'
+                              : st === 'pertimbangan'
+                              ? 'bg-purple-600 text-white shadow-xs font-black'
                               : st === 'ulang'
                               ? 'bg-amber-500 text-white shadow-xs font-black'
                               : 'bg-slate-700 text-white shadow-xs font-black'
@@ -1363,6 +1377,8 @@ export function Stage2ProsesTaaruf({
                           ? 'Belum'
                           : st === 'dibahas'
                           ? 'Dibahas'
+                          : st === 'pertimbangan'
+                          ? 'Dipertimbangkan'
                           : st === 'sepakat'
                           ? 'Sepakat'
                           : 'Bahas Ulang'}
@@ -1880,6 +1896,40 @@ export function Stage2ProsesTaaruf({
                       {q.note && (
                         <p className="text-xs text-emerald-900 font-medium pl-2 border-l-2 border-emerald-500">
                           Kesepakatan: {q.note}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider flex items-center gap-1.5">
+              <HelpCircle className="w-4 h-4 text-purple-600" /> Sedang Dipertimbangkan ({considerationCount})
+            </h4>
+            {considerationCount === 0 ? (
+              <p className="text-xs text-slate-400 italic pl-5">Tidak ada poin yang sedang dipertimbangkan.</p>
+            ) : (
+              <div className="space-y-2">
+                {questions
+                  .filter((q) => q.status === 'pertimbangan')
+                  .map((q) => (
+                    <div key={q.id} className="p-3 bg-purple-50/70 border border-purple-200 rounded-2xl space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                          {q.asker === 'pria' ? '👨 Catin Pria' : '👩 Catin Perempuan'}
+                        </span>
+                        {q.principle && (
+                          <span className="text-[10px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded-md">
+                            Prinsip
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs font-black text-slate-900">{q.question}</p>
+                      {q.note && (
+                        <p className="text-xs text-purple-900 font-medium pl-2 border-l-2 border-purple-500">
+                          Catatan: {q.note}
                         </p>
                       )}
                     </div>
