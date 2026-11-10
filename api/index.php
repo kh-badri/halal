@@ -350,12 +350,45 @@ function getCurrentUser($DATA_DIR) {
         if (file_exists($userFile)) {
             $user = readJson($userFile);
             if (!empty($user['id'])) {
+                if (!empty($user['isDisabled'])) {
+                    return null;
+                }
                 $_SESSION['user_id'] = $user['id'];
                 return $user;
             }
         }
     }
     return null;
+}
+
+function isUserAdmin($user, $DATA_DIR) {
+    if (!$user) return false;
+    if (!empty($user['isAdmin'])) return true;
+    if (isset($user['role']) && in_array(strtolower($user['role']), ['admin', 'owner', 'superadmin'])) return true;
+    $userFolders = glob($DATA_DIR . '/users/*', GLOB_ONLYDIR) ?: [];
+    if (!empty($userFolders)) {
+        sort($userFolders);
+        if (basename($userFolders[0]) === ($user['id'] ?? '')) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function getFolderSize($dir) {
+    if (!is_dir($dir)) return 0;
+    $size = 0;
+    try {
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($files as $file) {
+            if ($file->isFile()) {
+                $size += $file->getSize();
+            }
+        }
+    } catch (Exception $e) {}
+    return $size;
 }
 
 // Route: /api/auth/me
@@ -474,6 +507,9 @@ if ($route === 'auth/login' && $method === 'POST') {
 
     if ($matchedUser && $matchedAuth) {
         if (password_verify($password, $matchedAuth['passwordHash'] ?? '')) {
+            if (!empty($matchedUser['isDisabled'])) {
+                jsonResponse(['error' => 'Akun Anda telah dinonaktifkan oleh Administrator.'], 403);
+            }
             setUserSessionCookies($matchedUser['id']);
             jsonResponse(['success' => true, 'user' => $matchedUser]);
         }
@@ -1204,18 +1240,73 @@ if ($route === 'files' && $method === 'GET') {
 
 // Route: /api/admin/stats
 if ($route === 'admin/stats') {
+    if (!isUserAdmin($user, $DATA_DIR)) {
+        jsonResponse(['error' => 'Akses ditolak: Hanya untuk Administrator.'], 403);
+    }
     $userFolders = glob($DATA_DIR . '/users/*', GLOB_ONLYDIR) ?: [];
     $wsFolders = glob($DATA_DIR . '/workspaces/*', GLOB_ONLYDIR) ?: [];
-    jsonResponse([
-        'totalUsers' => count($userFolders),
+
+    $totalUsers = 0;
+    $activeUsers = 0;
+    $disabledUsers = 0;
+    foreach ($userFolders as $uf) {
+        $u = readJson($uf . '/user.json');
+        if (!empty($u['id'])) {
+            $totalUsers++;
+            if (!empty($u['isDisabled'])) {
+                $disabledUsers++;
+            } else {
+                $activeUsers++;
+            }
+        }
+    }
+
+    $backupsDir = $DATA_DIR . '/backups';
+    $backups = [];
+    if (is_dir($backupsDir)) {
+        $bFiles = glob($backupsDir . '/*.*') ?: [];
+        foreach ($bFiles as $bf) {
+            $backups[] = [
+                'name' => basename($bf),
+                'size' => filesize($bf),
+                'date' => date('c', filemtime($bf))
+            ];
+        }
+        usort($backups, function($a, $b) {
+            return strcmp($b['date'], $a['date']);
+        });
+    }
+
+    $totalStorageBytes = getFolderSize($DATA_DIR);
+    $uploadsBytes = getFolderSize($DATA_DIR . '/uploads');
+
+    $statsData = [
+        'totalUsers' => $totalUsers,
+        'activeUsers' => $activeUsers,
+        'disabledUsers' => $disabledUsers,
+        'activeToday' => $activeUsers,
         'totalWorkspaces' => count($wsFolders),
-        'activeToday' => count($userFolders),
-        'storageUsedMb' => 1.2
+        'totalStorageMb' => round($totalStorageBytes / (1024 * 1024), 2),
+        'uploadsStorageMb' => round($uploadsBytes / (1024 * 1024), 2),
+        'backupsCount' => count($backups),
+        'backups' => $backups
+    ];
+
+    jsonResponse([
+        'success' => true,
+        'stats' => $statsData,
+        'totalUsers' => $totalUsers,
+        'totalWorkspaces' => count($wsFolders),
+        'activeToday' => $activeUsers,
+        'storageUsedMb' => round($totalStorageBytes / (1024 * 1024), 2)
     ]);
 }
 
 // Route: /api/admin/users
 if ($route === 'admin/users') {
+    if (!isUserAdmin($user, $DATA_DIR)) {
+        jsonResponse(['error' => 'Akses ditolak: Hanya untuk Administrator.'], 403);
+    }
     $userFolders = glob($DATA_DIR . '/users/*', GLOB_ONLYDIR) ?: [];
     $users = [];
     foreach ($userFolders as $uf) {
@@ -1234,6 +1325,156 @@ if ($route === 'admin/users') {
         }
     }
     jsonResponse(['users' => $users]);
+}
+
+// Route: /api/admin/users/{userId}/toggle
+if (preg_match('#^admin/users/([^/]+)/toggle$#', $route, $matches) && $method === 'POST') {
+    if (!isUserAdmin($user, $DATA_DIR)) {
+        jsonResponse(['error' => 'Akses ditolak: Hanya untuk Administrator.'], 403);
+    }
+    $targetId = preg_replace('/[^a-zA-Z0-9_-]/', '', $matches[1]);
+    $targetFile = $DATA_DIR . '/users/' . $targetId . '/user.json';
+    if (!file_exists($targetFile)) {
+        jsonResponse(['error' => 'Pengguna tidak ditemukan.'], 404);
+    }
+    if ($targetId === $user['id']) {
+        jsonResponse(['error' => 'Tidak dapat menonaktifkan akun sendiri.'], 400);
+    }
+    $targetUser = readJson($targetFile);
+    $targetUser['isDisabled'] = empty($targetUser['isDisabled']) ? true : false;
+    $targetUser['status'] = $targetUser['isDisabled'] ? 'disabled' : 'active';
+    $targetUser['updatedAt'] = date('c');
+    writeJsonAtomic($targetFile, $targetUser);
+
+    jsonResponse([
+        'success' => true,
+        'message' => $targetUser['isDisabled'] ? 'Pengguna berhasil dinonaktifkan' : 'Pengguna berhasil diaktifkan kembali',
+        'user' => $targetUser
+    ]);
+}
+
+// Route: /api/admin/users/{userId}/reset-password
+if (preg_match('#^admin/users/([^/]+)/reset-password$#', $route, $matches) && $method === 'POST') {
+    if (!isUserAdmin($user, $DATA_DIR)) {
+        jsonResponse(['error' => 'Akses ditolak: Hanya untuk Administrator.'], 403);
+    }
+    $targetId = preg_replace('/[^a-zA-Z0-9_-]/', '', $matches[1]);
+    $targetFile = $DATA_DIR . '/users/' . $targetId . '/user.json';
+    $authFile = $DATA_DIR . '/users/' . $targetId . '/auth.json';
+    if (!file_exists($targetFile) || !file_exists($authFile)) {
+        jsonResponse(['error' => 'Pengguna tidak ditemukan.'], 404);
+    }
+
+    $newPassword = $input['newPassword'] ?? '';
+    if (empty($newPassword) || strlen($newPassword) < 8) {
+        jsonResponse(['error' => 'Password baru minimal 8 karakter.'], 400);
+    }
+
+    $targetUser = readJson($targetFile);
+    $targetAuth = readJson($authFile);
+    $targetAuth['passwordHash'] = password_hash($newPassword, PASSWORD_BCRYPT);
+    $targetAuth['updatedAt'] = date('c');
+    unset($targetAuth['resetToken'], $targetAuth['resetTokenExpires']);
+
+    writeJsonAtomic($authFile, $targetAuth);
+
+    jsonResponse([
+        'success' => true,
+        'message' => 'Password pengguna ' . ($targetUser['name'] ?? 'tersebut') . ' berhasil direset.'
+    ]);
+}
+
+// Route: /api/admin/backup
+if ($route === 'admin/backup' && $method === 'POST') {
+    if (!isUserAdmin($user, $DATA_DIR)) {
+        jsonResponse(['error' => 'Akses ditolak: Hanya untuk Administrator.'], 403);
+    }
+    $backupsDir = $DATA_DIR . '/backups';
+    ensureDir($backupsDir);
+    $baseName = 'backup_' . date('Y-m-d_His');
+
+    if (class_exists('ZipArchive')) {
+        $zipFile = $backupsDir . '/' . $baseName . '.zip';
+        $zip = new ZipArchive();
+        if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($DATA_DIR, FilesystemIterator::SKIP_DOTS),
+                RecursiveIteratorIterator::SELF_FIRST
+            );
+            $realDataDir = realpath($DATA_DIR);
+            foreach ($files as $file) {
+                $realPath = $file->getRealPath();
+                $relPath = substr($realPath, strlen($realDataDir) + 1);
+                if (strpos($relPath, 'backups') === 0) continue;
+                if ($file->isDir()) {
+                    $zip->addEmptyDir($relPath);
+                } else if ($file->isFile()) {
+                    $zip->addFile($realPath, $relPath);
+                }
+            }
+            $zip->close();
+            jsonResponse([
+                'success' => true,
+                'message' => 'Snapshot cadangan sistem ZIP berhasil dibuat.',
+                'backup' => [
+                    'name' => $baseName . '.zip',
+                    'date' => date('c'),
+                    'size' => filesize($zipFile)
+                ]
+            ]);
+        }
+    }
+
+    // Fallback: JSON snapshot
+    $jsonFile = $backupsDir . '/' . $baseName . '.json';
+    $snapshot = [
+        'timestamp' => date('c'),
+        'version' => '1.1.0',
+        'data' => []
+    ];
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($DATA_DIR, FilesystemIterator::SKIP_DOTS)
+    );
+    $realDataDir = realpath($DATA_DIR);
+    foreach ($files as $file) {
+        if ($file->isFile() && $file->getExtension() === 'json') {
+            $realPath = $file->getRealPath();
+            $relPath = substr($realPath, strlen($realDataDir) + 1);
+            if (strpos($relPath, 'backups') === 0) continue;
+            $snapshot['data'][$relPath] = readJson($realPath);
+        }
+    }
+    writeJsonAtomic($jsonFile, $snapshot);
+    jsonResponse([
+        'success' => true,
+        'message' => 'Snapshot cadangan sistem JSON berhasil dibuat.',
+        'backup' => [
+            'name' => $baseName . '.json',
+            'date' => date('c'),
+            'size' => filesize($jsonFile)
+        ]
+    ]);
+}
+
+// Route: /api/admin/backups/{filename}
+if (preg_match('#^admin/backups/([^/]+)$#', $route, $matches) && $method === 'GET') {
+    if (!isUserAdmin($user, $DATA_DIR)) {
+        jsonResponse(['error' => 'Akses ditolak.'], 403);
+    }
+    $safeFilename = basename($matches[1]);
+    $backupPath = $DATA_DIR . '/backups/' . $safeFilename;
+    if (!file_exists($backupPath)) {
+        http_response_code(404);
+        exit('Berkas cadangan tidak ditemukan');
+    }
+    $ext = strtolower(pathinfo($safeFilename, PATHINFO_EXTENSION));
+    $contentType = $ext === 'zip' ? 'application/zip' : 'application/json';
+    header('Content-Type: ' . $contentType);
+    header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
+    header('Content-Length: ' . filesize($backupPath));
+    header('Cache-Control: no-store');
+    readfile($backupPath);
+    exit;
 }
 
 // Default 404
