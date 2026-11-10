@@ -42,8 +42,14 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
           fetch('/api/m/taaruf'),
         ]);
 
-        if (kRes.ok) setKhitbahData((await kRes.json()).data);
-        if (tRes.ok) setTaarufData((await tRes.json()).data);
+        if (kRes.ok) {
+          const kJson = await kRes.json();
+          setKhitbahData(kJson.data || kJson);
+        }
+        if (tRes.ok) {
+          const tJson = await tRes.json();
+          setTaarufData(tJson.data || tJson);
+        }
       } catch (err) {
         console.error('Error loading Stage 3 data:', err);
       } finally {

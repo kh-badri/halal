@@ -96,8 +96,14 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
           fetch('/api/m/budget'),
         ]);
 
-        if (kRes.ok) setKhitbahData((await kRes.json()).data);
-        if (bRes.ok) setBudgetData((await bRes.json()).data);
+        if (kRes.ok) {
+          const kJson = await kRes.json();
+          setKhitbahData(kJson.data || kJson);
+        }
+        if (bRes.ok) {
+          const bJson = await bRes.json();
+          setBudgetData(bJson.data || bJson);
+        }
       } catch (err) {
         console.error('Error loading Stage 4 data:', err);
       } finally {

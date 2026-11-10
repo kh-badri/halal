@@ -45,13 +45,18 @@ export default function StageClientPage({ stage }: StageClientPageProps) {
         fetch('/api/route'),
       ]);
 
-      if (authRes.status === 401 || routeRes.status === 401) {
+      if (!authRes.ok || !routeRes.ok || authRes.status === 401 || routeRes.status === 401) {
         router.replace('/login');
         return;
       }
 
       const authData = await authRes.json();
       const rData = await routeRes.json();
+
+      if (!rData || !rData.currentStage) {
+        router.replace('/login');
+        return;
+      }
 
       setWorkspaceId(rData.workspaceId || authData.user?.workspaceId || 'default');
       setRouteData(rData);
@@ -87,7 +92,7 @@ export default function StageClientPage({ stage }: StageClientPageProps) {
     }
   }, []);
 
-  if (loading) {
+  if (loading || !routeData) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
         <div className="w-12 h-12 rounded-full border-4 border-rose-500/20 border-t-rose-500 animate-spin mb-4" />

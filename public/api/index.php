@@ -793,8 +793,8 @@ $STAGE_ORDER = [
 ];
 
 $STAGE_DEFINITIONS = [
-    'persetujuan-taaruf' => ['stepNumber' => 1, 'title' => 'Persetujuan Ta�aruf', 'shortTitle' => 'Persetujuan', 'subtitle' => 'Biodata, Riwayat, Kesepakatan Wali & Nadzor'],
-    'proses-taaruf' => ['stepNumber' => 2, 'title' => 'Proses Ta�aruf', 'shortTitle' => 'Sesi Ta�aruf', 'subtitle' => 'Sesi Tanya Jawab Terbimbing, Visi Pernikahan & Komitmen'],
+    'persetujuan-taaruf' => ['stepNumber' => 1, 'title' => "Persetujuan Ta'aruf", 'shortTitle' => 'Persetujuan', 'subtitle' => 'Biodata, Riwayat, Kesepakatan Wali & Nadzor'],
+    'proses-taaruf' => ['stepNumber' => 2, 'title' => "Proses Ta'aruf", 'shortTitle' => "Sesi Ta'aruf", 'subtitle' => 'Sesi Tanya Jawab Terbimbing, Visi Pernikahan & Komitmen'],
     'kesepakatan-khitbah' => ['stepNumber' => 3, 'title' => 'Kesepakatan Menuju Khitbah', 'shortTitle' => 'Kesepakatan Khitbah', 'subtitle' => 'Persetujuan Kedua Keluarga, Mahar & Waktu Lamaran'],
     'proses-khitbah' => ['stepNumber' => 4, 'title' => 'Proses Khitbah & Lamaran', 'shortTitle' => 'Hari Khitbah', 'subtitle' => 'Checklist Seserahan, Rundown & Pelaksanaan Lamaran'],
     'kesepakatan-akad' => ['stepNumber' => 5, 'title' => 'Kesepakatan Akad & Anggaran', 'shortTitle' => 'Akad & Budget', 'subtitle' => 'Tanggal & Lokasi Akad, Rincian Mahar & Target Tabungan'],
@@ -849,7 +849,7 @@ function evaluateStage($wsDir, $stageKey) {
             ['id' => 'req_mediator', 'label' => 'Data perantara (nama & kontak) terisi', 'isMet' => (bool)$mediatorComplete],
             ['id' => 'req_nadzor_istikharah', 'label' => 'Checklist Nadzor dan Istikharah tercentang', 'isMet' => (bool)($nadzorOk && $istikharahOk)],
             ['id' => 'req_exchanged', 'label' => 'Penanda riwayat kesehatan & keluarga sudah saling ditukar tercentang', 'isMet' => (bool)($healthExchanged && $familyExchanged)],
-            ['id' => 'req_decisions', 'label' => 'Keputusan Saya dan Calon sama-sama "Setuju lanjut ta�aruf"', 'isMet' => (bool)$decisionOk],
+            ['id' => 'req_decisions', 'label' => "Keputusan Saya dan Calon sama-sama \"Setuju lanjut ta'aruf\"", 'isMet' => (bool)$decisionOk],
         ];
 
         $metCount = count(array_filter($items, fn($i) => $i['isMet']));

@@ -62,7 +62,7 @@ export function Stage2ProsesTaaruf({ workspaceId, isReadOnly, onDataChanged }: S
         const res = await fetch('/api/m/taaruf');
         if (res.ok) {
           const json = await res.json();
-          setTaarufData(json.data);
+          setTaarufData(json.data || json);
         }
       } catch (err) {
         console.error('Error loading taaruf Q&A:', err);

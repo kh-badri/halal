@@ -23,12 +23,16 @@ export default function RutePage() {
           fetch('/api/m/settings'),
         ]);
 
-        if (meRes.status === 401 || routeRes.status === 401) {
+        if (!routeRes.ok || routeRes.status === 401 || meRes.status === 401) {
           router.replace('/login');
           return;
         }
 
         const rData = await routeRes.json();
+        if (!rData || !rData.currentStage) {
+          router.replace('/login');
+          return;
+        }
         setRouteData(rData);
         setUserAccess(rData.access || 'owner');
 

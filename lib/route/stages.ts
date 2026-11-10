@@ -99,9 +99,11 @@ export function getStageIndex(key: StageKey): number {
   return STAGE_ORDER.indexOf(key);
 }
 
-export function getStageStatus(route: RouteState, key: StageKey): 'completed' | 'active' | 'locked' {
+export function getStageStatus(route?: RouteState | null, key?: StageKey): 'completed' | 'active' | 'locked' {
+  if (!route || !route.currentStage || !key) return 'locked';
   const currentIdx = getStageIndex(route.currentStage);
   const targetIdx = getStageIndex(key);
+  if (currentIdx < 0 || targetIdx < 0) return 'locked';
 
   if (targetIdx < currentIdx) {
     return 'completed';
@@ -116,9 +118,11 @@ export function getStageStatus(route: RouteState, key: StageKey): 'completed' | 
   return 'locked';
 }
 
-export function isStageUnlocked(route: RouteState, key: StageKey): boolean {
+export function isStageUnlocked(route?: RouteState | null, key?: StageKey): boolean {
+  if (!route || !route.currentStage || !key) return false;
   const currentIdx = getStageIndex(route.currentStage);
   const targetIdx = getStageIndex(key);
+  if (currentIdx < 0 || targetIdx < 0) return false;
   return targetIdx <= currentIdx;
 }
 

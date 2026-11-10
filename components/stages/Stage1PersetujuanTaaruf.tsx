@@ -55,12 +55,13 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
 
         if (tRes.ok) {
           const tJson = await tRes.json();
-          setTaarufData(tJson.data);
-          setBlurSensitive(Boolean(tJson.data?.privacyBlurEnabled));
+          const tData = tJson.data || tJson;
+          setTaarufData(tData);
+          setBlurSensitive(Boolean(tData?.privacyBlurEnabled));
         }
         if (pRes.ok) {
           const pJson = await pRes.json();
-          setProfileData(pJson.data);
+          setProfileData(pJson.data || pJson);
         }
       } catch (err) {
         console.error('Error loading Stage 1 data:', err);

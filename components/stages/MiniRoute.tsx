@@ -12,6 +12,8 @@ interface MiniRouteProps {
 }
 
 export function MiniRoute({ currentStageKey, routeData }: MiniRouteProps) {
+  if (!routeData) return null;
+
   return (
     <div className="w-full bg-white/95 backdrop-blur-md border-b border-rose-100 px-4 py-3 shadow-[0_2px_10px_rgba(240,86,124,0.05)]">
       <div className="relative flex items-center justify-between max-w-md mx-auto">

@@ -56,8 +56,8 @@ export default function AnggotaPage() {
   const fetchMembers = async () => {
     try {
       const res = await fetch('/api/members');
-      if (res.status === 401) {
-        router.push('/login');
+      if (!res.ok || res.status === 401) {
+        router.replace('/login');
         return;
       }
       const data = await res.json();

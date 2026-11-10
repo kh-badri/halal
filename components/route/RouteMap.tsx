@@ -78,15 +78,15 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   const [selectedLockedStage, setSelectedLockedStage] = useState<StageKey | null>(null);
   const [countdownDays, setCountdownDays] = useState<number | null>(null);
 
-  const currentIdx = getStageIndex(currentStage);
-  const currentDef = STAGE_DEFINITIONS[currentStage];
+  const currentIdx = getStageIndex(currentStage || 'persetujuan-taaruf');
+  const currentDef = STAGE_DEFINITIONS[currentStage] || STAGE_DEFINITIONS['persetujuan-taaruf'];
 
   const completedCount = useMemo(() => {
-    return stages.filter((s) => s.status === 'completed').length;
+    return (stages || []).filter((s) => s?.status === 'completed').length;
   }, [stages]);
 
   const currentStageData = useMemo(() => {
-    return stages.find((s) => s.key === currentStage);
+    return (stages || []).find((s) => s?.key === currentStage);
   }, [stages, currentStage]);
 
   // Calculate days to akad if targetDate is set
@@ -121,7 +121,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   };
 
   const getStageData = (key: StageKey) => {
-    return stages.find((s) => s.key === key);
+    return (stages || []).find((s) => s?.key === key);
   };
 
   return (

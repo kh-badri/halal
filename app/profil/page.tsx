@@ -64,16 +64,24 @@ export default function ProfilPage() {
           fetch('/api/m/settings'),
         ]);
 
-        if (meRes.ok) {
-          const uJson = await meRes.json();
-          setUser(uJson.user);
+        if (!meRes.ok) {
+          router.replace('/login');
+          return;
         }
-        if (profRes.ok) setProfile((await profRes.json()).data);
+
+        const uJson = await meRes.json();
+        setUser(uJson.user);
+
+        if (profRes.ok) {
+          const pJson = await profRes.json();
+          setProfile(pJson.data || pJson);
+        }
         if (settRes.ok) {
           const sJson = await settRes.json();
-          setSettings(sJson.data);
-          setTargetDate(sJson.data.targetDate || '');
-          setWeddingLocation(sJson.data.weddingLocation || '');
+          const sData = sJson.data || sJson;
+          setSettings(sData);
+          setTargetDate(sData?.targetDate || '');
+          setWeddingLocation(sData?.weddingLocation || '');
         }
       } catch (err) {
         console.error('Error loading profile:', err);
@@ -82,7 +90,7 @@ export default function ProfilPage() {
       }
     }
     loadData();
-  }, []);
+  }, [router]);
 
   const handleSaveWeddingSettings = async () => {
     try {
@@ -179,6 +187,15 @@ export default function ProfilPage() {
     router.push('/login');
     router.refresh();
   };
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-12 h-12 rounded-full border-4 border-rose-500/20 border-t-rose-500 animate-spin mb-4" />
+        <p className="text-sm font-bold text-ink/70">Memuat profil...</p>
+      </div>
+    );
+  }
 
   const person = profile?.[profileSide] || {};
 
