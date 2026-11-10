@@ -3,7 +3,8 @@
 # Static HTML + Native PHP Backend (Zero Node.js Process Required)
 # ----------------------------------------------------------------------
 
-Options -Indexes
+DirectoryIndex index.html index.php
+Options -Indexes +FollowSymLinks
 RewriteEngine On
 
 # 1. Force HTTPS
@@ -12,29 +13,22 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # 2. Security: Block direct web access to sensitive JSON & data directories
 RewriteRule ^roadtohalal-data/ - [F,L]
-RewriteRule \.(json|bak|tmp|log|md|lock)$ - [F,L]
-<FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
+RewriteRule \.(json|bak|tmp|log|md|lock|yml)$ - [F,L]
 
 # 3. Route API requests to Native PHP Router
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^api/(.*)$ api/index.php?endpoint=$1 [QSA,L]
 
-# 4. Clean URLs for Next.js Static Export (trailingSlash / html fallback)
-# A. If directory exists and has index.html
+# 4. Clean URLs for Next.js Static Export
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteCond %{REQUEST_FILENAME}/index.html -f
 RewriteRule ^(.*)$ $1/index.html [L]
 
-# B. If file.html exists
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{DOCUMENT_ROOT}/$1.html -f
 RewriteRule ^(.*)$ $1.html [L]
 
-# C. If directory with trailing slash index.html exists
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
