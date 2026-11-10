@@ -20,12 +20,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between p-6 bg-gradient-to-b from-blush/60 via-white to-sky/40">
-      <div className="pt-8 text-center">
-        <div className="w-20 h-20 mx-auto mb-4 relative flex items-center justify-center">
+      <div className="pt-6 text-center">
+        <div className="w-24 h-24 mx-auto mb-3.5 relative flex items-center justify-center">
+          <div className="absolute inset-0 rounded-3xl bg-blush/60 blur-sm -z-10" />
           <img
             src="/icons/icon-192x192.png"
             alt="Road To Halal Logo"
-            className="w-20 h-20 rounded-3xl shadow-lg border-2 border-ink/20 object-cover"
+            width={96}
+            height={96}
+            className="w-24 h-24 rounded-3xl shadow-md border-2 border-rose-200/80 object-cover"
           />
         </div>
         <h1 className="text-3xl font-black text-ink tracking-tight">Road To Halal</h1>
