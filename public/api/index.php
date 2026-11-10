@@ -104,6 +104,213 @@ function clearUserSessionCookies() {
     setcookie('nikahku_session', '', time() - 3600, '/');
 }
 
+// Helper: Default Module Structure
+function getDefaultModuleData($module, $user = null) {
+    $now = date('c');
+    $name = $user['name'] ?? 'Calon Pengantin';
+    $nickname = explode(' ', $name)[0];
+
+    if ($module === 'profile') {
+        return [
+            'schemaVersion' => 1,
+            'rev' => 1,
+            'updatedAt' => $now,
+            'self' => [
+                'fullName' => $name,
+                'nickname' => $nickname,
+                'status' => 'lajang',
+                'education' => '',
+                'occupation' => '',
+                'dob' => '',
+                'birthDate' => '',
+                'domicile' => '',
+                'phone' => '',
+                'whatsapp' => '',
+                'hobbies' => '',
+                'notes' => ''
+            ],
+            'partner' => [
+                'fullName' => '',
+                'nickname' => '',
+                'status' => 'lajang',
+                'education' => '',
+                'occupation' => '',
+                'dob' => '',
+                'birthDate' => '',
+                'domicile' => '',
+                'phone' => '',
+                'whatsapp' => '',
+                'hobbies' => '',
+                'notes' => ''
+            ]
+        ];
+    }
+
+    if ($module === 'taaruf') {
+        return [
+            'schemaVersion' => 1,
+            'rev' => 1,
+            'updatedAt' => $now,
+            'mediator' => [
+                'name' => '',
+                'phone' => '',
+                'relation' => ''
+            ],
+            'nadzor' => [
+                'checked' => false,
+                'date' => '',
+                'notes' => ''
+            ],
+            'istikharah' => [
+                'checked' => false,
+                'date' => '',
+                'notes' => ''
+            ],
+            'healthExchanged' => false,
+            'familyExchanged' => false,
+            'healthSelf' => [
+                'bloodType' => '',
+                'rhesus' => '',
+                'allergies' => '',
+                'chronicIllness' => '',
+                'surgeries' => '',
+                'routineMeds' => '',
+                'notes' => ''
+            ],
+            'healthPartner' => [
+                'bloodType' => '',
+                'rhesus' => '',
+                'allergies' => '',
+                'chronicIllness' => '',
+                'surgeries' => '',
+                'routineMeds' => '',
+                'notes' => ''
+            ],
+            'familySelf' => [
+                'fatherName' => '',
+                'motherName' => '',
+                'guardianRelation' => '',
+                'parentStatus' => '',
+                'familyNotes' => ''
+            ],
+            'familyPartner' => [
+                'fatherName' => '',
+                'motherName' => '',
+                'guardianRelation' => '',
+                'parentStatus' => '',
+                'familyNotes' => ''
+            ],
+            'decisions' => [
+                'selfDecision' => 'belum',
+                'partnerDecision' => 'belum',
+                'notes' => ''
+            ],
+            'privacyBlurEnabled' => false
+        ];
+    }
+
+    if ($module === 'settings') {
+        return [
+            'schemaVersion' => 1,
+            'rev' => 1,
+            'updatedAt' => $now,
+            'targetDate' => '',
+            'weddingLocation' => '',
+            'timezone' => 'Asia/Jakarta',
+            'emailNotifications' => true,
+            'reminderDaysBefore' => [7, 3, 1]
+        ];
+    }
+
+    if ($module === 'khitbah') {
+        return [
+            'schemaVersion' => 1,
+            'rev' => 1,
+            'updatedAt' => $now,
+            'summaryReviewed' => false,
+            'familyConsent' => [
+                'selfFamilyAgreed' => false,
+                'partnerFamilyAgreed' => false
+            ],
+            'eventDate' => '',
+            'eventStartTime' => '',
+            'locationName' => '',
+            'locationAddress' => '',
+            'decisions' => [
+                'selfDecision' => 'belum',
+                'partnerDecision' => 'belum'
+            ],
+            'gifts' => [],
+            'prepChecklist' => [],
+            'execution' => [
+                'completed' => false,
+                'executionDate' => '',
+                'weddingTargetDate' => ''
+            ]
+        ];
+    }
+
+    if ($module === 'budget') {
+        return [
+            'schemaVersion' => 1,
+            'rev' => 1,
+            'updatedAt' => $now,
+            'agreement' => [
+                'akadDate' => '',
+                'waliNasab' => '',
+                'familyConsent' => false
+            ],
+            'mahar' => [
+                'description' => '',
+                'value' => 0
+            ],
+            'categories' => [
+                ['id' => 'mahar', 'name' => 'Mahar', 'targetBudget' => 0],
+                ['id' => 'akad_walimah', 'name' => 'Akad & Walimah', 'targetBudget' => 0]
+            ],
+            'fundingSources' => [],
+            'items' => []
+        ];
+    }
+
+    if ($module === 'kua') {
+        return [
+            'schemaVersion' => 1,
+            'rev' => 1,
+            'updatedAt' => $now,
+            'documents' => [],
+            'registeredDate' => '',
+            'recommendationLetter' => ['isRequired' => false, 'status' => ''],
+            'ttInjections' => [],
+            'healthCheckups' => [],
+            'bimwin' => ['status' => 'belum', 'certificateNumber' => '', 'notes' => '']
+        ];
+    }
+
+    if ($module === 'harih') {
+        return [
+            'schemaVersion' => 1,
+            'rev' => 1,
+            'updatedAt' => $now,
+            'rundown' => [],
+            'checklists' => []
+        ];
+    }
+
+    if ($module === 'extra') {
+        return [
+            'schemaVersion' => 1,
+            'rev' => 1,
+            'updatedAt' => $now,
+            'prayers' => [],
+            'tasks' => [],
+            'householdChecklist' => []
+        ];
+    }
+
+    return ['schemaVersion' => 1, 'rev' => 1, 'updatedAt' => $now];
+}
+
 // Parse Route
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $apiPos = strpos($uri, '/api/');
@@ -258,6 +465,8 @@ if ($route === 'auth/login' && $method === 'POST') {
         writeJsonAtomic($usersDir . '/' . $userId . '/auth.json', $matchedAuth);
         writeJsonAtomic($wsDir . '/workspace.json', $workspace);
         writeJsonAtomic($wsDir . '/route.json', $routeInit);
+        writeJsonAtomic($wsDir . '/profile.json', getDefaultModuleData('profile', $matchedUser));
+        writeJsonAtomic($wsDir . '/taaruf.json', getDefaultModuleData('taaruf', $matchedUser));
     }
 
     if ($matchedUser && $matchedAuth) {
@@ -351,26 +560,19 @@ if ($route === 'auth/register' && $method === 'POST') {
         'updatedAt' => date('c')
     ];
 
-    $profileInit = [
-        'self' => [
-            'fullName' => $name,
-            'nickname' => explode(' ', $name)[0]
-        ],
-        'user' => [
-            'fullName' => $name
-        ],
-        'partner' => (object)[]
-    ];
-
-    $settingsInit = [
-        'targetDate' => $targetDate ?: ''
-    ];
+    $profileInit = getDefaultModuleData('profile', $user);
+    $taarufInit = getDefaultModuleData('taaruf', $user);
+    $settingsInit = getDefaultModuleData('settings', $user);
+    if ($targetDate) {
+        $settingsInit['targetDate'] = $targetDate;
+    }
 
     writeJsonAtomic($usersDir . '/' . $userId . '/user.json', $user);
     writeJsonAtomic($usersDir . '/' . $userId . '/auth.json', $auth);
     writeJsonAtomic($wsDir . '/workspace.json', $workspace);
     writeJsonAtomic($wsDir . '/route.json', $routeInit);
     writeJsonAtomic($wsDir . '/profile.json', $profileInit);
+    writeJsonAtomic($wsDir . '/taaruf.json', $taarufInit);
     writeJsonAtomic($wsDir . '/settings.json', $settingsInit);
 
     setUserSessionCookies($userId);
@@ -602,26 +804,52 @@ $STAGE_DEFINITIONS = [
     'halal' => ['stepNumber' => 9, 'title' => 'Halal', 'shortTitle' => 'Halal', 'subtitle' => 'Alhamdulillah, Resmi Suami Istri']
 ];
 
-// Helper: Calculate Stage Requirements
+// Helper: Calculate Stage Requirements (Exact 1:1 match with lib/route/requirements.ts)
 function evaluateStage($wsDir, $stageKey) {
     if ($stageKey === 'persetujuan-taaruf') {
-        $taaruf = readJson($wsDir . '/taaruf.json');
-        $profile = readJson($wsDir . '/profile.json');
+        $taaruf = readJson($wsDir . '/taaruf.json', []);
+        $profile = readJson($wsDir . '/profile.json', []);
 
-        $hasMyBio = !empty($profile['user']['fullName']) || !empty($profile['self']['fullName']);
-        $hasPartnerBio = !empty($profile['partner']['fullName']);
-        $hasHealth = !empty($taaruf['myHealth']['bloodType']);
-        $hasFamily = !empty($taaruf['myFamily']['fatherName']) && !empty($taaruf['myFamily']['guardianRelation']);
-        $hasNadzor = !empty($taaruf['nadzor']['isConducted']) && $taaruf['nadzor']['isConducted'] === true;
-        $hasIstikharah = !empty($taaruf['istikharah']['isConducted']) && $taaruf['istikharah']['isConducted'] === true;
+        $self = $profile['self'] ?? $profile['user'] ?? [];
+        $partner = $profile['partner'] ?? [];
+
+        // 1. Biodata Saya
+        $selfComplete = (!empty($self['fullName']) || !empty($self['name'])) &&
+                        (!empty($self['birthDate']) || !empty($self['dob'])) &&
+                        !empty($self['domicile']) &&
+                        !empty($self['occupation']) &&
+                        (!empty($self['phone']) || !empty($self['whatsapp']));
+
+        // 2. Biodata Calon
+        $partnerComplete = (!empty($partner['fullName']) || !empty($partner['name'])) &&
+                           (!empty($partner['birthDate']) || !empty($partner['dob'])) &&
+                           !empty($partner['domicile']) &&
+                           !empty($partner['occupation']) &&
+                           (!empty($partner['phone']) || !empty($partner['whatsapp']));
+
+        // 3. Perantara terisi
+        $mediatorComplete = !empty($taaruf['mediator']['name']) && !empty($taaruf['mediator']['phone']);
+
+        // 4. Checklist Nadzor & Istikharah
+        $nadzorOk = !empty($taaruf['nadzor']['checked']);
+        $istikharahOk = !empty($taaruf['istikharah']['checked']);
+
+        // 5. Riwayat kesehatan & keluarga sudah saling ditukar
+        $healthExchanged = !empty($taaruf['healthExchanged']);
+        $familyExchanged = !empty($taaruf['familyExchanged']);
+
+        // 6. Keputusan Saya dan Calon sama-sama "setuju"
+        $selfDecision = $taaruf['decisions']['selfDecision'] ?? '';
+        $partnerDecision = $taaruf['decisions']['partnerDecision'] ?? '';
+        $decisionOk = ($selfDecision === 'setuju' && $partnerDecision === 'setuju');
 
         $items = [
-            ['id' => 'bio_saya', 'label' => 'Biodata diri lengkap (nama, tanggal lahir, kontak)', 'isMet' => $hasMyBio],
-            ['id' => 'bio_calon', 'label' => 'Biodata calon pasangan diisi', 'isMet' => $hasPartnerBio],
-            ['id' => 'kesehatan', 'label' => 'Riwayat kesehatan diri dicatat', 'isMet' => $hasHealth],
-            ['id' => 'keluarga_wali', 'label' => 'Data keluarga & wali nasab ditentukan', 'isMet' => $hasFamily],
-            ['id' => 'nadzor', 'label' => 'Nadzor (pertemuan langsung didampingi mahram) selesai', 'isMet' => $hasNadzor],
-            ['id' => 'istikharah', 'label' => 'Shalat istikharah & kemantapan hati dilakukan', 'isMet' => $hasIstikharah],
+            ['id' => 'req_self_biodata', 'label' => 'Field wajib biodata Saya terisi (nama, tgl lahir, domisili, pekerjaan, kontak)', 'isMet' => (bool)$selfComplete],
+            ['id' => 'req_partner_biodata', 'label' => 'Field wajib biodata Calon terisi (nama, tgl lahir, domisili, pekerjaan, kontak)', 'isMet' => (bool)$partnerComplete],
+            ['id' => 'req_mediator', 'label' => 'Data perantara (nama & kontak) terisi', 'isMet' => (bool)$mediatorComplete],
+            ['id' => 'req_nadzor_istikharah', 'label' => 'Checklist Nadzor dan Istikharah tercentang', 'isMet' => (bool)($nadzorOk && $istikharahOk)],
+            ['id' => 'req_exchanged', 'label' => 'Penanda riwayat kesehatan & keluarga sudah saling ditukar tercentang', 'isMet' => (bool)($healthExchanged && $familyExchanged)],
+            ['id' => 'req_decisions', 'label' => 'Keputusan Saya dan Calon sama-sama "Setuju lanjut ta’aruf"', 'isMet' => (bool)$decisionOk],
         ];
 
         $metCount = count(array_filter($items, fn($i) => $i['isMet']));
@@ -634,13 +862,16 @@ function evaluateStage($wsDir, $stageKey) {
     }
 
     if ($stageKey === 'proses-taaruf') {
-        $taaruf = readJson($wsDir . '/taaruf.json');
-        $qaCount = count($taaruf['qaAnswers'] ?? []);
-        $isAgreementMet = !empty($taaruf['agreement']['isAgreed']) && $taaruf['agreement']['isAgreed'] === true;
+        $taaruf = readJson($wsDir . '/taaruf.json', []);
+        $cards = $taaruf['qaCards'] ?? [];
+        $activeCards = array_filter($cards, fn($c) => empty($c['deletedAt']));
+        $hasUlang = count(array_filter($activeCards, fn($c) => ($c['status'] ?? '') === 'ulang')) > 0;
+        $principleCards = array_filter($activeCards, fn($c) => !empty($c['principle']));
+        $allPrincipleSepakat = count($principleCards) > 0 ? (count(array_filter($principleCards, fn($c) => ($c['status'] ?? '') === 'sepakat')) === count($principleCards)) : true;
 
         $items = [
-            ['id' => 'qa_min5', 'label' => 'Minimal 5 kartu tanya-jawab ta\'aruf terjawab (terjawab: ' . $qaCount . ')', 'isMet' => $qaCount >= 5],
-            ['id' => 'kesepakatan_lanjut', 'label' => 'Kedua pihak sepakat melanjutkan proses ke khitbah', 'isMet' => $isAgreementMet],
+            ['id' => 'req_no_ulang', 'label' => 'Tidak ada kartu berstatus "Perlu dibahas lagi"', 'isMet' => count($activeCards) > 0 && !$hasUlang],
+            ['id' => 'req_principles_agreed', 'label' => 'Semua kartu bertanda Prinsip berstatus "Sepakat"', 'isMet' => (bool)$allPrincipleSepakat],
         ];
         $metCount = count(array_filter($items, fn($i) => $i['isMet']));
         return [
@@ -652,19 +883,16 @@ function evaluateStage($wsDir, $stageKey) {
     }
 
     if ($stageKey === 'kesepakatan-khitbah') {
-        $khitbah = readJson($wsDir . '/khitbah.json');
-        $agreement = $khitbah['agreement'] ?? [];
-
-        $hasTargetDate = !empty($agreement['khitbahDate']);
-        $hasLocation = !empty($agreement['location']);
-        $hasBothFamilies = !empty($agreement['groomFamilyApproved']) && !empty($agreement['brideFamilyApproved']);
-        $hasDelegation = !empty($agreement['familyRepresentative']);
+        $khitbah = readJson($wsDir . '/khitbah.json', []);
+        $familyAgreed = !empty($khitbah['familyConsent']['selfFamilyAgreed']) && !empty($khitbah['familyConsent']['partnerFamilyAgreed']);
+        $eventInfoFilled = !empty($khitbah['eventDate']) && !empty($khitbah['eventStartTime']);
+        $decisionsOk = (($khitbah['decisions']['selfDecision'] ?? '') === 'lanjut' && ($khitbah['decisions']['partnerDecision'] ?? '') === 'lanjut');
 
         $items = [
-            ['id' => 'tanggal_khitbah', 'label' => 'Tanggal & waktu lamaran disepakati kedua keluarga', 'isMet' => $hasTargetDate],
-            ['id' => 'lokasi_khitbah', 'label' => 'Lokasi acara khitbah ditentukan', 'isMet' => $hasLocation],
-            ['id' => 'restu_keluarga', 'label' => 'Keluarga pria & wanita telah memberikan restu', 'isMet' => $hasBothFamilies],
-            ['id' => 'juru_bicara', 'label' => 'Juru bicara / perwakilan keluarga ditetapkan', 'isMet' => $hasDelegation],
+            ['id' => 'req_summary_reviewed', 'label' => 'Ringkasan kesepakatan sudah ditinjau', 'isMet' => !empty($khitbah['summaryReviewed'])],
+            ['id' => 'req_family_consent', 'label' => 'Restu keluarga kedua belah pihak tercentang', 'isMet' => (bool)$familyAgreed],
+            ['id' => 'req_event_info', 'label' => 'Tanggal, jam, dan lokasi khitbah terisi', 'isMet' => (bool)$eventInfoFilled],
+            ['id' => 'req_khitbah_decision', 'label' => 'Keputusan Saya dan Calon sama-sama "Lanjut khitbah"', 'isMet' => (bool)$decisionsOk],
         ];
         $metCount = count(array_filter($items, fn($i) => $i['isMet']));
         return [
@@ -675,27 +903,7 @@ function evaluateStage($wsDir, $stageKey) {
         ];
     }
 
-    if ($stageKey === 'proses-khitbah') {
-        $khitbah = readJson($wsDir . '/khitbah.json');
-        $itemsList = $khitbah['seserahan'] ?? [];
-        $totalItems = count($itemsList);
-        $readyItems = count(array_filter($itemsList, fn($i) => !empty($i['isReady']) && $i['isReady'] === true));
-        $allReady = $totalItems > 0 && $readyItems === $totalItems;
-        $isExecuted = !empty($khitbah['execution']['isExecuted']) && $khitbah['execution']['isExecuted'] === true;
-
-        $items = [
-            ['id' => 'seserahan_siap', 'label' => 'Checklist seserahan siap (' . $readyItems . '/' . $totalItems . ' siap)', 'isMet' => $allReady],
-            ['id' => 'khitbah_terlaksana', 'label' => 'Acara lamaran telah terlaksana dengan lancar', 'isMet' => $isExecuted],
-        ];
-        $metCount = count(array_filter($items, fn($i) => $i['isMet']));
-        return [
-            'canComplete' => $metCount === count($items),
-            'totalRequirements' => count($items),
-            'metRequirements' => $metCount,
-            'items' => $items
-        ];
-    }
-
+    // Default for remaining stages
     return [
         'canComplete' => true,
         'totalRequirements' => 1,
@@ -882,15 +1090,38 @@ if (preg_match('#^m/([a-zA-Z0-9_-]+)$#', $route, $matches)) {
     $moduleFile = $wsDir . '/' . $module . '.json';
 
     if ($method === 'GET') {
-        $data = readJson($moduleFile);
-        jsonResponse($data);
+        $default = getDefaultModuleData($module, $user);
+        $data = readJson($moduleFile, $default);
+        // Ensure default structure is completely populated
+        $data = array_replace_recursive($default, $data);
+        jsonResponse([
+            'success' => true,
+            'access' => 'owner',
+            'data' => $data
+        ]);
     }
 
     if ($method === 'POST' || $method === 'PATCH' || $method === 'PUT') {
-        $existing = readJson($moduleFile, []);
+        $default = getDefaultModuleData($module, $user);
+        $existing = readJson($moduleFile, $default);
         $merged = array_replace_recursive($existing, $input);
+        // Replace top level fields directly if provided
+        foreach ($input as $k => $v) {
+            $merged[$k] = $v;
+        }
+        $merged['updatedAt'] = date('c');
         writeJsonAtomic($moduleFile, $merged);
-        jsonResponse(['success' => true, 'data' => $merged]);
+
+        // Sync name to user.json if profile self fullName changed
+        if ($module === 'profile' && !empty($input['self']['fullName'])) {
+            $user['name'] = $input['self']['fullName'];
+            writeJsonAtomic($DATA_DIR . '/users/' . $user['id'] . '/user.json', $user);
+        }
+
+        jsonResponse([
+            'success' => true,
+            'data' => $merged
+        ]);
     }
 }
 
