@@ -198,6 +198,25 @@ export default function AnggotaPage() {
           </div>
         ) : (
           <>
+            {/* Non-Owner Informative Notice */}
+            {!isOwner && (
+              <div className="p-4 rounded-3xl bg-neutral-50 border-2 border-ink/20 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-sky border border-ink flex items-center justify-center text-ink shrink-0 mt-0.5">
+                  <Shield size={16} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xs font-black text-ink">
+                    Akses Anda: {userAccess === 'full' ? 'Full Akses' : 'Hanya Baca (Read-Only)'}
+                  </h3>
+                  <p className="text-[11px] text-ink/75 leading-relaxed">
+                    {userAccess === 'full'
+                      ? 'Anda dapat melihat dan mengisi data rute persiapan. Pembuatan kode undangan dan pengelolaan hak akses anggota hanya dapat dilakukan oleh Pemilik ruang.'
+                      : 'Anda dapat memantau rute dan melengkapi biodata diri. Pembuatan kode undangan dan pengelolaan hak akses anggota hanya dapat dilakukan oleh Pemilik ruang.'}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* 1. Create Invite Section (Pemilik only) */}
             {isOwner && (
               <div className="p-5 rounded-3xl bg-white border-2 border-ink shadow-subtle space-y-4">
