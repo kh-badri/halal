@@ -328,7 +328,7 @@ function isWorkspacePartner($user, $workspace) {
         foreach ($workspace['members'] as $m) {
             if ($m['userId'] === $user['id']) {
                 $relation = strtolower($m['relation'] ?? '');
-                if ($relation === 'pasangan') {
+                if ($relation === 'pasangan' || $relation === 'calon pasangan' || strpos($relation, 'pasangan') !== false) {
                     return true;
                 }
             }
@@ -833,8 +833,9 @@ if ($route === 'members/join') {
         }
         $owner = readJson($DATA_DIR . '/users/' . ($foundWs['ownerId'] ?? '') . '/user.json');
         $ownerRole = $owner['role'] ?? 'pria';
-        $relation = $foundInvite['relation'] ?? 'Pasangan';
-        $isPartner = (strtolower($relation) === 'pasangan');
+        $relation = $foundInvite['relation'] ?? 'Calon Pasangan';
+        if ($relation === 'Pasangan') $relation = 'Calon Pasangan';
+        $isPartner = (strtolower($relation) === 'pasangan' || strtolower($relation) === 'calon pasangan' || strpos(strtolower($relation), 'pasangan') !== false);
         $suggestedRole = $isPartner ? ($ownerRole === 'pria' ? 'wanita' : 'pria') : 'wanita';
 
         $wsProfile = readJson($wf . '/profile.json', []);
@@ -882,8 +883,9 @@ if ($route === 'members/join') {
 
         $owner = readJson($DATA_DIR . '/users/' . ($foundWs['ownerId'] ?? '') . '/user.json');
         $ownerRole = $owner['role'] ?? 'pria';
-        $relation = $foundInvite['relation'] ?? 'Pasangan';
-        $isPartner = (strtolower($relation) === 'pasangan');
+        $relation = $foundInvite['relation'] ?? 'Calon Pasangan';
+        if ($relation === 'Pasangan') $relation = 'Calon Pasangan';
+        $isPartner = (strtolower($relation) === 'pasangan' || strtolower($relation) === 'calon pasangan' || strpos(strtolower($relation), 'pasangan') !== false);
 
         // Otomatis tentukan role pasangan (berlawanan dari pemilik)
         if ($isPartner) {
@@ -1281,7 +1283,8 @@ if ($route === 'members') {
         }
 
         $access = $input['access'] ?? 'read';
-        $relation = $input['relation'] ?? 'Pasangan';
+        $relation = $input['relation'] ?? 'Calon Pasangan';
+        if ($relation === 'Pasangan') $relation = 'Calon Pasangan';
         $inviteCode = strtoupper(substr(bin2hex(random_bytes(3)), 0, 6));
         $invite = [
             'code' => $inviteCode,

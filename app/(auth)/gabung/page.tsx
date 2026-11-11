@@ -245,7 +245,7 @@ export default function GabungPage() {
                   Undangan dari {invitePreview.workspaceOwnerName}
                 </p>
                 <p className="text-xs text-slate-600">
-                  Sebagai: <strong className="text-navy-900 font-bold">{invitePreview.relation}</strong>
+                  Sebagai: <strong className="text-navy-900 font-bold">{invitePreview.relation === 'Pasangan' ? 'Calon Pasangan' : invitePreview.relation}</strong>
                 </p>
                 <p className="text-[11px] text-slate-500 italic">
                   {invitePreview.access === 'full'

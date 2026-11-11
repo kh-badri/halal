@@ -47,7 +47,7 @@ export default function AnggotaPage() {
 
   // Create invite form states
   const [accessChoice, setAccessChoice] = useState<'read' | 'full'>('read');
-  const [relationChoice, setRelationChoice] = useState('Pasangan');
+  const [relationChoice, setRelationChoice] = useState('Calon Pasangan');
   const [customRelation, setCustomRelation] = useState('');
   const [creatingInvite, setCreatingInvite] = useState(false);
   const [createdInviteCode, setCreatedInviteCode] = useState<string | null>(null);
@@ -281,7 +281,7 @@ export default function AnggotaPage() {
                       Hubungan / Peran Anggota
                     </label>
                     <div className="flex flex-wrap gap-1.5">
-                      {['Pasangan', 'Orang Tua / Wali', 'Murabbi', 'Saudara', 'Lainnya'].map((rel) => (
+                      {['Calon Pasangan', 'Orang Tua / Wali', 'Murabbi', 'Saudara', 'Lainnya'].map((rel) => (
                         <button
                           key={rel}
                           type="button"
@@ -372,7 +372,7 @@ export default function AnggotaPage() {
                           </span>
                         </div>
                         <p className="text-[11px] text-navy-900/70 mt-0.5">
-                          Hubungan: <strong>{member.relation}</strong> · Bergabung sejak{' '}
+                          Hubungan: <strong>{member.relation === 'Pasangan' ? 'Calon Pasangan' : member.relation}</strong> · Bergabung sejak{' '}
                           {new Date(member.joinedAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
                         </p>
                       </div>
@@ -426,7 +426,7 @@ export default function AnggotaPage() {
                           </span>
                         </div>
                         <p className="text-[10px] text-navy-900/60">
-                          Untuk: {inv.relation} · Kedaluwarsa:{' '}
+                          Untuk: {inv.relation === 'Pasangan' ? 'Calon Pasangan' : inv.relation} · Kedaluwarsa:{' '}
                           {new Date(inv.expiresAt).toLocaleDateString('id-ID')}
                         </p>
                       </div>
