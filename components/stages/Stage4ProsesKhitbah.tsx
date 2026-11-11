@@ -494,7 +494,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
           onClick={() => setActiveTab('seserahan')}
           className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'seserahan'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -505,7 +505,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
           onClick={() => setActiveTab('rundown')}
           className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'rundown'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -516,7 +516,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
           onClick={() => setActiveTab('biaya')}
           className={`flex-1 min-w-[110px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'biaya'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -527,7 +527,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
           onClick={() => setActiveTab('pelaksanaan')}
           className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'pelaksanaan'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -554,7 +554,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                 <button
                   type="button"
                   onClick={openNewGiftModal}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blush border-2 border-ink rounded-xl text-xs font-black text-ink shadow-xs hover:bg-blush/80 transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-100 border-2 border-ink rounded-xl text-xs font-black text-ink shadow-xs hover:bg-sky-100 transition-all"
                 >
                   <Plus className="w-4 h-4" /> Tambah Item
                 </button>
@@ -562,7 +562,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-blush/30 h-3 rounded-full border border-ink/40 overflow-hidden">
+            <div className="w-full bg-sky-50 h-3 rounded-full border border-ink/40 overflow-hidden">
               <div
                 className="h-full bg-sky transition-all duration-300 border-r border-ink"
                 style={{
@@ -577,7 +577,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                 <span className="text-[10px] font-bold text-ink/70 block">Total Estimasi</span>
                 <span className="text-sm font-black text-ink">{formatRupiah(totalGiftEstimate)}</span>
               </div>
-              <div className="p-2.5 bg-blush/20 border border-ink/30 rounded-2xl">
+              <div className="p-2.5 bg-sky-50 border border-ink/30 rounded-2xl">
                 <span className="text-[10px] font-bold text-ink/70 block">Total Aktual</span>
                 <span className="text-sm font-black text-ink">{formatRupiah(totalGiftActual)}</span>
               </div>
@@ -638,13 +638,13 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                   <div
                     key={item.id}
                     className={`bg-white border-2 border-ink rounded-3xl p-4 shadow-subtle space-y-3 transition-all ${
-                      isPacked ? 'border-l-8 border-l-sky' : 'border-l-8 border-l-blush'
+                      isPacked ? 'border-l-8 border-l-sky' : 'border-l-8 border-l-azure'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[10px] font-black uppercase text-ink/70 bg-blush/40 px-2 py-0.5 rounded-full border border-ink/20">
+                          <span className="text-[10px] font-black uppercase text-ink/70 bg-sky-100 px-2 py-0.5 rounded-full border border-ink/20">
                             {item.category.replace('_', ' ')}
                           </span>
                           <span className="text-[10px] font-bold text-ink/60 bg-sky/30 px-2 py-0.5 rounded-full border border-ink/20">
@@ -668,7 +668,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                             item.status === 'dikemas'
                               ? 'bg-sky text-ink'
                               : item.status === 'diterima'
-                              ? 'bg-blush text-ink'
+                              ? 'bg-sky-100 text-ink'
                               : 'bg-white text-ink/60 border-dashed'
                           }`}
                         >
@@ -882,7 +882,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                 <button
                   type="button"
                   onClick={() => setIsPrepSheetOpen(true)}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-blush border-2 border-ink rounded-xl text-xs font-black text-ink shadow-xs"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-sky-100 border-2 border-ink rounded-xl text-xs font-black text-ink shadow-xs"
                 >
                   <Plus className="w-3.5 h-3.5" /> Tambah
                 </button>
@@ -953,7 +953,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
 
             {/* Target vs Actual Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="p-3.5 bg-blush/20 border-2 border-ink rounded-2xl space-y-1">
+              <div className="p-3.5 bg-sky-50 border-2 border-ink rounded-2xl space-y-1">
                 <span className="text-[10px] font-bold text-ink/70">Target Anggaran</span>
                 <div className="flex items-center gap-2">
                   <input
@@ -996,7 +996,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
               </h4>
 
               {khitbahBudgetItems.length === 0 ? (
-                <p className="text-xs text-ink/60 italic p-3 bg-blush/20 rounded-2xl">
+                <p className="text-xs text-ink/60 italic p-3 bg-sky-50 rounded-2xl">
                   Belum ada item pengeluaran khitbah.
                 </p>
               ) : (
@@ -1007,7 +1007,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-ink bg-blush/40 px-2 py-0.5 rounded-full border border-ink/20">
+                        <span className="text-[10px] font-bold text-ink bg-sky-100 px-2 py-0.5 rounded-full border border-ink/20">
                           {it.category}
                         </span>
                         <h5 className="text-xs font-black text-ink">{it.name}</h5>
@@ -1022,7 +1022,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                         it.paymentStatus === 'lunas'
                           ? 'bg-sky text-ink'
                           : it.paymentStatus === 'sebagian'
-                          ? 'bg-blush text-ink'
+                          ? 'bg-sky-100 text-ink'
                           : 'bg-white text-ink/50'
                       }`}
                     >
@@ -1089,7 +1089,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                         },
                       })
                     }
-                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                   />
                 </div>
 
@@ -1109,14 +1109,14 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
                       })
                     }
                     placeholder="Suasana pertemuan dan kesepakatan umum..."
-                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Penetapan Tanggal Akad (PRD 9.4 D - Syarat Selesai) */}
-            <div className="p-4 rounded-2xl border-2 border-ink bg-blush/30 space-y-3">
+            <div className="p-4 rounded-2xl border-2 border-ink bg-sky-50 space-y-3">
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-ink" />
                 <h4 className="text-sm font-black text-ink">
@@ -1165,7 +1165,7 @@ export function Stage4ProsesKhitbah({ workspaceId, isReadOnly, onDataChanged }: 
               value={giftName}
               onChange={(e) => setGiftName(e.target.value)}
               placeholder="Contoh: Set Mukena Sutra & Sajadah"
-              className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+              className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
             />
           </div>
 

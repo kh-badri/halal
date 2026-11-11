@@ -15,10 +15,10 @@ export function MiniRoute({ currentStageKey, routeData }: MiniRouteProps) {
   if (!routeData) return null;
 
   return (
-    <div className="w-full bg-white/95 backdrop-blur-md border-b border-rose-100 px-4 py-3 shadow-[0_2px_10px_rgba(240,86,124,0.05)]">
+    <div className="w-full glass-header border-b border-line px-4 py-2.5">
       <div className="relative flex items-center justify-between max-w-md mx-auto">
-        {/* Subtle connecting line behind the dots */}
-        <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-0.5 bg-rose-100 z-0" />
+        {/* Connecting line behind the dots */}
+        <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-0.5 bg-line z-0" />
 
         {STAGE_ORDER.map((key, index) => {
           const stepNum = index + 1;
@@ -29,21 +29,23 @@ export function MiniRoute({ currentStageKey, routeData }: MiniRouteProps) {
 
           const content = (
             <div
-              className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full text-xs font-black transition-all ${
+              className={`relative z-10 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-bold transition-all ${
                 isCurrent
-                  ? 'bg-gradient-to-tr from-[#FF6584] to-[#F0567C] text-white ring-4 ring-rose-200/60 scale-110 shadow-rose-sm'
+                  ? 'bg-azure text-white ring-4 ring-azure/20 scale-110 shadow-subtle'
                   : isCompleted
-                  ? 'bg-sky-100 text-sky-800 border border-sky-300 shadow-xs hover:scale-105'
-                  : 'bg-white text-slate-300 border border-slate-200'
+                  ? 'bg-mint-300 text-mint-700 border border-mint-400 shadow-xs hover:scale-105'
+                  : isUnlocked
+                  ? 'bg-sky-100 text-azure-700 border border-sky-300 hover:scale-105'
+                  : 'bg-slate-100 text-slate-400 border border-slate-300'
               }`}
-              title={`Tahap ${stepNum}: ${STAGE_DEFINITIONS[key].title}`}
+              title={`Tahap ${stepNum}: ${STAGE_DEFINITIONS[key]?.title || key}`}
             >
               {isCompleted ? (
-                <Check className="w-4 h-4 text-sky-800 stroke-[3]" />
+                <Check className="w-3.5 h-3.5 text-mint-700 stroke-[3]" />
               ) : isUnlocked ? (
                 <span>{stepNum}</span>
               ) : (
-                <Lock className="w-3 h-3 text-slate-300" />
+                <Lock className="w-3 h-3 text-slate-400" />
               )}
             </div>
           );

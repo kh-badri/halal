@@ -191,7 +191,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
           onClick={() => setActiveTab('biodata')}
           className={`flex-1 min-w-[88px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'biodata'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -202,7 +202,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
           onClick={() => setActiveTab('kesehatan')}
           className={`flex-1 min-w-[110px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'kesehatan'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -213,7 +213,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
           onClick={() => setActiveTab('nadzor')}
           className={`flex-1 min-w-[110px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'nadzor'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -224,7 +224,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
           onClick={() => setActiveTab('keputusan')}
           className={`flex-1 min-w-[90px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'keputusan'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -234,14 +234,14 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
 
       {/* Sub-selector: Saya vs Calon */}
       {(activeTab === 'biodata' || activeTab === 'kesehatan') && (
-        <div className="flex items-center justify-between bg-rose-50/60 p-1.5 rounded-2xl border border-rose-100">
+        <div className="flex items-center justify-between bg-sky-50 p-1.5 rounded-2xl border border-line">
           <div className="flex gap-1">
             <button
               type="button"
               onClick={() => setPersonTab('self')}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 personTab === 'self'
-                  ? 'bg-white text-rose-600 shadow-xs border border-rose-200/80'
+                  ? 'bg-white text-azure-700 shadow-xs border border-sky-200'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -252,7 +252,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
               onClick={() => setPersonTab('partner')}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 personTab === 'partner'
-                  ? 'bg-white text-rose-600 shadow-xs border border-rose-200/80'
+                  ? 'bg-white text-azure-700 shadow-xs border border-sky-200'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -268,7 +268,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                 setBlurSensitive(nextBlur);
                 saveTaaruf({ ...taarufData, privacyBlurEnabled: nextBlur });
               }}
-              className="flex items-center gap-1.5 px-3 py-1 bg-white border border-rose-200 rounded-xl text-[11px] font-bold text-rose-600 shadow-xs hover:bg-rose-50 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1 bg-white border border-sky-200 rounded-xl text-[11px] font-bold text-azure-700 shadow-xs hover:bg-sky-50 transition-all"
               title="Sensor data sensitif untuk privasi"
             >
               {blurSensitive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
@@ -282,9 +282,9 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
       {activeTab === 'biodata' && (
         <div className="space-y-4">
           {/* Card: Foto Profil & Info Utama */}
-          <div className="bg-white border border-rose-100 rounded-3xl p-5 shadow-[0_4px_20px_rgba(240,86,124,0.06)] space-y-4">
+          <div className="bg-white border border-line rounded-3xl p-5 shadow-subtle space-y-4">
             <div className="flex items-center gap-4">
-              <div className="relative w-20 h-20 rounded-2xl border-2 border-rose-200 overflow-hidden bg-rose-50 flex items-center justify-center shrink-0 shadow-xs">
+              <div className="relative w-20 h-20 rounded-2xl border-2 border-sky-200 overflow-hidden bg-sky-50 flex items-center justify-center shrink-0 shadow-xs">
                 {currentPerson.photoFileId ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -335,7 +335,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   value={currentPerson.fullName || ''}
                   onChange={(e) => handleProfileFieldChange('fullName', e.target.value)}
                   placeholder="Contoh: Ahmad Fauzan"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -347,7 +347,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   value={currentPerson.nickname || ''}
                   onChange={(e) => handleProfileFieldChange('nickname', e.target.value)}
                   placeholder="Contoh: Fauzan"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -363,7 +363,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     handleProfileFieldChange('birthDate', e.target.value);
                     handleProfileFieldChange('dob', e.target.value);
                   }}
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -375,7 +375,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   value={currentPerson.birthPlace || ''}
                   onChange={(e) => handleProfileFieldChange('birthPlace', e.target.value)}
                   placeholder="Kota kelahiran"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -389,7 +389,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   value={currentPerson.domicile || ''}
                   onChange={(e) => handleProfileFieldChange('domicile', e.target.value)}
                   placeholder="Kota / Kabupaten tempat tinggal"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -403,7 +403,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   value={currentPerson.occupation || ''}
                   onChange={(e) => handleProfileFieldChange('occupation', e.target.value)}
                   placeholder="Profesi atau instansi"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -420,7 +420,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     handleProfileFieldChange('whatsapp', e.target.value);
                   }}
                   placeholder="08xxxxxxxxxx"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -430,7 +430,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   disabled={isBiodataDisabled}
                   value={currentPerson.status || 'lajang'}
                   onChange={(e) => handleProfileFieldChange('status', e.target.value)}
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 >
                   <option value="lajang">Belum Pernah Menikah</option>
                   <option value="duda">Duda</option>
@@ -459,7 +459,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentPerson.heightCm || ''}
                     onChange={(e) => handleProfileFieldChange('heightCm', Number(e.target.value))}
                     placeholder="Contoh: 170"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
 
@@ -473,7 +473,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentPerson.weightKg || ''}
                     onChange={(e) => handleProfileFieldChange('weightKg', Number(e.target.value))}
                     placeholder="Contoh: 65"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -490,7 +490,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentPerson.ethnicity || ''}
                     onChange={(e) => handleProfileFieldChange('ethnicity', e.target.value)}
                     placeholder="Contoh: Jawa, Sunda"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
 
@@ -504,7 +504,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentPerson.education || ''}
                     onChange={(e) => handleProfileFieldChange('education', e.target.value)}
                     placeholder="Contoh: S1 / D3 / SMA"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -519,7 +519,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   value={currentPerson.visionMission || ''}
                   onChange={(e) => handleProfileFieldChange('visionMission', e.target.value)}
                   placeholder="Gambarkan rumah tangga impian yang ingin dibangun bersama..."
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -532,7 +532,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentPerson.worshipRoutine || ''}
                     onChange={(e) => handleProfileFieldChange('worshipRoutine', e.target.value)}
                     placeholder="Kebiasaan salat berjamaah, tilawah, puasa sunnah, dll."
-                    className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
 
@@ -547,7 +547,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       handleProfileFieldChange('routineStudy', e.target.value);
                     }}
                     placeholder="Juz hafalan, kajian atau ustadz yang sering disimak..."
-                    className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -561,7 +561,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentPerson.strengths || ''}
                     onChange={(e) => handleProfileFieldChange('strengths', e.target.value)}
                     placeholder="Contoh: Sabar, teliti, gemar belajar"
-                    className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -572,7 +572,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentPerson.weaknesses || ''}
                     onChange={(e) => handleProfileFieldChange('weaknesses', e.target.value)}
                     placeholder="Contoh: Terkadang pelupa saat lelah"
-                    className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -609,7 +609,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     disabled={isHealthSelfDisabled}
                     value={currentHealth.bloodType || ''}
                     onChange={(e) => handleHealthFieldChange('bloodType', e.target.value)}
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   >
                     <option value="">Pilih Golongan</option>
                     <option value="A">Golongan A</option>
@@ -627,7 +627,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     disabled={isHealthSelfDisabled}
                     value={currentHealth.rhesus || ''}
                     onChange={(e) => handleHealthFieldChange('rhesus', e.target.value)}
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   >
                     <option value="">Pilih Rhesus</option>
                     <option value="+">Positif (+)</option>
@@ -648,7 +648,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentHealth.allergies || ''}
                     onChange={(e) => handleHealthFieldChange('allergies', e.target.value)}
                     placeholder="Makanan, obat, dll."
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
 
@@ -662,7 +662,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     value={currentHealth.chronicIllness || ''}
                     onChange={(e) => handleHealthFieldChange('chronicIllness', e.target.value)}
                     placeholder="Asma, maag, dll."
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -681,7 +681,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     handleHealthFieldChange('surgeryHistory', e.target.value);
                   }}
                   placeholder="Catatan operasi terdahulu atau obat rutin (atau 'Tidak ada')..."
-                  className="w-full p-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none resize-none leading-relaxed"
+                  className="w-full p-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none resize-none leading-relaxed"
                 />
               </div>
 
@@ -699,7 +699,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     handleHealthFieldChange('notes', e.target.value);
                   }}
                   placeholder="Hepatitis B, thalassemia, gula darah (bila sudah ada hasil tes)..."
-                  className="w-full p-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none resize-none leading-relaxed"
+                  className="w-full p-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none resize-none leading-relaxed"
                 />
               </div>
             </div>
@@ -727,7 +727,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       handleFamilyFieldChange('fatherName', e.target.value);
                     }}
                     placeholder="Nama ayah kandung"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
 
@@ -743,7 +743,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       handleFamilyFieldChange('motherName', e.target.value);
                     }}
                     placeholder="Nama ibu kandung"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -762,7 +762,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                   value={currentFamily.waliNasab || ''}
                   onChange={(e) => handleFamilyFieldChange('waliNasab', e.target.value)}
                   placeholder="Contoh: Ayah Kandung / Kakak Laki-laki Seayah"
-                  className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                  className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
 
@@ -783,7 +783,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       handleFamilyFieldChange('siblingOrder', val);
                     }}
                     placeholder="Contoh: 1"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
 
@@ -802,7 +802,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       handleFamilyFieldChange('siblingsCount', val);
                     }}
                     placeholder="Contoh: 3"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -810,7 +810,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
           </div>
 
           {/* Section: Konfirmasi Saling Bertukar Data (Syarat Wajib) */}
-          <div className="bg-blush border-2 border-ink rounded-3xl p-5 shadow-subtle space-y-3">
+          <div className="bg-sky-100 border-2 border-ink rounded-3xl p-5 shadow-subtle space-y-3">
             <div className="flex items-start gap-2.5">
               <Shield className="w-5 h-5 text-ink shrink-0 mt-0.5" />
               <div>
@@ -885,7 +885,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       })
                     }
                     placeholder="Contoh: Ustadz Abdullah"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
 
@@ -904,7 +904,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       })
                     }
                     placeholder="Contoh: Guru ngaji / Kakak"
-                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 px-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -927,7 +927,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       })
                     }
                     placeholder="08xxxxxxxxxx"
-                    className="w-full h-11 pl-10 pr-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 pl-10 pr-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -999,7 +999,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                         nadzor: { ...taarufData?.nadzor, date: e.target.value },
                       })
                     }
-                    className="w-full h-11 pl-10 pr-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 pl-10 pr-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -1020,7 +1020,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     })
                   }
                   placeholder="Kesan pertama, poin yang dibicarakan, dan suasana pertemuan..."
-                  className="w-full p-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none resize-none leading-relaxed"
+                  className="w-full p-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none resize-none leading-relaxed"
                 />
               </div>
             </div>
@@ -1089,7 +1089,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                         istikharah: { ...taarufData?.istikharah, date: e.target.value },
                       })
                     }
-                    className="w-full h-11 pl-10 pr-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none"
+                    className="w-full h-11 pl-10 pr-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                   />
                 </div>
               </div>
@@ -1110,7 +1110,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     })
                   }
                   placeholder="Ketenangan batin, kemudahan urusan, atau doa yang dipanjatkan..."
-                  className="w-full p-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:bg-blush/20 focus:outline-none resize-none leading-relaxed"
+                  className="w-full p-3 text-sm bg-white border-2 border-ink rounded-xl font-medium focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none resize-none leading-relaxed"
                 />
               </div>
             </div>
@@ -1121,7 +1121,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
       {/* TAB 4: KEPUTUSAN */}
       {activeTab === 'keputusan' && (
         <div className="space-y-4">
-          <div className="bg-white border border-rose-100 rounded-3xl p-5 shadow-[0_4px_20px_rgba(240,86,124,0.06)] space-y-5">
+          <div className="bg-white border border-line rounded-3xl p-5 shadow-subtle space-y-5">
             <div>
               <h3 className="text-base font-black text-ink">Keputusan Persetujuan Ta’aruf</h3>
               <p className="text-xs text-slate-600 mt-1 leading-relaxed">
@@ -1130,8 +1130,8 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
             </div>
 
             {/* Pilihan Saya */}
-            <div className="p-4 rounded-2xl border border-rose-100 bg-[#FFF7F9] space-y-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-white px-3 py-1 rounded-full border border-rose-200 shadow-xs inline-block">
+            <div className="p-4 rounded-2xl border border-line bg-[#F3F9FF] space-y-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-azure-700 bg-white px-3 py-1 rounded-full border border-sky-200 shadow-xs inline-block">
                 Keputusan Saya
               </span>
 
@@ -1159,11 +1159,11 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       className={`py-2 px-2 text-center rounded-xl text-xs font-bold transition-all ${
                         isSelected
                           ? opt.id === 'setuju'
-                            ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+                            ? 'bg-azure text-white shadow-subtle font-extrabold'
                             : opt.id === 'tidak'
                             ? 'bg-slate-700 text-white shadow-xs font-black'
                             : 'bg-amber-100 text-amber-900 border border-amber-200 font-black'
-                          : 'bg-white text-slate-600 border border-slate-200 hover:border-rose-300'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:border-azure'
                       }`}
                     >
                       {opt.label}
@@ -1188,14 +1188,14 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     })
                   }
                   placeholder="Alasan atau catatan untuk perantara/calon..."
-                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium focus:border-rose-400 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-medium focus:border-azure focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Pilihan Calon */}
-            <div className="p-4 rounded-2xl border border-rose-100 bg-[#FFF7F9] space-y-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 bg-white px-3 py-1 rounded-full border border-rose-200 shadow-xs inline-block">
+            <div className="p-4 rounded-2xl border border-line bg-[#F3F9FF] space-y-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-azure-700 bg-white px-3 py-1 rounded-full border border-sky-200 shadow-xs inline-block">
                 Keputusan Calon
               </span>
 
@@ -1223,11 +1223,11 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                       className={`py-2 px-2 text-center rounded-xl text-xs font-bold transition-all ${
                         isSelected
                           ? opt.id === 'setuju'
-                            ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+                            ? 'bg-azure text-white shadow-subtle font-extrabold'
                             : opt.id === 'tidak'
                             ? 'bg-slate-700 text-white shadow-xs font-black'
                             : 'bg-amber-100 text-amber-900 border border-amber-200 font-black'
-                          : 'bg-white text-slate-600 border border-slate-200 hover:border-rose-300'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:border-azure'
                       }`}
                     >
                       {opt.label}
@@ -1252,7 +1252,7 @@ export function Stage1PersetujuanTaaruf({ workspaceId, isReadOnly, onDataChanged
                     })
                   }
                   placeholder="Catatan dari pihak calon..."
-                  className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:border-azure focus:ring-1 focus:ring-azure/20 focus:outline-none"
                 />
               </div>
             </div>

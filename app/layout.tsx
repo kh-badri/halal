@@ -1,23 +1,30 @@
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/ui/Toast';
 import { PWAInstallBanner } from '@/components/ui/PWAInstallBanner';
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['600', '700', '800'],
   variable: '--font-plus-jakarta-sans',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: 'Road To Halal - Aplikasi Persiapan Pernikahan (PWA)',
-  description: 'Aplikasi pendamping calon pengantin dari persetujuan ta’aruf sampai hari-H akad dan walimah.',
-  manifest: '/manifest.webmanifest?v=4',
+  description: 'Menemani langkah calon pengantin dari persetujuan ta’aruf sampai hari akad dan walimah, selangkah demi selangkah.',
+  manifest: '/manifest.webmanifest?v=5',
   icons: {
-    icon: '/icons/icon-192x192.png?v=4',
-    apple: '/icons/icon-192x192.png?v=4',
+    icon: '/icons/icon-192x192.png?v=5',
+    apple: '/icons/icon-192x192.png?v=5',
   },
   appleWebApp: {
     capable: true,
@@ -27,7 +34,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#FFF1F4',
+  themeColor: '#9FD3FF',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -40,16 +47,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={plusJakartaSans.variable}>
+    <html lang="id" className={`${plusJakartaSans.variable} ${inter.variable}`}>
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png?v=4" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png?v=4" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png?v=4" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png?v=5" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png?v=5" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png?v=5" />
       </head>
-      <body className="bg-[#FAF7F8] min-h-screen text-ink flex justify-center selection:bg-rose-100 selection:text-rose-700">
+      <body className="bg-mist min-h-screen text-navy-900 font-sans flex justify-center selection:bg-sky-200 selection:text-navy-900">
         <ToastProvider>
-          {/* Main Mobile App Frame (No bottom navigation) */}
-          <div className="w-full max-w-md min-h-screen bg-white shadow-[0_0_60px_-15px_rgba(240,86,124,0.12)] border-x border-rose-100/50 relative flex flex-col overflow-x-hidden">
+          {/* Main Mobile App Frame (No bottom navigation - Section 8.5 & 8.7) */}
+          <div className="w-full max-w-md min-h-screen bg-white shadow-card border-x border-line relative flex flex-col overflow-x-hidden">
             <PWAInstallBanner />
             <main className="flex-1 w-full pb-8">{children}</main>
           </div>

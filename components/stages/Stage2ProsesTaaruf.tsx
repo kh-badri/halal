@@ -776,7 +776,7 @@ export function Stage2ProsesTaaruf({
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-azure-600" />
         <p className="text-xs font-bold text-slate-600">Memuat Tanya Jawab Pranikah...</p>
       </div>
     );
@@ -785,10 +785,10 @@ export function Stage2ProsesTaaruf({
   return (
     <div className="space-y-4">
       {/* Progress & Summary Bar */}
-      <div className="bg-white border border-rose-100 rounded-3xl p-5 shadow-[0_4px_20px_rgba(240,86,124,0.06)] space-y-3.5">
+      <div className="bg-white border border-line rounded-3xl p-5 shadow-subtle space-y-3.5">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 block mb-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-azure-600 block mb-0.5">
               Progres Tanya Jawab Pranikah
             </span>
             <h3 className="text-lg font-black text-slate-900">
@@ -805,10 +805,10 @@ export function Stage2ProsesTaaruf({
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all shadow-xs"
                 title="Lihat riwayat aktivitas edit, add, delete"
               >
-                <History className="w-3.5 h-3.5 text-rose-300" />
+                <History className="w-3.5 h-3.5 text-sky-300" />
                 <span className="hidden sm:inline">Log</span>
                 {activityLogs.length > 0 && (
-                  <span className="text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-black">
+                  <span className="text-[10px] bg-sky-500 text-white px-1.5 py-0.2 rounded-full font-black">
                     {activityLogs.length}
                   </span>
                 )}
@@ -818,7 +818,7 @@ export function Stage2ProsesTaaruf({
             <button
               type="button"
               onClick={() => setIsSummaryOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-full text-xs font-bold text-rose-600 transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-full text-xs font-bold text-azure-700 transition-all shadow-xs"
             >
               <FileText className="w-3.5 h-3.5" /> Ringkasan
             </button>
@@ -826,9 +826,9 @@ export function Stage2ProsesTaaruf({
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-rose-100/50 h-2.5 rounded-full overflow-hidden p-0.5 border border-rose-100">
+        <div className="w-full bg-sky-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-line">
           <div
-            className="h-full bg-gradient-to-r from-[#FF7597] to-[#F0567C] rounded-full transition-all duration-300"
+            className="h-full bg-azure rounded-full transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -839,9 +839,9 @@ export function Stage2ProsesTaaruf({
             <span className="text-xs font-black text-emerald-800 block">{agreedCount}</span>
             <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600 truncate block">Sepakat</span>
           </div>
-          <div className="p-1.5 sm:p-2 bg-rose-50/80 border border-rose-200/80 rounded-2xl">
-            <span className="text-xs font-black text-rose-700 block">{discussedCount}</span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-rose-500 truncate block">Dibahas</span>
+          <div className="p-1.5 sm:p-2 bg-sky-50 border border-sky-200 rounded-2xl">
+            <span className="text-xs font-black text-azure-700 block">{discussedCount}</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-azure-600 truncate block">Dibahas</span>
           </div>
           <div className="p-1.5 sm:p-2 bg-purple-50/80 border border-purple-200/80 rounded-2xl">
             <span className="text-xs font-black text-purple-800 block">{considerationCount}</span>
@@ -858,8 +858,8 @@ export function Stage2ProsesTaaruf({
         </div>
 
         {principleQuestions.length > 0 && principleAgreedCount < principleQuestions.length && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-rose-50 rounded-2xl border border-rose-200 text-xs text-rose-800 font-bold">
-            <Shield className="w-4 h-4 shrink-0 text-rose-600" />
+          <div className="flex items-center gap-2 px-3 py-2 bg-sky-50 rounded-2xl border border-sky-200 text-xs text-navy-900 font-bold">
+            <Shield className="w-4 h-4 shrink-0 text-azure-700" />
             <span>
               {principleQuestions.length - principleAgreedCount} pertanyaan berlabel <strong>Prinsip (Dealbreaker)</strong> belum berstatus Sepakat.
             </span>
@@ -908,7 +908,7 @@ export function Stage2ProsesTaaruf({
             onClick={handleTogglePartnerPermission}
             className={`px-3.5 py-2 rounded-xl text-xs font-black border transition-all shrink-0 w-full sm:w-auto shadow-xs ${
               allowPartnerAnswers
-                ? 'bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100'
+                ? 'bg-sky-50 border-sky-300 text-azure-700 hover:bg-sky-100'
                 : 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700'
             }`}
           >
@@ -943,7 +943,7 @@ export function Stage2ProsesTaaruf({
       )}
 
       {/* Main Tab Switcher: Pria vs Wanita vs Semua */}
-      <div className="bg-white border border-rose-100 rounded-2xl p-2 shadow-xs space-y-2">
+      <div className="bg-white border border-line rounded-2xl p-2 shadow-xs space-y-2">
         <div className="grid grid-cols-3 gap-1 bg-slate-100/90 p-1 rounded-xl">
           <button
             type="button"
@@ -966,13 +966,13 @@ export function Stage2ProsesTaaruf({
             onClick={() => setActiveTab('wanita')}
             className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'wanita'
-                ? 'bg-white text-rose-700 shadow-xs border border-rose-100 font-black'
+                ? 'bg-white text-azure-700 shadow-xs border border-line font-black'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <span>👩</span>
             <span className="truncate">Catin Wanita</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'wanita' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-600'}`}>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'wanita' ? 'bg-sky-100 text-azure-700' : 'bg-slate-200 text-slate-600'}`}>
               {wanitaQuestions.length}
             </span>
           </button>
@@ -1003,7 +1003,7 @@ export function Stage2ProsesTaaruf({
               onClick={() => setStatusFilter((prev) => (prev === 'all' ? 'unagreed' : 'all'))}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold border shrink-0 transition-all ${
                 statusFilter === 'unagreed'
-                  ? 'bg-rose-50 border-rose-300 text-rose-700 font-black'
+                  ? 'bg-sky-50 border-sky-300 text-azure-700 font-black'
                   : 'bg-white border-slate-200 text-slate-600'
               }`}
             >
@@ -1016,7 +1016,7 @@ export function Stage2ProsesTaaruf({
                 onClick={() => setStatusFilter((prev) => (prev === 'principle' ? 'all' : 'principle'))}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold border shrink-0 transition-all ${
                   statusFilter === 'principle'
-                    ? 'bg-rose-50 border-rose-300 text-rose-700 font-black'
+                    ? 'bg-sky-50 border-sky-300 text-azure-700 font-black'
                     : 'bg-white border-slate-200 text-slate-600'
                 }`}
               >
@@ -1047,7 +1047,7 @@ export function Stage2ProsesTaaruf({
                   setFormPrinciple(false);
                   setIsAddOpen(true);
                 }}
-                className="flex items-center gap-1 px-3.5 py-1.5 bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white rounded-full text-xs font-bold shadow-rose-sm active:scale-95 transition-all"
+                className="flex items-center gap-1 px-3.5 py-1.5 bg-azure text-white rounded-full text-xs font-bold shadow-subtle active:scale-95 transition-all"
               >
                 <Plus className="w-3.5 h-3.5" /> Tambah
               </button>
@@ -1073,8 +1073,8 @@ export function Stage2ProsesTaaruf({
 
       {/* List of Questions with Dedicated Columns (Mobile Responsive) */}
       {visibleQuestions.length === 0 ? (
-        <div className="bg-white border-2 border-dashed border-rose-200 rounded-3xl p-8 text-center space-y-4">
-          <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-rose-500">
+        <div className="bg-white border-2 border-dashed border-sky-200 rounded-3xl p-8 text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-sky-50 border border-line flex items-center justify-center mx-auto text-azure-600">
             <MessageSquare className="w-7 h-7" />
           </div>
           <div className="space-y-1">
@@ -1097,7 +1097,7 @@ export function Stage2ProsesTaaruf({
                   setFormPrinciple(false);
                   setIsAddOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white rounded-full text-xs font-bold shadow-rose-sm hover:scale-[1.02] active:scale-95 transition-all"
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-azure text-white rounded-full text-xs font-bold shadow-subtle hover:scale-[1.02] active:scale-95 transition-all"
               >
                 <Plus className="w-4 h-4" /> Tulis Pertanyaan Baru
               </button>
@@ -1105,7 +1105,7 @@ export function Stage2ProsesTaaruf({
             <button
               type="button"
               onClick={() => setIsIdeaSheetOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-full text-xs font-bold hover:bg-rose-100 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-sky-50 border border-sky-200 text-azure-700 rounded-full text-xs font-bold hover:bg-sky-100 active:scale-95 transition-all"
             >
               <Lightbulb className="w-4 h-4" /> Buka Ide Pertanyaan
             </button>
@@ -1121,7 +1121,7 @@ export function Stage2ProsesTaaruf({
                   q.status === 'sepakat'
                     ? 'border-emerald-200/90 ring-1 ring-emerald-100/70 shadow-emerald-50/50'
                     : q.status === 'dibahas'
-                    ? 'border-rose-200/90 ring-1 ring-rose-100/70 shadow-rose-50/50'
+                    ? 'border-sky-200/90 ring-1 ring-rose-100/70 shadow-rose-50/50'
                     : q.status === 'pertimbangan'
                     ? 'border-purple-200/90 ring-1 ring-purple-100/70 shadow-purple-50/50'
                     : q.status === 'ulang'
@@ -1137,7 +1137,7 @@ export function Stage2ProsesTaaruf({
                       className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
                         q.asker === 'pria'
                           ? 'bg-blue-50/80 border-blue-200/80 text-blue-700'
-                          : 'bg-rose-50/80 border-rose-200/80 text-rose-700'
+                          : 'bg-sky-50 border-sky-200 text-azure-700'
                       }`}
                     >
                       <span>{q.asker === 'pria' ? '👨' : '👩'}</span>
@@ -1155,7 +1155,7 @@ export function Stage2ProsesTaaruf({
 
                     {/* Principle Badge */}
                     {q.principle && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-rose-700 bg-rose-100/80 px-2 py-0.5 rounded-full border border-rose-200">
+                      <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-azure-700 bg-sky-100/80 px-2 py-0.5 rounded-full border border-sky-200">
                         <Shield className="w-2.5 h-2.5" /> Prinsip
                       </span>
                     )}
@@ -1168,7 +1168,7 @@ export function Stage2ProsesTaaruf({
                         q.status === 'sepakat'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                           : q.status === 'dibahas'
-                          ? 'bg-rose-50 text-rose-700 border-rose-300'
+                          ? 'bg-sky-50 text-azure-700 border-sky-300'
                           : q.status === 'pertimbangan'
                           ? 'bg-purple-50 text-purple-700 border-purple-300'
                           : q.status === 'ulang'
@@ -1200,7 +1200,7 @@ export function Stage2ProsesTaaruf({
                         <button
                           type="button"
                           onClick={() => handleDeleteQuestion(q)}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-azure-700 hover:bg-sky-50 transition-colors"
                           title="Hapus pertanyaan ini"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1213,7 +1213,7 @@ export function Stage2ProsesTaaruf({
                 {/* Colom Pertanyaan */}
                 <div className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-50 to-rose-50/30 rounded-2xl border border-slate-200/80">
                   <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-md bg-rose-500/10 text-rose-600 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="w-5 h-5 rounded-md bg-sky-500/10 text-azure-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
                       ?
                     </span>
                     <h4 className="text-[13px] sm:text-[14px] font-bold text-slate-900 leading-relaxed break-words">
@@ -1271,10 +1271,10 @@ export function Stage2ProsesTaaruf({
                   </div>
 
                   {/* Kolom Jawaban Catin Perempuan */}
-                  <div className="bg-rose-50/40 border border-rose-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-rose-50/60 transition-all">
+                  <div className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
                     <div className="flex items-center justify-between">
                       <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center text-[10px]">
+                        <span className="w-4 h-4 rounded-full bg-sky-100 text-azure-700 flex items-center justify-center text-[10px]">
                           👩
                         </span>
                         <span>Jawaban {wanitaName ? wanitaName : 'Catin Perempuan'}</span>
@@ -1286,7 +1286,7 @@ export function Stage2ProsesTaaruf({
                           </span>
                         )}
                         {userRole === 'wanita' && (
-                          <span className="text-[9px] font-bold text-rose-700 bg-rose-100/90 px-1.5 py-0.2 rounded-md">
+                          <span className="text-[9px] font-bold text-azure-700 bg-sky-100/90 px-1.5 py-0.2 rounded-md">
                             Anda
                           </span>
                         )}
@@ -1310,7 +1310,7 @@ export function Stage2ProsesTaaruf({
                           ? `Tulis jawaban dari ${wanitaName ? wanitaName : 'catin perempuan'}...`
                           : 'Pengisian jawaban terkunci...'
                       }
-                      className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-rose-200/90 rounded-xl focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
+                      className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-sky-200/90 rounded-xl focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
                         !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
                       }`}
                     />
@@ -1356,7 +1356,7 @@ export function Stage2ProsesTaaruf({
                       disabled={isReadOnly}
                       checked={Boolean(q.principle)}
                       onChange={(e) => handlePrincipleToggle(q, e.target.checked)}
-                      className="w-3.5 h-3.5 rounded border-rose-300 text-rose-600 accent-rose-500"
+                      className="w-3.5 h-3.5 rounded border-sky-300 text-azure-700 accent-rose-500"
                     />
                     <span>Tandai sebagai Prinsip (Dealbreaker)</span>
                   </label>
@@ -1373,7 +1373,7 @@ export function Stage2ProsesTaaruf({
                             ? st === 'sepakat'
                               ? 'bg-emerald-600 text-white shadow-xs font-black'
                               : st === 'dibahas'
-                              ? 'bg-rose-500 text-white shadow-xs font-black'
+                              ? 'bg-sky-500 text-white shadow-xs font-black'
                               : st === 'pertimbangan'
                               ? 'bg-purple-600 text-white shadow-xs font-black'
                               : st === 'ulang'
@@ -1427,7 +1427,7 @@ export function Stage2ProsesTaaruf({
                 onClick={() => setEditAskerValue('wanita')}
                 className={`flex items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-black transition-all ${
                   editAskerValue === 'wanita'
-                    ? 'bg-rose-50 border-rose-400 text-rose-700 shadow-xs'
+                    ? 'bg-sky-50 border-rose-400 text-azure-700 shadow-xs'
                     : 'bg-white border-slate-200 text-slate-600'
                 }`}
               >
@@ -1453,7 +1453,7 @@ export function Stage2ProsesTaaruf({
 
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">
-              Teks Pertanyaan <span className="text-rose-500">*</span>
+              Teks Pertanyaan <span className="text-azure-600">*</span>
             </label>
             <textarea
               rows={3}
@@ -1476,7 +1476,7 @@ export function Stage2ProsesTaaruf({
               type="button"
               onClick={handleSaveEditQuestion}
               disabled={!editTextValue.trim()}
-              className="px-5 py-2.5 bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white rounded-full text-xs font-bold shadow-rose-sm disabled:opacity-40"
+              className="px-5 py-2.5 bg-azure text-white rounded-full text-xs font-bold shadow-subtle disabled:opacity-40"
             >
               Simpan Perubahan
             </button>
@@ -1513,7 +1513,7 @@ export function Stage2ProsesTaaruf({
                 onClick={() => setFormAsker('wanita')}
                 className={`flex items-center justify-center gap-2 p-3 rounded-2xl border text-xs font-black transition-all ${
                   formAsker === 'wanita'
-                    ? 'bg-rose-50 border-rose-400 text-rose-700 shadow-xs'
+                    ? 'bg-sky-50 border-rose-400 text-azure-700 shadow-xs'
                     : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                 }`}
               >
@@ -1542,7 +1542,7 @@ export function Stage2ProsesTaaruf({
           {/* Pertanyaan */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">
-              Teks Pertanyaan <span className="text-rose-500">*</span>
+              Teks Pertanyaan <span className="text-azure-600">*</span>
             </label>
             <textarea
               rows={3}
@@ -1568,12 +1568,12 @@ export function Stage2ProsesTaaruf({
           </div>
 
           {/* Tandai sebagai Prinsip */}
-          <label className="flex items-center gap-2 cursor-pointer p-3 bg-rose-50/70 rounded-2xl border border-rose-200">
+          <label className="flex items-center gap-2 cursor-pointer p-3 bg-sky-50/70 rounded-2xl border border-sky-200">
             <input
               type="checkbox"
               checked={formPrinciple}
               onChange={(e) => setFormPrinciple(e.target.checked)}
-              className="w-4 h-4 rounded border-rose-300 text-rose-600 accent-rose-500"
+              className="w-4 h-4 rounded border-sky-300 text-azure-700 accent-rose-500"
             />
             <span className="text-xs font-bold text-rose-900">
               Tandai sebagai <strong>Prinsip (Dealbreaker / Tidak dapat ditawar)</strong>
@@ -1584,7 +1584,7 @@ export function Stage2ProsesTaaruf({
             type="button"
             onClick={handleSaveNewQuestion}
             disabled={!formQuestion.trim()}
-            className="w-full py-3 bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white rounded-full text-xs font-black shadow-rose-sm disabled:opacity-40 hover:opacity-90 active:scale-95 transition-all"
+            className="w-full py-3 bg-azure text-white rounded-full text-xs font-black shadow-subtle disabled:opacity-40 hover:opacity-90 active:scale-95 transition-all"
           >
             Simpan Pertanyaan
           </button>
@@ -1621,7 +1621,7 @@ export function Stage2ProsesTaaruf({
                 onClick={() => setIdeaCategory('Semua')}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 transition-all ${
                   ideaCategory === 'Semua'
-                    ? 'bg-rose-500 text-white'
+                    ? 'bg-sky-500 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -1634,7 +1634,7 @@ export function Stage2ProsesTaaruf({
                   onClick={() => setIdeaCategory(cat)}
                   className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 transition-all ${
                     ideaCategory === cat
-                      ? 'bg-rose-500 text-white'
+                      ? 'bg-sky-500 text-white'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
@@ -1658,14 +1658,14 @@ export function Stage2ProsesTaaruf({
               return (
                 <div
                   key={item.id}
-                  className="p-3 bg-white border border-slate-200 rounded-2xl hover:border-rose-200 transition-all space-y-2"
+                  className="p-3 bg-white border border-slate-200 rounded-2xl hover:border-sky-200 transition-all space-y-2"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                       {item.category}
                     </span>
                     {item.principle && (
-                      <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                      <span className="text-[10px] font-bold text-azure-700 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
                         Prinsip
                       </span>
                     )}
@@ -1690,7 +1690,7 @@ export function Stage2ProsesTaaruf({
                         <button
                           type="button"
                           onClick={() => handleAddFromIdea(item, 'wanita')}
-                          className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg text-[11px] font-bold transition-all"
+                          className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 border border-sky-200 text-azure-700 rounded-lg text-[11px] font-bold transition-all"
                         >
                           + Catin Perempuan
                         </button>
@@ -1798,7 +1798,7 @@ export function Stage2ProsesTaaruf({
                             className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                               isOwnerLog
                                 ? 'bg-blue-100 text-blue-700'
-                                : 'bg-rose-100 text-rose-700'
+                                : 'bg-sky-100 text-azure-700'
                             }`}
                           >
                             {isOwnerLog ? '👨' : '👩'}
@@ -1810,7 +1810,7 @@ export function Stage2ProsesTaaruf({
                                 className={`text-[10px] font-bold px-2 py-0.2 rounded-full ${
                                   isOwnerLog
                                     ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                    : 'bg-sky-50 text-azure-700 border border-sky-200'
                                 }`}
                               >
                                 {log.userRole}
@@ -1835,8 +1835,8 @@ export function Stage2ProsesTaaruf({
                       {/* DIFF BOX: DARI APA MENJADI APA */}
                       {(log.oldValue || log.newValue) && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                          <div className="p-2.5 bg-rose-50/60 border border-rose-200/80 rounded-xl space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 block">
+                          <div className="p-2.5 bg-sky-50/60 border border-sky-200 rounded-xl space-y-1">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-azure-700 block">
                               Sebelumnya:
                             </span>
                             <p className="text-xs text-rose-950 font-medium break-words whitespace-pre-wrap">
@@ -1896,7 +1896,7 @@ export function Stage2ProsesTaaruf({
                           {q.asker === 'pria' ? '👨 Catin Pria' : '👩 Catin Perempuan'}
                         </span>
                         {q.principle && (
-                          <span className="text-[10px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-azure-700 bg-sky-100 px-1.5 py-0.5 rounded-md">
                             Prinsip
                           </span>
                         )}
@@ -1930,7 +1930,7 @@ export function Stage2ProsesTaaruf({
                           {q.asker === 'pria' ? '👨 Catin Pria' : '👩 Catin Perempuan'}
                         </span>
                         {q.principle && (
-                          <span className="text-[10px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded-md">
+                          <span className="text-[10px] font-bold text-azure-700 bg-sky-100 px-1.5 py-0.5 rounded-md">
                             Prinsip
                           </span>
                         )}

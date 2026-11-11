@@ -20,15 +20,15 @@ export async function sendPasswordResetEmail(toEmail: string, resetToken: string
     });
 
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'Nikahku <noreply@nikahku.id>',
+      from: process.env.SMTP_FROM || 'Road To Halal <noreply@roadtohalal.id>',
       to: toEmail,
-      subject: 'Reset Password Akun Nikahku',
+      subject: 'Reset Password Akun Road To Halal',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #FFE4EE; border-radius: 16px;">
-          <h2 style="color: #D94F86; margin-bottom: 8px;">Nikahku</h2>
+          <h2 style="color: #1F6FDB; margin-bottom: 8px;">Road To Halal</h2>
           <h3 style="color: #5A1633;">Permintaan Reset Password</h3>
           <p style="color: #5A1633; font-size: 14px; line-height: 1.6;">
-            Kami menerima permintaan untuk mereset password akun Nikahku Anda. Klik tombol di bawah ini untuk membuat password baru. Tautan ini berlaku selama 30 menit.
+            Kami menerima permintaan untuk mereset password akun Road To Halal Anda. Klik tombol di bawah ini untuk membuat password baru. Tautan ini berlaku selama 30 menit.
           </p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${resetLink}" style="background-color: #D94F86; color: #FFFFFF; padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">

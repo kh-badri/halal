@@ -56,6 +56,8 @@ export const CateringQuotaSchema = z.object({
 });
 
 export const HariHFileSchema = ModuleFileBaseSchema.extend({
+  akadCompleted: z.boolean().default(false),
+  akadDate: z.string().default(''),
   catering: CateringQuotaSchema.default({}),
   guests: z.array(GuestSchema).default([]),
   committee: z.array(CommitteeMemberSchema).default([]),

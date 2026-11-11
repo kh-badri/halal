@@ -192,7 +192,7 @@ export default function AnggotaPage() {
 
       <div className="p-4 space-y-6">
         {loading ? (
-          <div className="py-12 flex flex-col items-center justify-center text-ink/60">
+          <div className="py-12 flex flex-col items-center justify-center text-navy-900/60">
             <Loader2 className="animate-spin mb-2" size={24} />
             <span className="text-xs">Memuat data anggota...</span>
           </div>
@@ -200,15 +200,15 @@ export default function AnggotaPage() {
           <>
             {/* Non-Owner Informative Notice */}
             {!isOwner && (
-              <div className="p-4 rounded-3xl bg-neutral-50 border-2 border-ink/20 flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-sky border border-ink flex items-center justify-center text-ink shrink-0 mt-0.5">
+              <div className="p-4 rounded-3xl bg-neutral-50 border-2 border-line/20 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-xl bg-sky border border-line flex items-center justify-center text-navy-900 shrink-0 mt-0.5">
                   <Shield size={16} />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-xs font-black text-ink">
+                  <h3 className="text-xs font-black text-navy-900">
                     Akses Anda: {userAccess === 'full' ? 'Full Akses' : 'Hanya Baca (Read-Only)'}
                   </h3>
-                  <p className="text-[11px] text-ink/75 leading-relaxed">
+                  <p className="text-[11px] text-navy-900/75 leading-relaxed">
                     {userAccess === 'full'
                       ? 'Anda dapat melihat dan mengisi data rute persiapan. Pembuatan kode undangan dan pengelolaan hak akses anggota hanya dapat dilakukan oleh Pemilik ruang.'
                       : 'Anda dapat memantau rute dan melengkapi biodata diri. Pembuatan kode undangan dan pengelolaan hak akses anggota hanya dapat dilakukan oleh Pemilik ruang.'}
@@ -219,20 +219,20 @@ export default function AnggotaPage() {
 
             {/* 1. Create Invite Section (Pemilik only) */}
             {isOwner && (
-              <div className="p-5 rounded-3xl bg-white border-2 border-ink shadow-subtle space-y-4">
+              <div className="p-5 rounded-3xl bg-white border-2 border-line shadow-subtle space-y-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-blush border border-ink flex items-center justify-center text-ink">
+                  <div className="w-8 h-8 rounded-xl bg-sky-100 border border-line flex items-center justify-center text-navy-900">
                     <UserPlus size={18} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-black text-ink">Buat Undangan Baru</h2>
-                    <p className="text-[11px] text-ink/70">Bagikan kode agar orang lain bisa bergabung</p>
+                    <h2 className="text-sm font-black text-navy-900">Buat Undangan Baru</h2>
+                    <p className="text-[11px] text-navy-900/70">Bagikan kode agar orang lain bisa bergabung</p>
                   </div>
                 </div>
 
                 {/* Privacy Warning */}
-                <div className="p-3 rounded-2xl bg-blush/40 border border-ink/20 text-xs text-ink flex items-start gap-2.5">
-                  <ShieldAlert size={16} className="text-ink shrink-0 mt-0.5" />
+                <div className="p-3 rounded-2xl bg-sky-100/40 border border-line/20 text-xs text-navy-900 flex items-start gap-2.5">
+                  <ShieldAlert size={16} className="text-navy-900 shrink-0 mt-0.5" />
                   <p className="text-[11px] leading-relaxed">
                     <strong>Peringatan Privasi:</strong> Anggota dapat melihat seluruh data pada tahap yang sudah terbuka, termasuk data biodata, kesehatan, dan keluarga.
                   </p>
@@ -240,7 +240,7 @@ export default function AnggotaPage() {
 
                 <form onSubmit={handleCreateInvite} className="space-y-3.5">
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1.5">
+                    <label className="block text-xs font-bold text-navy-900 mb-1.5">
                       Tingkat Hak Akses
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -249,12 +249,12 @@ export default function AnggotaPage() {
                         onClick={() => setAccessChoice('read')}
                         className={`p-2.5 rounded-2xl border text-left transition-all ${
                           accessChoice === 'read'
-                            ? 'bg-sky border-2 border-ink shadow-sm'
-                            : 'bg-white border-ink/30 text-ink/70'
+                            ? 'bg-sky border-2 border-line shadow-sm'
+                            : 'bg-white border-line/30 text-navy-900/70'
                         }`}
                       >
-                        <span className="text-xs font-black block text-ink">Read (Hanya Baca)</span>
-                        <span className="text-[10px] text-ink/75 leading-tight block mt-0.5">
+                        <span className="text-xs font-black block text-navy-900">Read (Hanya Baca)</span>
+                        <span className="text-[10px] text-navy-900/75 leading-tight block mt-0.5">
                           Hanya memantau tahap yang terbuka tanpa bisa mengubah
                         </span>
                       </button>
@@ -264,12 +264,12 @@ export default function AnggotaPage() {
                         onClick={() => setAccessChoice('full')}
                         className={`p-2.5 rounded-2xl border text-left transition-all ${
                           accessChoice === 'full'
-                            ? 'bg-blush border-2 border-ink shadow-sm'
-                            : 'bg-white border-ink/30 text-ink/70'
+                            ? 'bg-sky-100 border-2 border-line shadow-sm'
+                            : 'bg-white border-line/30 text-navy-900/70'
                         }`}
                       >
-                        <span className="text-xs font-black block text-ink">Full Akses</span>
-                        <span className="text-[10px] text-ink/75 leading-tight block mt-0.5">
+                        <span className="text-xs font-black block text-navy-900">Full Akses</span>
+                        <span className="text-[10px] text-navy-900/75 leading-tight block mt-0.5">
                           Bisa melihat, mengedit berkas, dan menyelesaikan tahap
                         </span>
                       </button>
@@ -277,7 +277,7 @@ export default function AnggotaPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-ink mb-1.5">
+                    <label className="block text-xs font-bold text-navy-900 mb-1.5">
                       Hubungan / Peran Anggota
                     </label>
                     <div className="flex flex-wrap gap-1.5">
@@ -288,8 +288,8 @@ export default function AnggotaPage() {
                           onClick={() => setRelationChoice(rel)}
                           className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
                             relationChoice === rel
-                              ? 'bg-blush border-2 border-ink text-ink shadow-sm'
-                              : 'bg-white border-ink/20 text-ink/60 hover:bg-neutral-50'
+                              ? 'bg-sky-100 border-2 border-line text-navy-900 shadow-sm'
+                              : 'bg-white border-line/20 text-navy-900/60 hover:bg-neutral-50'
                           }`}
                         >
                           {rel}
@@ -303,7 +303,7 @@ export default function AnggotaPage() {
                         value={customRelation}
                         onChange={(e) => setCustomRelation(e.target.value)}
                         placeholder="Sebutkan hubungan, misal: Sahabat / Panitia"
-                        className="mt-2 w-full px-3 py-2 text-xs rounded-xl border border-ink outline-none"
+                        className="mt-2 w-full px-3 py-2 text-xs rounded-xl border border-line outline-none"
                       />
                     )}
                   </div>
@@ -311,7 +311,7 @@ export default function AnggotaPage() {
                   <button
                     type="submit"
                     disabled={creatingInvite}
-                    className="w-full py-3 bg-blush border-2 border-ink text-ink font-black rounded-full text-xs shadow-sm hover:scale-[1.01] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-sky-100 border-2 border-line text-navy-900 font-black rounded-full text-xs shadow-sm hover:scale-[1.01] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
                     {creatingInvite ? <Loader2 size={16} className="animate-spin" /> : 'Buat Kode Undangan (Berlaku 7 Hari)'}
                   </button>
@@ -319,14 +319,14 @@ export default function AnggotaPage() {
 
                 {/* Generated Code Display */}
                 {createdInviteCode && (
-                  <div className="p-3.5 rounded-2xl bg-white border-2 border-ink flex items-center justify-between shadow-subtle animate-fade-in">
+                  <div className="p-3.5 rounded-2xl bg-white border-2 border-line flex items-center justify-between shadow-subtle animate-fade-in">
                     <div>
-                      <p className="text-[10px] uppercase font-bold text-ink/60">Kode Undangan Dibuat:</p>
-                      <p className="text-lg font-mono font-black text-ink tracking-widest">{createdInviteCode}</p>
+                      <p className="text-[10px] uppercase font-bold text-navy-900/60">Kode Undangan Dibuat:</p>
+                      <p className="text-lg font-mono font-black text-navy-900 tracking-widest">{createdInviteCode}</p>
                     </div>
                     <button
                       onClick={() => copyToClipboard(createdInviteCode)}
-                      className="px-3.5 py-2 rounded-full bg-sky border-2 border-ink text-ink text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all"
+                      className="px-3.5 py-2 rounded-full bg-sky border-2 border-line text-navy-900 text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all"
                     >
                       {copiedCode ? <Check size={14} /> : <Copy size={14} />}
                       <span>{copiedCode ? 'Disalin' : 'Salin'}</span>
@@ -337,15 +337,15 @@ export default function AnggotaPage() {
             )}
 
             {/* 2. Members List Section */}
-            <div className="p-5 rounded-3xl bg-white border-2 border-ink shadow-subtle space-y-3">
+            <div className="p-5 rounded-3xl bg-white border-2 border-line shadow-subtle space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-sky border border-ink flex items-center justify-center text-ink">
+                  <div className="w-8 h-8 rounded-xl bg-sky border border-line flex items-center justify-center text-navy-900">
                     <Users size={18} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-black text-ink">Anggota Ruang Persiapan</h2>
-                    <p className="text-[11px] text-ink/70">{members.length} anggota terdaftar</p>
+                    <h2 className="text-sm font-black text-navy-900">Anggota Ruang Persiapan</h2>
+                    <p className="text-[11px] text-navy-900/70">{members.length} anggota terdaftar</p>
                   </div>
                 </div>
               </div>
@@ -358,20 +358,20 @@ export default function AnggotaPage() {
                     <div key={member.userId} className="py-3 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-xs font-black text-ink truncate">{member.name}</p>
+                          <p className="text-xs font-black text-navy-900 truncate">{member.name}</p>
                           <span
                             className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
                               isThisOwner
-                                ? 'bg-blush border-ink text-ink'
+                                ? 'bg-sky-100 border-line text-navy-900'
                                 : member.access === 'full'
-                                ? 'bg-blush/60 border-ink/40 text-ink'
-                                : 'bg-sky border-ink text-ink'
+                                ? 'bg-sky-100/60 border-line/40 text-navy-900'
+                                : 'bg-sky border-line text-navy-900'
                             }`}
                           >
                             {isThisOwner ? 'Pemilik' : member.access === 'full' ? 'Full Akses' : 'Hanya Baca'}
                           </span>
                         </div>
-                        <p className="text-[11px] text-ink/70 mt-0.5">
+                        <p className="text-[11px] text-navy-900/70 mt-0.5">
                           Hubungan: <strong>{member.relation}</strong> · Bergabung sejak{' '}
                           {new Date(member.joinedAt).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
                         </p>
@@ -382,14 +382,14 @@ export default function AnggotaPage() {
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             onClick={() => handleToggleAccess(member)}
-                            className="px-2.5 py-1 rounded-full bg-white border border-ink text-[10px] font-bold text-ink hover:bg-neutral-50 active:scale-95 transition-all"
+                            className="px-2.5 py-1 rounded-full bg-white border border-line text-[10px] font-bold text-navy-900 hover:bg-neutral-50 active:scale-95 transition-all"
                             title="Ganti Read / Full"
                           >
                             Ubah: {member.access === 'read' ? 'Jadikan Full' : 'Jadikan Read'}
                           </button>
                           <button
                             onClick={() => handleRemoveMember(member.userId, member.name)}
-                            className="p-1.5 rounded-full bg-white border border-ink/30 text-ink/70 hover:text-ink active:scale-95 transition-all"
+                            className="p-1.5 rounded-full bg-white border border-line/30 text-navy-900/70 hover:text-navy-900 active:scale-95 transition-all"
                             title="Keluarkan anggota"
                           >
                             <Trash2 size={14} />
@@ -404,14 +404,14 @@ export default function AnggotaPage() {
 
             {/* 3. Pending Invites List Section (Owner only) */}
             {isOwner && invites.length > 0 && (
-              <div className="p-5 rounded-3xl bg-white border-2 border-ink shadow-subtle space-y-3">
+              <div className="p-5 rounded-3xl bg-white border-2 border-line shadow-subtle space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-white border border-ink flex items-center justify-center text-ink">
+                  <div className="w-8 h-8 rounded-xl bg-white border border-line flex items-center justify-center text-navy-900">
                     <Clock size={18} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-black text-ink">Kode Undangan Aktif</h2>
-                    <p className="text-[11px] text-ink/70">{invites.length} kode menunggu digunakan</p>
+                    <h2 className="text-sm font-black text-navy-900">Kode Undangan Aktif</h2>
+                    <p className="text-[11px] text-navy-900/70">{invites.length} kode menunggu digunakan</p>
                   </div>
                 </div>
 
@@ -420,12 +420,12 @@ export default function AnggotaPage() {
                     <div key={inv.code} className="py-2.5 flex items-center justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-sm text-ink">{inv.code}</span>
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-sky border border-ink text-ink">
+                          <span className="font-mono font-bold text-sm text-navy-900">{inv.code}</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-sky border border-line text-navy-900">
                             {inv.access.toUpperCase()}
                           </span>
                         </div>
-                        <p className="text-[10px] text-ink/60">
+                        <p className="text-[10px] text-navy-900/60">
                           Untuk: {inv.relation} · Kedaluwarsa:{' '}
                           {new Date(inv.expiresAt).toLocaleDateString('id-ID')}
                         </p>
@@ -434,14 +434,14 @@ export default function AnggotaPage() {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => copyToClipboard(inv.code)}
-                          className="p-1.5 rounded-full bg-white border border-ink/30 text-ink hover:bg-sky active:scale-95 transition-all"
+                          className="p-1.5 rounded-full bg-white border border-line/30 text-navy-900 hover:bg-sky active:scale-95 transition-all"
                           title="Salin kode"
                         >
                           <Copy size={14} />
                         </button>
                         <button
                           onClick={() => handleRevokeInvite(inv.code)}
-                          className="p-1.5 rounded-full bg-white border border-ink/30 text-ink/70 hover:text-ink active:scale-95 transition-all"
+                          className="p-1.5 rounded-full bg-white border border-line/30 text-navy-900/70 hover:text-navy-900 active:scale-95 transition-all"
                           title="Cabut undangan"
                         >
                           <Trash2 size={14} />

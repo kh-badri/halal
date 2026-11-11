@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Circle, Clock, Check, AlertTriangle, Lock } from 'lucide-react';
+import { Circle, Clock, Check, AlertTriangle, Lock, HelpCircle } from 'lucide-react';
 
 export type StatusType =
   | 'belum'
@@ -40,10 +40,12 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   customLabel,
   onClick,
 }) => {
-  const normalized = status.toLowerCase();
+  const normalized = (status || 'belum').toLowerCase();
 
-  let bgClass = 'bg-white text-ink/70 border-dashed border-ink/55';
-  let IconComponent = Circle;
+  // PRD 8.3 Status Styling Table
+  let bgClass = 'bg-white text-slate-600 border border-dashed border-slate-400';
+  let IconComponent: any = Circle;
+  let iconClass = 'text-slate-400';
   let defaultLabel = 'Belum';
 
   if (
@@ -57,9 +59,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     normalized === 'diserahkan' ||
     normalized === 'siap_nikah'
   ) {
-    // Selesai: Biru Muda + 2px ink border + centang (PRD 8.1)
-    bgClass = 'bg-sky text-ink border-2 border-ink';
+    // Selesai: Mint 100 bg, Mint 300 border, Mint 700 text & checkmark
+    bgClass = 'bg-mint-100 text-mint-700 border border-mint-300';
     IconComponent = Check;
+    iconClass = 'text-mint-700';
     defaultLabel = customLabel || (normalized === 'sepakat' ? 'Sepakat' : normalized === 'hadir' ? 'Hadir' : 'Selesai');
   } else if (
     normalized === 'proses' ||
@@ -76,27 +79,38 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     normalized === 'terdaftar' ||
     normalized === 'diundang'
   ) {
-    // Proses / Aktif: Pink Muda + 2px ink border + jam (PRD 8.1)
-    bgClass = 'bg-blush text-ink border-2 border-ink';
+    // Proses / Aktif: Sky 100 bg, Sky 200 border, Azure 700 text & clock
+    bgClass = 'bg-sky-100 text-azure-700 border border-sky-200';
     IconComponent = Clock;
+    iconClass = 'text-azure-700';
     defaultLabel = customLabel || (normalized === 'dibahas' ? 'Dibahas' : normalized === 'dp' ? 'DP Terbayar' : normalized === 'diundang' ? 'Diundang' : 'Proses');
-  } else if (normalized === 'terlambat' || normalized === 'ulang') {
-    // Terlambat: Putih + outline ink tebal 2px + peringatan (PRD 8.1)
-    bgClass = 'bg-white text-ink border-2 border-ink font-bold';
+  } else if (normalized === 'terlambat' || normalized === 'batal') {
+    // Terlambat / Batal: Coral 100 bg, Coral 500 border, Coral 700 text & alert
+    bgClass = 'bg-coral-100 text-coral-700 border border-coral-500';
     IconComponent = AlertTriangle;
-    defaultLabel = normalized === 'ulang' ? 'Perlu Bahas Lagi' : 'Terlambat';
+    iconClass = 'text-coral-700';
+    defaultLabel = normalized === 'batal' ? 'Batal' : 'Terlambat';
+  } else if (normalized === 'ulang' || normalized === 'pertimbangan') {
+    // Pertimbangan / Perlu Bahas Lagi: Peach 100 bg, Peach 300 border, Navy 900 text & help
+    bgClass = 'bg-peach-100 text-navy-900 border border-peach-300';
+    IconComponent = HelpCircle;
+    iconClass = 'text-navy-900';
+    defaultLabel = 'Perlu Bahas Lagi';
   } else if (normalized === 'terkunci') {
-    bgClass = 'bg-white text-ink/70 border-dashed border-ink/55';
+    bgClass = 'bg-slate-100 text-slate-500 border border-slate-300';
     IconComponent = Lock;
+    iconClass = 'text-slate-500';
     defaultLabel = 'Terkunci';
   } else if (normalized === 'tidak_berlaku') {
-    bgClass = 'bg-neutral-100 text-ink/50 border border-ink/20';
+    bgClass = 'bg-mist text-slate-400 border border-line';
     IconComponent = Circle;
+    iconClass = 'text-slate-400';
     defaultLabel = 'Tidak Berlaku';
   } else {
-    // Default Belum: Putih + outline putus-putus ink 55% + lingkaran (PRD 8.1)
-    bgClass = 'bg-white text-ink/70 border-dashed border-ink/55';
+    // Default Belum / Ingin: Putih, Slate 400 dashed border, Slate 600 text
+    bgClass = 'bg-white text-slate-600 border border-dashed border-slate-400';
     IconComponent = Circle;
+    iconClass = 'text-slate-400';
     defaultLabel = customLabel || (normalized === 'ingin' ? 'Ingin' : 'Belum');
   }
 
@@ -106,11 +120,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   return (
     <span
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 font-bold rounded-full transition-all select-none ${bgClass} ${paddingClass} ${
+      className={`inline-flex items-center gap-1.5 font-bold rounded-full transition-all select-none shadow-xs ${bgClass} ${paddingClass} ${
         onClick ? 'cursor-pointer hover:opacity-90 active:scale-95' : ''
       }`}
     >
-      <IconComponent size={iconSize} className="shrink-0 stroke-[2.5]" />
+      <IconComponent size={iconSize} className={`shrink-0 stroke-[2.5] ${iconClass}`} />
       <span>{customLabel || defaultLabel}</span>
     </span>
   );

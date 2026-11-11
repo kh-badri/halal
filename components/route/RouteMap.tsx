@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import {
   Lock,
   Check,
-  MapPin,
   Star,
   Flag,
   ArrowRight,
@@ -14,9 +13,7 @@ import {
   Users,
   Calendar,
   AlertCircle,
-  Heart,
-  ChevronRight,
-  Zap,
+  Clock,
 } from 'lucide-react';
 import { StageKey, STAGE_ORDER } from '@/lib/schemas/workspace';
 import { STAGE_DEFINITIONS, getStageIndex } from '@/lib/route/stages';
@@ -48,8 +45,7 @@ interface RouteMapProps {
   userAccess?: 'owner' | 'full' | 'read';
 }
 
-// Fixed S-curve geometry points on a 360-pixel coordinate grid (from top to bottom)
-// Total height = 1360px
+// Coordinate grid: 360px wide, 1360px tall
 const ROUTE_POINTS = [
   { id: 'halal', step: 9, x: 180, y: 70 },               // 0: HALAL (puncak)
   { id: 'hari-h', step: 8, x: 260, y: 200 },             // 1: Hari-H
@@ -76,6 +72,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [selectedLockedStage, setSelectedLockedStage] = useState<StageKey | null>(null);
+  const [shakingStage, setShakingStage] = useState<string | null>(null);
   const [countdownDays, setCountdownDays] = useState<number | null>(null);
 
   const currentIdx = getStageIndex(currentStage || 'persetujuan-taaruf');
@@ -89,7 +86,6 @@ export const RouteMap: React.FC<RouteMapProps> = ({
     return (stages || []).find((s) => s?.key === currentStage);
   }, [stages, currentStage]);
 
-  // Calculate days to akad if targetDate is set
   useEffect(() => {
     if (targetDate) {
       const target = new Date(targetDate).getTime();
@@ -99,7 +95,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
     }
   }, [targetDate]);
 
-  // Auto-scroll smooth to active node on mount
+  // Auto-scroll smooth to active node on mount (PRD 8.7 Rule 6)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (activeNodeRef.current) {
@@ -108,12 +104,19 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           block: 'center',
         });
       }
-    }, 300);
+    }, 250);
     return () => clearTimeout(timer);
   }, [currentStage]);
 
   const handleNodeClick = (stageKey: StageKey, status: 'completed' | 'active' | 'locked') => {
     if (status === 'locked') {
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate(50);
+        } catch (_) {}
+      }
+      setShakingStage(stageKey);
+      setTimeout(() => setShakingStage(null), 500);
       setSelectedLockedStage(stageKey);
     } else {
       router.push(`/tahap/${stageKey}`);
@@ -125,27 +128,27 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   };
 
   return (
-    <div className="relative min-h-screen bg-[#FAF7F8] text-ink pb-24 select-none">
+    <div className="relative min-h-screen bg-mist text-navy-900 pb-28 select-none">
       {/* 1. Floating Capsule Sticky Navigation */}
       <div className="sticky top-3 z-40 px-3 max-w-md mx-auto pointer-events-none">
-        <div className="bg-white/90 backdrop-blur-xl border border-rose-200/70 rounded-full px-4 py-2 shadow-[0_6px_20px_-3px_rgba(240,86,124,0.15)] flex items-center justify-between gap-2 pointer-events-auto transition-all">
+        <div className="glass-header rounded-full px-4 py-2 shadow-subtle border border-line flex items-center justify-between gap-2 pointer-events-auto transition-all">
           <div className="flex items-center gap-2 truncate">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-rose-500 to-rose-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
-              {currentDef.stepNumber <= 8 ? currentDef.stepNumber : '★'}
+            <div className="w-7 h-7 rounded-full bg-azure text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
+              {currentDef?.stepNumber <= 8 ? currentDef.stepNumber : '★'}
             </div>
             <div className="truncate">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-rose-500 block leading-none">
-                Tahap {currentDef.stepNumber} dari 8
+              <span className="text-[10px] uppercase font-bold tracking-wider text-azure-600 block leading-none">
+                Tahap {currentDef?.stepNumber} dari 8
               </span>
-              <span className="text-xs font-black text-ink truncate block mt-0.5">
-                {currentDef.shortTitle}
+              <span className="text-xs font-extrabold text-navy-900 truncate block mt-0.5">
+                {currentDef?.shortTitle}
               </span>
             </div>
           </div>
 
           <Link
-            href={currentDef.path}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#FF6584] to-[#F0567C] hover:from-[#F0567C] hover:to-[#E03E67] text-white font-bold text-xs shadow-rose-sm active:scale-95 transition-all shrink-0"
+            href={currentDef?.path || '/tahap/persetujuan-taaruf'}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-azure hover:bg-azure-700 text-white font-extrabold text-xs shadow-subtle active:scale-95 transition-all shrink-0"
           >
             <span>Lanjutkan</span>
             <ArrowRight size={13} className="stroke-[2.5]" />
@@ -153,17 +156,17 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         </div>
       </div>
 
-      {/* 2. Modern Hero & Countdown Header (Gelato Pink Aesthetic) */}
-      <div className="px-5 pt-6 pb-7 bg-gradient-to-b from-[#FFF0F4] via-[#FFF7F9] to-[#FAF7F8] border-b border-rose-100 rounded-b-[40px] shadow-[0_10px_30px_-10px_rgba(240,86,124,0.08)]">
+      {/* 2. Aurora Sky Hero Header */}
+      <div className="px-5 pt-5 pb-7 bg-aurora border-b border-line rounded-b-[32px] shadow-card">
         <div className="max-w-md mx-auto space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-rose-600 bg-white/95 px-3.5 py-1 rounded-full border border-rose-200/80 shadow-xs">
-                <Sparkles size={13} className="text-rose-500 fill-rose-100" />
-                <span>Menuju Halal</span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azure-700 bg-white/95 px-3 py-1 rounded-full border border-sky-200 shadow-xs">
+                <Sparkles size={13} className="text-azure-600" />
+                <span>Road To Halal</span>
               </span>
               {userAccess === 'read' && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 border border-sky-200">
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
                   Hanya Baca
                 </span>
               )}
@@ -171,7 +174,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
             <Link
               href="/anggota"
-              className="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white/95 px-3.5 py-1 rounded-full border border-rose-200/70 shadow-xs hover:border-rose-300 hover:text-rose-600 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 text-xs font-bold text-navy-900 bg-white/95 px-3.5 py-1 rounded-full border border-line shadow-xs hover:border-azure hover:text-azure-600 active:scale-95 transition-all"
             >
               <Users size={13} />
               <span>Anggota</span>
@@ -179,41 +182,41 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           </div>
 
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-ink tracking-tight leading-tight">
-              Bismillah, Perjalanan Menuju Halal
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight leading-tight font-display">
+              {partnerName ? `Bersama ${partnerName}` : 'Bismillah, Menuju Halal'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
-              Panduan ikhtiar terarah menuju pernikahan yang sakinah dan berkah
+              Panduan ikhtiar 8 tahap terarah menuju pernikahan yang sakinah dan berkah.
             </p>
           </div>
 
-          {/* Modern Hero Journey Card */}
-          <div className="p-4 bg-white/95 backdrop-blur-md rounded-3xl border border-rose-100 shadow-[0_8px_30px_-4px_rgba(240,86,124,0.12)] space-y-3">
+          {/* Active Stage Progress Card */}
+          <div className="p-4 bg-white/95 backdrop-blur-md rounded-2xl border border-line shadow-subtle space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
-                <span className="text-[11px] font-bold uppercase tracking-wider text-rose-600">
-                  Tahap Saat Ini: Tahap {currentDef.stepNumber} dari 8
+                <span className="w-2.5 h-2.5 rounded-full bg-azure animate-ping" />
+                <span className="text-[11px] font-bold uppercase tracking-wider text-azure-700">
+                  Tahap Saat Ini: Tahap {currentDef?.stepNumber} dari 8
                 </span>
               </div>
-              <span className="text-xs font-bold text-sky-800 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
-                {completedCount} Selesai
+              <span className="text-xs font-extrabold text-mint-700 bg-mint-100 px-2.5 py-0.5 rounded-full border border-mint-300">
+                {completedCount}/8 Selesai
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-3 pt-1">
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-black text-ink truncate">{currentDef.title}</h3>
+                <h3 className="text-base font-extrabold text-navy-900 truncate">{currentDef?.title}</h3>
                 <p className="text-xs text-slate-500 truncate mt-0.5">
                   {currentStageData?.requirements
                     ? `${currentStageData.requirements.metRequirements} dari ${currentStageData.requirements.totalRequirements} syarat terpenuhi`
-                    : currentDef.subtitle}
+                    : currentDef?.subtitle}
                 </p>
               </div>
 
               <Link
-                href={currentDef.path}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-[#FF6584] to-[#F0567C] hover:from-[#F0567C] hover:to-[#E03E67] text-white font-bold text-xs shadow-rose-sm active:scale-95 transition-all shrink-0"
+                href={currentDef?.path || '/tahap/persetujuan-taaruf'}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-azure hover:bg-azure-700 text-white font-extrabold text-xs shadow-subtle active:scale-95 transition-all shrink-0"
               >
                 <span>Buka</span>
                 <ArrowRight size={14} className="stroke-[2.5]" />
@@ -221,32 +224,34 @@ export const RouteMap: React.FC<RouteMapProps> = ({
             </div>
 
             {/* Micro Progress Bar */}
-            <div className="w-full bg-rose-100/50 h-2.5 rounded-full overflow-hidden p-0.5 border border-rose-100">
+            <div className="w-full bg-sky-100 h-2 rounded-full overflow-hidden p-0.5 border border-sky-200">
               <div
-                className="h-full bg-gradient-to-r from-[#FF7597] to-[#F0567C] rounded-full transition-all duration-500"
+                className="h-full bg-azure rounded-full transition-all duration-500"
                 style={{ width: `${Math.round((completedCount / 8) * 100)}%` }}
               />
             </div>
           </div>
 
-          {/* Countdown Card (Shown when Akad date is set) */}
+          {/* Countdown Card (Display Font, PRD Section 8.7 & 8.9) */}
           {countdownDays !== null && (
-            <div className="p-4 rounded-3xl bg-white border border-rose-100 flex items-center justify-between shadow-[0_4px_20px_rgba(240,86,124,0.08)]">
+            <div className="p-4 rounded-2xl bg-white border border-line flex items-center justify-between shadow-subtle">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-50 to-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 shadow-xs">
+                <div className="w-11 h-11 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center text-azure-700 shrink-0">
                   <Calendar size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-rose-500">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-azure-600">
                     Menuju Akad Pernikahan
                   </p>
-                  <p className="text-xs sm:text-sm font-black text-ink">
+                  <p className="text-xs sm:text-sm font-extrabold text-navy-900">
                     {targetDate ? new Date(targetDate).toLocaleDateString('id-ID', { dateStyle: 'full' }) : ''}
                   </p>
                 </div>
               </div>
               <div className="text-right shrink-0 pl-2">
-                <span className="text-2xl font-black text-rose-600 block leading-none">{countdownDays}</span>
+                <span className="text-3xl font-extrabold text-azure-700 block leading-none font-display">
+                  {countdownDays}
+                </span>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">hari lagi</span>
               </div>
             </div>
@@ -254,11 +259,11 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
           {/* Halt notification if decision was "tidak lanjut" */}
           {routeStatus === 'berhenti' && (
-            <div className="p-4 rounded-3xl bg-rose-50/80 border border-rose-200 text-xs text-rose-900 flex items-start gap-3 shadow-xs">
-              <AlertCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-coral-100 border border-coral-500 text-xs text-coral-700 flex items-start gap-3 shadow-xs">
+              <AlertCircle size={20} className="text-coral-700 shrink-0 mt-0.5" />
               <div>
-                <p className="font-black text-sm">Rute Berhenti</p>
-                <p className="text-xs text-rose-800/80 mt-0.5 leading-relaxed">
+                <p className="font-extrabold text-sm">Rute Berhenti</p>
+                <p className="text-xs text-coral-700/90 mt-0.5 leading-relaxed">
                   Salah satu pihak memutuskan tidak lanjut. Data saat ini bersifat hanya-baca. Anda dapat mengubah keputusan di form Tahap 1 atau Tahap 3 untuk melanjutkan kembali.
                 </p>
               </div>
@@ -269,14 +274,14 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
       {/* 3. The Vertical Winding S-Curve Route Map */}
       <div ref={containerRef} className="relative w-full max-w-[380px] mx-auto py-10 px-3 overflow-visible">
-        {/* SVG Bezier Path Lines with Glowing Ambient Background Ribbon */}
+        {/* SVG Bezier Path Lines */}
         <svg
           viewBox="0 0 360 1360"
           className="w-full h-auto pointer-events-none absolute inset-0 z-0"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {/* Ambient Glowing Path Ribbon (Luscious Strawberry Tint) */}
+          {/* Ambient Glowing Path Ribbon */}
           {[
             { from: 9, to: 8 },
             { from: 8, to: 7 },
@@ -297,15 +302,15 @@ export const RouteMap: React.FC<RouteMapProps> = ({
               <path
                 key={`ambient-${idx}`}
                 d={pathData}
-                stroke="#FFE0E8"
-                strokeWidth="14"
-                strokeOpacity="0.85"
+                stroke="#E6F3FF"
+                strokeWidth="12"
+                strokeOpacity="0.8"
                 strokeLinecap="round"
               />
             );
           })}
 
-          {/* Top Layer Crisp Path (Rose for passed/active, soft slate for locked) */}
+          {/* Crisp Path: Azure 600 solid 5px for passed/active; Slate 400 dashed (4px dash, 8px gap) for locked */}
           {[
             { from: 9, to: 8, targetStageIdx: 0 },
             { from: 8, to: 7, targetStageIdx: 1 },
@@ -328,30 +333,28 @@ export const RouteMap: React.FC<RouteMapProps> = ({
               <path
                 key={`path-seg-${idx}`}
                 d={pathData}
-                stroke={isPassed ? '#F0567C' : '#CBD5E1'}
-                strokeWidth={isPassed ? '4' : '3'}
-                strokeDasharray={isPassed ? undefined : '6 6'}
-                strokeOpacity={isPassed ? '1' : '0.55'}
+                stroke={isPassed ? '#1F6FDB' : '#7589A1'}
+                strokeWidth={isPassed ? '5' : '3'}
+                strokeDasharray={isPassed ? undefined : '4 8'}
                 strokeLinecap="round"
               />
             );
           })}
         </svg>
 
-        {/* 4. Interactive Nodes and Modern Stage Cards */}
+        {/* 4. Interactive Nodes and Stage Labels */}
         <div className="relative z-10 w-full" style={{ height: '1360px' }}>
           {/* NODE 9: MULAI (at Y=1290) */}
           <div
             className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
             style={{ left: `${ROUTE_POINTS[9].x}px`, top: `${ROUTE_POINTS[9].y}px` }}
           >
-            <div className="w-13 h-13 rounded-2xl bg-white border border-rose-200/80 flex items-center justify-center text-rose-500 shadow-sm p-2">
-              <Flag size={20} className="fill-rose-100 text-rose-500 stroke-[2.5]" />
+            <div className="w-11 h-11 rounded-full bg-sky-300 border-2 border-azure flex items-center justify-center text-azure-700 shadow-subtle p-2">
+              <Flag size={18} className="fill-azure text-azure stroke-[2.5]" />
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 mt-1.5 bg-white px-3 py-0.5 rounded-full border border-rose-200 shadow-xs">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-azure-700 mt-1.5 bg-white px-2.5 py-0.5 rounded-full border border-sky-200 shadow-xs">
               Mulai
             </span>
-            <span className="text-[9px] font-bold text-slate-400">Bismillah</span>
           </div>
 
           {/* STAGE NODES 1 TO 8 */}
@@ -369,6 +372,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
             const def = STAGE_DEFINITIONS[key];
             const isLeft = point.x < 180;
             const isActive = status === 'active';
+            const isShaking = shakingStage === key;
 
             const reqTotal = stageData?.requirements?.totalRequirements || 0;
             const reqMet = stageData?.requirements?.metRequirements || 0;
@@ -377,51 +381,53 @@ export const RouteMap: React.FC<RouteMapProps> = ({
               <div
                 key={key}
                 ref={isActive ? activeNodeRef : null}
-                className="absolute -translate-x-1/2 -translate-y-1/2 w-14 h-14 z-10"
+                className={`absolute -translate-x-1/2 -translate-y-1/2 w-14 h-14 z-10 ${
+                  isShaking ? 'animate-shake' : ''
+                }`}
                 style={{
                   left: `${point.x}px`,
                   top: `${point.y}px`,
                 }}
               >
-                {/* A. If node is on the right, place card on LEFT */}
+                {/* Node Label on LEFT (if node is on right) */}
                 {!isLeft && (
                   <div
                     onClick={() => handleNodeClick(key, status)}
                     className={`absolute right-[66px] top-1/2 -translate-y-1/2 w-[155px] xs:w-[165px] text-right cursor-pointer rounded-2xl p-2.5 transition-all ${
                       isActive
-                        ? 'bg-white/95 border-2 border-rose-400 shadow-[0_8px_25px_-4px_rgba(240,86,124,0.2)] scale-[1.03]'
+                        ? 'bg-white border-2 border-azure shadow-raised scale-[1.02]'
                         : status === 'completed'
-                        ? 'bg-white/90 border border-sky-200 hover:border-sky-300 shadow-xs hover:bg-sky-50/40'
-                        : 'bg-white/70 border border-dashed border-slate-200 text-slate-400 hover:bg-white'
+                        ? 'bg-white border border-mint-300 shadow-xs hover:bg-mint-50/50'
+                        : 'bg-white/80 border border-dashed border-slate-300 text-slate-400 hover:bg-white'
                     }`}
                   >
                     <div className="flex items-center justify-end gap-1.5 mb-1">
                       <span
-                        className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        className={`text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                           isActive
-                            ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-xs'
+                            ? 'bg-azure text-white'
                             : status === 'completed'
-                            ? 'bg-sky-100 text-sky-800'
+                            ? 'bg-mint-100 text-mint-700'
                             : 'bg-slate-100 text-slate-500'
                         }`}
                       >
-                        Tahap {def.stepNumber}
+                        Tahap {def?.stepNumber}
                       </span>
                     </div>
                     <h3
-                      className={`text-xs font-black leading-tight line-clamp-2 ${
-                        status === 'locked' ? 'text-slate-400' : 'text-ink'
+                      className={`text-xs font-extrabold leading-tight line-clamp-2 ${
+                        status === 'locked' ? 'text-slate-400' : 'text-navy-900'
                       }`}
                     >
-                      {def.title}
+                      {def?.title}
                     </h3>
                     <div className="mt-1 flex items-center justify-end gap-1">
                       {status === 'completed' ? (
-                        <span className="text-[10px] font-bold text-sky-700 flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-mint-700 flex items-center gap-1">
                           <Check size={11} className="stroke-[3]" /> Selesai
                         </span>
                       ) : reqTotal > 0 ? (
-                        <span className="text-[10px] font-bold text-rose-600">
+                        <span className="text-[10px] font-bold text-azure-700">
                           {reqMet}/{reqTotal} syarat
                         </span>
                       ) : status === 'locked' ? (
@@ -433,75 +439,73 @@ export const RouteMap: React.FC<RouteMapProps> = ({
                   </div>
                 )}
 
-                {/* B. The Node Circle (Centered at point.x, point.y) */}
+                {/* The 56px Node Circle */}
                 <button
                   onClick={() => handleNodeClick(key, status)}
-                  aria-label={`${def.title} - Status: ${status}`}
+                  aria-label={`${def?.title} - Status: ${status}`}
                   aria-disabled={status === 'locked'}
                   className={`w-14 h-14 rounded-full flex flex-col items-center justify-center shrink-0 transition-all select-none relative z-10 ${
                     status === 'active'
-                      ? 'bg-gradient-to-tr from-[#FF6584] to-[#F0567C] text-white shadow-rose ring-4 ring-rose-300/40 ring-offset-2 animate-pulse scale-105'
+                      ? 'bg-sky-300 border-2 border-azure text-navy-900 shadow-raised animate-pulse-ring scale-105'
                       : status === 'completed'
-                      ? 'bg-gradient-to-tr from-sky-100 to-sky-200 border-2 border-sky-300 text-sky-800 shadow-xs hover:scale-105 active:scale-95'
-                      : 'bg-white border border-dashed border-slate-300 text-slate-400 hover:bg-neutral-50 active:scale-95 shadow-xs'
+                      ? 'bg-mint-300 border border-mint-400 text-mint-700 shadow-xs hover:scale-105 active:scale-95'
+                      : 'bg-[#EAF1F8] border border-dashed border-slate-400 text-slate-500 hover:bg-white active:scale-95 shadow-xs'
                   }`}
                 >
-                  {status === 'completed' && <Check size={22} className="stroke-[3.5] text-sky-800" />}
+                  {status === 'completed' && <Check size={22} className="stroke-[3.5] text-mint-700" />}
                   {status === 'active' && (
-                    <div className="flex flex-col items-center justify-center">
-                      <MapPin size={18} className="fill-white text-rose-500" />
-                      <span className="text-[9px] font-black text-white">{def.stepNumber}</span>
-                    </div>
+                    <>
+                      <span className="text-base font-extrabold text-navy-900 font-display">
+                        {def?.stepNumber}
+                      </span>
+                      {/* Active "Kamu di sini" chip */}
+                      <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-peach-100 text-navy-900 border border-peach-300 text-[9px] font-extrabold px-2 py-0.5 rounded-full whitespace-nowrap shadow-xs animate-float-badge pointer-events-none">
+                        Kamu di sini
+                      </span>
+                    </>
                   )}
-                  {status === 'locked' && <Lock size={16} className="text-slate-400" />}
-
-                  {/* "✨ Kamu di sini" chip for active node - Perfectly centered */}
-                  {isActive && (
-                    <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full shadow-rose-sm animate-bounce flex items-center gap-1 z-30">
-                      <Sparkles size={9} className="fill-white" /> Kamu di sini
-                    </span>
-                  )}
+                  {status === 'locked' && <Lock size={18} className="text-slate-500 stroke-[2.2]" />}
                 </button>
 
-                {/* C. If node is on the left (isLeft), place card on RIGHT */}
+                {/* Node Label on RIGHT (if node is on left) */}
                 {isLeft && (
                   <div
                     onClick={() => handleNodeClick(key, status)}
                     className={`absolute left-[66px] top-1/2 -translate-y-1/2 w-[155px] xs:w-[165px] text-left cursor-pointer rounded-2xl p-2.5 transition-all ${
                       isActive
-                        ? 'bg-white/95 border-2 border-rose-400 shadow-[0_8px_25px_-4px_rgba(240,86,124,0.2)] scale-[1.03]'
+                        ? 'bg-white border-2 border-azure shadow-raised scale-[1.02]'
                         : status === 'completed'
-                        ? 'bg-white/90 border border-sky-200 hover:border-sky-300 shadow-xs hover:bg-sky-50/40'
-                        : 'bg-white/70 border border-dashed border-slate-200 text-slate-400 hover:bg-white'
+                        ? 'bg-white border border-mint-300 shadow-xs hover:bg-mint-50/50'
+                        : 'bg-white/80 border border-dashed border-slate-300 text-slate-400 hover:bg-white'
                     }`}
                   >
                     <div className="flex items-center justify-start gap-1.5 mb-1">
                       <span
-                        className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        className={`text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                           isActive
-                            ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-xs'
+                            ? 'bg-azure text-white'
                             : status === 'completed'
-                            ? 'bg-sky-100 text-sky-800'
+                            ? 'bg-mint-100 text-mint-700'
                             : 'bg-slate-100 text-slate-500'
                         }`}
                       >
-                        Tahap {def.stepNumber}
+                        Tahap {def?.stepNumber}
                       </span>
                     </div>
                     <h3
-                      className={`text-xs font-black leading-tight line-clamp-2 ${
-                        status === 'locked' ? 'text-slate-400' : 'text-ink'
+                      className={`text-xs font-extrabold leading-tight line-clamp-2 ${
+                        status === 'locked' ? 'text-slate-400' : 'text-navy-900'
                       }`}
                     >
-                      {def.title}
+                      {def?.title}
                     </h3>
                     <div className="mt-1 flex items-center justify-start gap-1">
                       {status === 'completed' ? (
-                        <span className="text-[10px] font-bold text-sky-700 flex items-center gap-1">
+                        <span className="text-[10px] font-bold text-mint-700 flex items-center gap-1">
                           <Check size={11} className="stroke-[3]" /> Selesai
                         </span>
                       ) : reqTotal > 0 ? (
-                        <span className="text-[10px] font-bold text-rose-600">
+                        <span className="text-[10px] font-bold text-azure-700">
                           {reqMet}/{reqTotal} syarat
                         </span>
                       ) : status === 'locked' ? (
@@ -516,77 +520,49 @@ export const RouteMap: React.FC<RouteMapProps> = ({
             );
           })}
 
-          {/* NODE 0: HALAL (at Y=70) */}
-          {(() => {
-            const halalStatus =
-              currentStage === 'halal'
-                ? 'active'
-                : routeStatus === 'selesai'
-                ? 'completed'
-                : 'locked';
-            return (
-              <div
-                className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-                style={{ left: `${ROUTE_POINTS[0].x}px`, top: `${ROUTE_POINTS[0].y}px` }}
-              >
-                <button
-                  onClick={() => handleNodeClick('halal', halalStatus)}
-                  aria-label="Tujuan: Halal"
-                  aria-disabled={halalStatus === 'locked'}
-                  className={`w-16 h-16 rounded-full flex flex-col items-center justify-center transition-all shadow-md ${
-                    halalStatus === 'completed'
-                      ? 'bg-gradient-to-tr from-sky-300 to-sky-400 text-white ring-4 ring-sky-200 animate-pulse scale-110 shadow-lg'
-                      : halalStatus === 'active'
-                      ? 'bg-gradient-to-tr from-[#FF6584] to-[#F0567C] text-white ring-4 ring-rose-200 scale-105 shadow-rose'
-                      : 'bg-white border border-dashed border-slate-300 text-slate-400'
-                  }`}
-                >
-                  <Star
-                    size={24}
-                    className={halalStatus !== 'locked' ? 'fill-white text-white' : 'text-slate-300'}
-                  />
-                </button>
-                <span className="text-xs font-black uppercase tracking-wider text-rose-600 mt-2 bg-white px-3.5 py-1 rounded-full border border-rose-200 shadow-xs">
-                  ★ HALAL
-                </span>
-                <p className="text-[10px] text-slate-500 font-bold tracking-tight mt-0.5">
-                  Puncak Tujuan Akad
-                </p>
-              </div>
-            );
-          })()}
+          {/* NODE 0: HALAL (at Y=70, peak) */}
+          <div
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-10"
+            style={{ left: `${ROUTE_POINTS[0].x}px`, top: `${ROUTE_POINTS[0].y}px` }}
+          >
+            <button
+              onClick={() => {
+                if (completedCount >= 8) {
+                  router.push('/tahap/halal');
+                } else {
+                  handleNodeClick('halal' as StageKey, 'locked');
+                }
+              }}
+              className={`w-16 h-16 rounded-full flex flex-col items-center justify-center transition-all ${
+                completedCount >= 8
+                  ? 'bg-gradient-to-tr from-peach-300 via-sky-300 to-azure text-navy-900 shadow-raised ring-4 ring-peach-100 animate-pulse scale-110'
+                  : 'bg-[#EAF1F8] border border-dashed border-slate-400 text-slate-400 shadow-xs'
+              }`}
+              aria-label="Tujuan Halal"
+            >
+              <Star
+                size={26}
+                className={completedCount >= 8 ? 'text-navy-900 fill-peach-300' : 'text-slate-400'}
+              />
+            </button>
+            <span
+              className={`text-[11px] font-extrabold uppercase tracking-wider mt-1.5 px-3 py-0.5 rounded-full border shadow-xs ${
+                completedCount >= 8
+                  ? 'bg-peach-100 border-peach-300 text-navy-900'
+                  : 'bg-white border-line text-slate-500'
+              }`}
+            >
+              ★ Halal (Tujuan)
+            </span>
+          </div>
         </div>
-
-        {/* Accessible Ordered List for Screen Readers */}
-        <ol className="sr-only">
-          {STAGE_ORDER.map((sKey) => {
-            const d = STAGE_DEFINITIONS[sKey];
-            const st = getStageData(sKey)?.status || 'locked';
-            return (
-              <li key={`sr-${sKey}`}>
-                {d.title} - Status: {st}
-              </li>
-            );
-          })}
-        </ol>
       </div>
 
-      {/* 5. Floating Quick Action Button */}
-      <div className="fixed bottom-6 right-5 z-40">
-        <Link
-          href={currentDef.path}
-          className="flex items-center gap-2 bg-gradient-to-r from-[#FF6584] to-[#F0567C] hover:from-[#F0567C] hover:to-[#E03E67] text-white font-bold text-xs px-4 py-2.5 rounded-full shadow-rose border border-white/40 hover:scale-105 active:scale-95 transition-all"
-        >
-          <Zap size={14} className="fill-white text-white" />
-          <span>Lanjutkan Tahap {currentDef.stepNumber}</span>
-        </Link>
-      </div>
-
-      {/* Locked Stage Bottom Sheet Modal */}
+      {/* 5. Bottom Sheet for Locked Stage (PRD Section 8.7 & 8.9) */}
       <RouteLockedModal
-        isOpen={Boolean(selectedLockedStage)}
         targetStage={selectedLockedStage}
         currentActiveStage={currentStage}
+        isOpen={Boolean(selectedLockedStage)}
         onClose={() => setSelectedLockedStage(null)}
       />
     </div>

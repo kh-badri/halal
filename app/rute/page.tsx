@@ -70,19 +70,19 @@ export default function RutePage() {
 
   if (loadError && !routeData) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center max-w-sm mx-auto">
-        <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-500 mb-4 shadow-xs">
+      <div className="min-h-screen bg-mist flex flex-col items-center justify-center p-6 text-center max-w-sm mx-auto">
+        <div className="w-14 h-14 rounded-2xl bg-coral-100 border border-coral-200 flex items-center justify-center text-coral-700 mb-4 shadow-subtle">
           <AlertCircle className="w-7 h-7" />
         </div>
-        <h3 className="text-base font-black text-slate-800 mb-1">Gagal Memuat Peta Rute</h3>
-        <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+        <h3 className="text-base font-extrabold text-navy-900 mb-1">Gagal Memuat Peta Rute</h3>
+        <p className="text-xs text-slate-600 mb-5 leading-relaxed">
           Terjadi kendala saat menyambung ke server ({loadError}). Silakan coba muat ulang halaman atau login kembali.
         </p>
         <div className="flex gap-2 w-full">
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white text-xs font-bold shadow-rose-sm hover:opacity-90"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full bg-azure hover:bg-azure-700 text-white text-xs font-bold shadow-subtle active:scale-95 transition-all"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Muat Ulang</span>
@@ -90,7 +90,7 @@ export default function RutePage() {
           <button
             type="button"
             onClick={() => { window.location.href = '/login'; }}
-            className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50"
+            className="flex-1 py-2.5 px-4 rounded-full border border-line text-navy-900 text-xs font-bold hover:bg-slate-50 active:scale-95 transition-all"
           >
             Halaman Login
           </button>
@@ -99,11 +99,45 @@ export default function RutePage() {
     );
   }
 
+  // Skeleton loader matching PRD 8.9 (grey path with shiny round nodes)
   if (loading || !routeData) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-12 h-12 rounded-full border-4 border-rose-500/20 border-t-rose-500 animate-spin mb-4" />
-        <p className="text-sm font-bold text-ink/70">Memuat peta rute halal...</p>
+      <div className="min-h-screen bg-mist flex flex-col">
+        {/* Skeleton Top Bar */}
+        <div className="glass-header border-b border-line px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-2xl bg-sky-200 skeleton-shimmer" />
+            <div className="space-y-1">
+              <div className="w-20 h-2.5 bg-slate-200 rounded skeleton-shimmer" />
+              <div className="w-28 h-3 bg-slate-300 rounded skeleton-shimmer" />
+            </div>
+          </div>
+          <div className="w-9 h-9 rounded-2xl bg-slate-200 skeleton-shimmer" />
+        </div>
+
+        {/* Skeleton Hero Banner */}
+        <div className="p-5 bg-sky-100/60 border-b border-line space-y-3">
+          <div className="w-32 h-5 bg-sky-200 rounded-full skeleton-shimmer" />
+          <div className="w-3/4 h-7 bg-slate-300 rounded skeleton-shimmer" />
+          <div className="p-4 bg-white rounded-2xl border border-line space-y-2">
+            <div className="w-1/2 h-3.5 bg-slate-200 rounded skeleton-shimmer" />
+            <div className="w-full h-2 bg-slate-200 rounded-full skeleton-shimmer" />
+          </div>
+        </div>
+
+        {/* Skeleton Route Path Nodes */}
+        <div className="flex-1 flex flex-col items-center justify-center py-10 space-y-8">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-slate-200 border-2 border-slate-300 skeleton-shimmer" />
+              <div className="space-y-1.5 w-36">
+                <div className="w-16 h-2.5 bg-slate-200 rounded skeleton-shimmer" />
+                <div className="w-32 h-3.5 bg-slate-300 rounded skeleton-shimmer" />
+              </div>
+            </div>
+          ))}
+          <p className="text-xs font-bold text-slate-500 pt-2">Memuat peta rute halal...</p>
+        </div>
       </div>
     );
   }
@@ -115,7 +149,7 @@ export default function RutePage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-mist">
       <AppHeader
         title="Road To Halal"
         subtitle={partnerName ? `Bersama ${partnerName}` : 'Peta Perjalanan Pranikah'}

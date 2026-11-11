@@ -11,6 +11,8 @@ export function formatRupiah(amount: number): string {
   }).format(amount);
 }
 
+export const formatCurrency = formatRupiah;
+
 export function formatShortRupiah(amount: number): string {
   if (amount >= 1000000000) {
     return `${(amount / 1000000000).toFixed(1)} M`;

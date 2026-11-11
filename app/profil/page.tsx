@@ -192,7 +192,7 @@ export default function ProfilPage() {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center">
         <div className="w-12 h-12 rounded-full border-4 border-rose-500/20 border-t-rose-500 animate-spin mb-4" />
-        <p className="text-sm font-bold text-ink/70">Memuat profil...</p>
+        <p className="text-sm font-bold text-navy-900/70">Memuat profil...</p>
       </div>
     );
   }
@@ -208,12 +208,12 @@ export default function ProfilPage() {
       />
 
       {/* Segmented Top Tabs */}
-      <div className="sticky top-[57px] z-20 bg-white border-b border-ink/10 px-4 py-2">
+      <div className="sticky top-[57px] z-20 bg-white border-b border-line/10 px-4 py-2">
         <div className="flex bg-neutral-100 p-1 rounded-2xl gap-1">
           <button
             onClick={() => setActiveTab('profil')}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'profil' ? 'bg-blush border-2 border-ink text-ink shadow-sm' : 'text-ink/70 hover:text-ink'
+              activeTab === 'profil' ? 'bg-sky-100 border-2 border-line text-navy-900 shadow-sm' : 'text-navy-900/70 hover:text-navy-900'
             }`}
           >
             Profil Kami Berdua
@@ -221,7 +221,7 @@ export default function ProfilPage() {
           <button
             onClick={() => setActiveTab('pengaturan')}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'pengaturan' ? 'bg-blush border-2 border-ink text-ink shadow-sm' : 'text-ink/70 hover:text-ink'
+              activeTab === 'pengaturan' ? 'bg-sky-100 border-2 border-line text-navy-900 shadow-sm' : 'text-navy-900/70 hover:text-navy-900'
             }`}
           >
             Pengaturan &amp; Data
@@ -239,7 +239,7 @@ export default function ProfilPage() {
               <button
                 onClick={() => setProfileSide('self')}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all ${
-                  profileSide === 'self' ? 'bg-blush border border-ink text-ink shadow-sm' : 'text-ink/70 hover:text-ink'
+                  profileSide === 'self' ? 'bg-sky-100 border border-line text-navy-900 shadow-sm' : 'text-navy-900/70 hover:text-navy-900'
                 }`}
               >
                 Profil Saya ({profile?.self?.fullName || user?.name || 'Saya'})
@@ -247,7 +247,7 @@ export default function ProfilPage() {
               <button
                 onClick={() => setProfileSide('partner')}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all ${
-                  profileSide === 'partner' ? 'bg-sky border border-ink text-ink shadow-sm' : 'text-ink/70 hover:text-ink'
+                  profileSide === 'partner' ? 'bg-sky border border-line text-navy-900 shadow-sm' : 'text-navy-900/70 hover:text-navy-900'
                 }`}
               >
                 Profil Calon ({profile?.partner?.fullName || 'Calon'})
@@ -255,8 +255,8 @@ export default function ProfilPage() {
             </div>
 
             {/* Profile Avatar Card */}
-            <div className="p-5 rounded-3xl bg-white border-2 border-ink shadow-subtle flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-blush flex items-center justify-center overflow-hidden border-2 border-ink shrink-0 shadow-sm">
+            <div className="p-5 rounded-3xl bg-white border-2 border-line shadow-subtle flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-sky-100 flex items-center justify-center overflow-hidden border-2 border-line shrink-0 shadow-sm">
                 {person.photoFileId ? (
                   <img
                     src={`/api/files/${person.photoFileId}`}
@@ -264,12 +264,12 @@ export default function ProfilPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User size={30} className="text-ink/60" />
+                  <User size={30} className="text-navy-900/60" />
                 )}
               </div>
 
               <div className="min-w-0">
-                <h3 className="text-base font-extrabold text-ink truncate">
+                <h3 className="text-base font-extrabold text-navy-900 truncate">
                   {person.fullName || (profileSide === 'self' ? user?.name : 'Nama Calon')}
                 </h3>
                 <p className="text-xs text-rose font-medium mt-0.5">
@@ -277,7 +277,7 @@ export default function ProfilPage() {
                 </p>
                 <Link
                   href="/taaruf?tab=biodata"
-                  className="inline-block text-[11px] text-ink font-bold underline mt-1.5"
+                  className="inline-block text-[11px] text-navy-900 font-bold underline mt-1.5"
                 >
                   Edit Lengkap di Biodata &rarr;
                 </Link>
@@ -289,25 +289,25 @@ export default function ProfilPage() {
               <h4 className="text-xs font-extrabold text-rose uppercase tracking-wider mb-2">Ringkasan Data</h4>
 
               <div className="flex justify-between py-1.5 border-b border-blush/60">
-                <span className="text-ink/65">Panggilan</span>
-                <span className="font-bold text-ink">{person.nickname || '-'}</span>
+                <span className="text-navy-900/65">Panggilan</span>
+                <span className="font-bold text-navy-900">{person.nickname || '-'}</span>
               </div>
 
               <div className="flex justify-between py-1.5 border-b border-blush/60">
-                <span className="text-ink/65">Usia / Tanggal Lahir</span>
-                <span className="font-bold text-ink">
+                <span className="text-navy-900/65">Usia / Tanggal Lahir</span>
+                <span className="font-bold text-navy-900">
                   {person.birthDate ? `${calculateAge(person.birthDate)} Tahun (${formatDateIndo(person.birthDate)})` : '-'}
                 </span>
               </div>
 
               <div className="flex justify-between py-1.5 border-b border-blush/60">
-                <span className="text-ink/65">Domisili / Suku</span>
-                <span className="font-bold text-ink">{person.domicile || person.ethnicity || '-'}</span>
+                <span className="text-navy-900/65">Domisili / Suku</span>
+                <span className="font-bold text-navy-900">{person.domicile || person.ethnicity || '-'}</span>
               </div>
 
               <div className="flex justify-between py-1.5 border-b border-blush/60">
-                <span className="text-ink/65">Status Pernikahan</span>
-                <span className="font-bold text-ink">
+                <span className="text-navy-900/65">Status Pernikahan</span>
+                <span className="font-bold text-navy-900">
                   {person.status === 'duda'
                     ? 'Duda'
                     : person.status === 'janda'
@@ -317,13 +317,13 @@ export default function ProfilPage() {
               </div>
 
               <div className="flex justify-between py-1.5 border-b border-blush/60">
-                <span className="text-ink/65">Pendidikan Terakhir</span>
-                <span className="font-bold text-ink">{person.education || '-'}</span>
+                <span className="text-navy-900/65">Pendidikan Terakhir</span>
+                <span className="font-bold text-navy-900">{person.education || '-'}</span>
               </div>
 
               <div className="flex justify-between py-1.5">
-                <span className="text-ink/65">Perantara Ta’aruf</span>
-                <span className="font-bold text-ink">{person.intermediaryName || '-'}</span>
+                <span className="text-navy-900/65">Perantara Ta’aruf</span>
+                <span className="font-bold text-navy-900">{person.intermediaryName || '-'}</span>
               </div>
             </div>
           </div>
@@ -338,14 +338,14 @@ export default function ProfilPage() {
             <div className="p-5 rounded-3xl bg-white border border-blush shadow-soft space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-bold text-ink text-sm">Target Tanggal &amp; Lokasi Akad</h4>
-                  <p className="text-[11px] text-ink/70 mt-0.5">
+                  <h4 className="font-bold text-navy-900 text-sm">Target Tanggal &amp; Lokasi Akad</h4>
+                  <p className="text-[11px] text-navy-900/70 mt-0.5">
                     {settings?.targetDate ? `${formatDateIndo(settings.targetDate)} · ${settings.weddingLocation || 'Lokasi belum diisi'}` : 'Belum diatur'}
                   </p>
                 </div>
                 <button
                   onClick={() => setWeddingSheetOpen(true)}
-                  className="px-3 py-1.5 bg-blush border-2 border-ink text-ink font-bold rounded-full text-xs shadow-xs"
+                  className="px-3 py-1.5 bg-sky-100 border-2 border-line text-navy-900 font-bold rounded-full text-xs shadow-xs"
                 >
                   Ubah
                 </button>
@@ -353,17 +353,17 @@ export default function ProfilPage() {
             </div>
 
             {/* Workspace & Members Section */}
-            <div className="p-5 rounded-3xl bg-white border-2 border-ink shadow-subtle space-y-3">
-              <h4 className="text-xs font-black text-ink uppercase tracking-wider">Ruang Data &amp; Anggota</h4>
-              <p className="text-[11px] text-ink/75 leading-relaxed">
+            <div className="p-5 rounded-3xl bg-white border-2 border-line shadow-subtle space-y-3">
+              <h4 className="text-xs font-black text-navy-900 uppercase tracking-wider">Ruang Data &amp; Anggota</h4>
+              <p className="text-[11px] text-navy-900/75 leading-relaxed">
                 Kelola hak akses Read (hanya memantau) dan Full (ikut mengisi data) untuk pasangan, keluarga, atau murabbi.
               </p>
               <Link
                 href="/anggota"
-                className="w-full p-3 rounded-2xl bg-sky border-2 border-ink flex items-center justify-between font-bold text-xs text-ink hover:bg-sky/80 active:scale-95 transition-all shadow-xs"
+                className="w-full p-3 rounded-2xl bg-sky border-2 border-line flex items-center justify-between font-bold text-xs text-navy-900 hover:bg-sky/80 active:scale-95 transition-all shadow-xs"
               >
                 <div className="flex items-center gap-2.5">
-                  <Users size={18} className="text-ink" />
+                  <Users size={18} className="text-navy-900" />
                   <span>Kelola Anggota &amp; Kode Undangan</span>
                 </div>
                 <span>&rarr;</span>
@@ -371,22 +371,22 @@ export default function ProfilPage() {
             </div>
 
             {/* Account Management & Security */}
-            <div className="p-5 rounded-3xl bg-white border-2 border-ink shadow-subtle space-y-3">
-              <h4 className="text-xs font-black text-ink uppercase tracking-wider">Akun &amp; Keamanan</h4>
+            <div className="p-5 rounded-3xl bg-white border-2 border-line shadow-subtle space-y-3">
+              <h4 className="text-xs font-black text-navy-900 uppercase tracking-wider">Akun &amp; Keamanan</h4>
 
-              <div className="flex items-center justify-between py-1.5 border-b border-ink/10">
+              <div className="flex items-center justify-between py-1.5 border-b border-line/10">
                 <div>
-                  <p className="font-bold text-ink">{user?.name}</p>
-                  <p className="text-[11px] text-ink/60">{user?.identifier} · Catin {user?.role}</p>
+                  <p className="font-bold text-navy-900">{user?.name}</p>
+                  <p className="text-[11px] text-navy-900/60">{user?.identifier} · Catin {user?.role}</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setPasswordSheetOpen(true)}
-                className="w-full flex items-center justify-between py-2 text-ink hover:underline transition-colors"
+                className="w-full flex items-center justify-between py-2 text-navy-900 hover:underline transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <KeyRound size={16} className="text-ink" />
+                  <KeyRound size={16} className="text-navy-900" />
                   <span className="font-semibold text-xs">Ganti Password Akun</span>
                 </div>
                 <span>&rarr;</span>
@@ -395,7 +395,7 @@ export default function ProfilPage() {
               {user?.isAdmin && (
                 <Link
                   href="/admin"
-                  className="w-full flex items-center justify-between py-2 text-ink font-bold hover:underline text-xs"
+                  className="w-full flex items-center justify-between py-2 text-navy-900 font-bold hover:underline text-xs"
                 >
                   <div className="flex items-center gap-2">
                     <Shield size={16} />
@@ -407,23 +407,23 @@ export default function ProfilPage() {
             </div>
 
             {/* Data & Backup Options */}
-            <div className="p-5 rounded-3xl bg-white border-2 border-ink shadow-subtle space-y-3">
-              <h4 className="text-xs font-black text-ink uppercase tracking-wider">Cadangan &amp; Ekspor Data</h4>
-              <p className="text-[11px] text-ink/75">
+            <div className="p-5 rounded-3xl bg-white border-2 border-line shadow-subtle space-y-3">
+              <h4 className="text-xs font-black text-navy-900 uppercase tracking-wider">Cadangan &amp; Ekspor Data</h4>
+              <p className="text-[11px] text-navy-900/75">
                 Unduh seluruh data pernikahan Anda dalam bentuk arsip ZIP mandiri untuk disimpan di Google Drive atau komputer pribadi.
               </p>
 
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <button
                   onClick={handleExportData}
-                  className="p-3 rounded-2xl bg-sky border-2 border-ink flex flex-col items-center text-center gap-1.5 font-bold text-xs text-ink hover:bg-sky/80 transition-all shadow-xs"
+                  className="p-3 rounded-2xl bg-sky border-2 border-line flex flex-col items-center text-center gap-1.5 font-bold text-xs text-navy-900 hover:bg-sky/80 transition-all shadow-xs"
                 >
-                  <Download size={18} className="text-ink" />
+                  <Download size={18} className="text-navy-900" />
                   <span>Ekspor Data (ZIP)</span>
                 </button>
 
-                <label className="p-3 rounded-2xl bg-blush border-2 border-ink flex flex-col items-center text-center gap-1.5 font-bold text-xs text-ink hover:bg-blush/80 transition-all shadow-xs cursor-pointer">
-                  <Upload size={18} className="text-ink" />
+                <label className="p-3 rounded-2xl bg-sky-100 border-2 border-line flex flex-col items-center text-center gap-1.5 font-bold text-xs text-navy-900 hover:bg-sky-100/80 transition-all shadow-xs cursor-pointer">
+                  <Upload size={18} className="text-navy-900" />
                   <span>Pulihkan dari ZIP</span>
                   <input type="file" accept=".zip,.json" className="hidden" onChange={handleImportData} />
                 </label>
@@ -431,12 +431,12 @@ export default function ProfilPage() {
             </div>
 
             {/* Links to Privacy & Terms */}
-            <div className="p-4 rounded-3xl bg-white border-2 border-ink shadow-subtle space-y-2 text-xs">
-              <Link href="/privasi" className="flex items-center justify-between py-1 text-ink/80 hover:text-ink">
+            <div className="p-4 rounded-3xl bg-white border-2 border-line shadow-subtle space-y-2 text-xs">
+              <Link href="/privasi" className="flex items-center justify-between py-1 text-navy-900/80 hover:text-navy-900">
                 <span>Kebijakan Privasi (UU PDP)</span>
                 <ExternalLink size={14} />
               </Link>
-              <Link href="/syarat" className="flex items-center justify-between py-1 text-ink/80 hover:text-ink border-t border-ink/10">
+              <Link href="/syarat" className="flex items-center justify-between py-1 text-navy-900/80 hover:text-navy-900 border-t border-line/10">
                 <span>Syarat &amp; Ketentuan Penggunaan</span>
                 <ExternalLink size={14} />
               </Link>
@@ -446,7 +446,7 @@ export default function ProfilPage() {
             <div className="space-y-2.5 pt-2">
               <button
                 onClick={handleLogout}
-                className="w-full py-3 bg-white border-2 border-ink text-ink font-bold rounded-full flex items-center justify-center gap-2 hover:bg-blush/40 active:scale-95 transition-all text-xs"
+                className="w-full py-3 bg-white border-2 border-line text-navy-900 font-bold rounded-full flex items-center justify-center gap-2 hover:bg-sky-100 active:scale-95 transition-all text-xs"
               >
                 <LogOut size={16} />
                 <span>Keluar dari Akun</span>
@@ -454,7 +454,7 @@ export default function ProfilPage() {
 
               <button
                 onClick={() => setDeleteAccountSheetOpen(true)}
-                className="w-full py-3 bg-white border-2 border-ink text-ink font-bold rounded-full flex items-center justify-center gap-2 hover:bg-neutral-100 active:scale-95 transition-all text-xs"
+                className="w-full py-3 bg-white border-2 border-line text-navy-900 font-bold rounded-full flex items-center justify-center gap-2 hover:bg-neutral-100 active:scale-95 transition-all text-xs"
               >
                 <Trash2 size={15} />
                 <span>Hapus Akun &amp; Seluruh Data Permanen</span>
@@ -468,29 +468,29 @@ export default function ProfilPage() {
       <BottomSheet isOpen={weddingSheetOpen} onClose={() => setWeddingSheetOpen(false)} title="Target Pernikahan">
         <div className="space-y-3 pb-6 text-xs">
           <div>
-            <label className="block font-bold text-ink mb-1">Target Tanggal Akad:</label>
+            <label className="block font-bold text-navy-900 mb-1">Target Tanggal Akad:</label>
             <input
               type="date"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
-              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-blush focus:border-rose outline-none text-ink"
+              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-blush focus:border-rose outline-none text-navy-900"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-ink mb-1">Kota / Lokasi Pernikahan:</label>
+            <label className="block font-bold text-navy-900 mb-1">Kota / Lokasi Pernikahan:</label>
             <input
               type="text"
               value={weddingLocation}
               onChange={(e) => setWeddingLocation(e.target.value)}
               placeholder="misal: Bandung, Jawa Barat"
-              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-ink/30 focus:border-ink outline-none text-ink"
+              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-line/30 focus:border-line outline-none text-navy-900"
             />
           </div>
 
           <button
             onClick={handleSaveWeddingSettings}
-            className="w-full py-3 bg-blush border-2 border-ink text-ink font-bold rounded-full text-xs shadow-md mt-2"
+            className="w-full py-3 bg-sky-100 border-2 border-line text-navy-900 font-bold rounded-full text-xs shadow-md mt-2"
           >
             Simpan Pengaturan
           </button>
@@ -501,43 +501,43 @@ export default function ProfilPage() {
       <BottomSheet isOpen={passwordSheetOpen} onClose={() => setPasswordSheetOpen(false)} title="Ganti Password">
         <form onSubmit={handleChangePassword} className="space-y-3 pb-6 text-xs">
           <div>
-            <label className="block font-bold text-ink mb-1">Password Lama:</label>
+            <label className="block font-bold text-navy-900 mb-1">Password Lama:</label>
             <input
               type="password"
               required
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-ink/30 focus:border-ink outline-none text-ink"
+              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-line/30 focus:border-line outline-none text-navy-900"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-ink mb-1">Password Baru (min. 8 karakter):</label>
+            <label className="block font-bold text-navy-900 mb-1">Password Baru (min. 8 karakter):</label>
             <input
               type="password"
               required
               minLength={8}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-ink/30 focus:border-ink outline-none text-ink"
+              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-line/30 focus:border-line outline-none text-navy-900"
             />
           </div>
 
           <div>
-            <label className="block font-bold text-ink mb-1">Konfirmasi Password Baru:</label>
+            <label className="block font-bold text-navy-900 mb-1">Konfirmasi Password Baru:</label>
             <input
               type="password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-ink/30 focus:border-ink outline-none text-ink"
+              className="w-full p-2.5 rounded-2xl bg-neutral-50 border border-line/30 focus:border-line outline-none text-navy-900"
             />
           </div>
 
           <button
             type="submit"
             disabled={passLoading}
-            className="w-full py-3 bg-blush border-2 border-ink text-ink font-bold rounded-full text-xs shadow-md mt-2 flex items-center justify-center gap-2"
+            className="w-full py-3 bg-sky-100 border-2 border-line text-navy-900 font-bold rounded-full text-xs shadow-md mt-2 flex items-center justify-center gap-2"
           >
             {passLoading ? <Loader2 size={16} className="animate-spin" /> : 'Perbarui Password'}
           </button>
@@ -555,7 +555,7 @@ export default function ProfilPage() {
           </div>
 
           <div>
-            <label className="block font-bold text-ink mb-1">
+            <label className="block font-bold text-navy-900 mb-1">
               Ketik teks <span className="text-red-600 font-extrabold">&quot;HAPUS PERMANEN&quot;</span> untuk melanjutkan:
             </label>
             <input

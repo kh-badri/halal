@@ -245,7 +245,7 @@ function HariHContent() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `daftar-tamu-nikahku-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `daftar-tamu-roadtohalal-${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

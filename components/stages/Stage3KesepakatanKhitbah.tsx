@@ -120,7 +120,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
           onClick={() => setActiveTab('ringkasan')}
           className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'ringkasan'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -131,7 +131,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
           onClick={() => setActiveTab('restu')}
           className={`flex-1 min-w-[110px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'restu'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -142,7 +142,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
           onClick={() => setActiveTab('acara')}
           className={`flex-1 min-w-[110px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'acara'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -153,7 +153,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
           onClick={() => setActiveTab('keputusan')}
           className={`flex-1 min-w-[90px] py-2 px-3 rounded-xl text-xs font-bold transition-all ${
             activeTab === 'keputusan'
-              ? 'bg-gradient-to-r from-[#FF6584] to-[#F0567C] text-white shadow-rose-sm font-black'
+              ? 'bg-azure text-white shadow-subtle font-extrabold'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -192,7 +192,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
               </h4>
               <div className="max-h-64 overflow-y-auto space-y-2 pr-1 no-scrollbar">
                 {agreedCards.length === 0 ? (
-                  <p className="text-xs text-ink/60 italic p-3 bg-blush/20 rounded-xl">
+                  <p className="text-xs text-ink/60 italic p-3 bg-sky-50 rounded-xl">
                     Belum ada kartu berstatus Sepakat di Tahap 2.
                   </p>
                 ) : (
@@ -203,7 +203,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                           {c.category}
                         </span>
                         {c.principle && (
-                          <span className="text-[10px] font-black text-ink bg-blush px-2 py-0.5 rounded-md border border-ink flex items-center gap-1">
+                          <span className="text-[10px] font-black text-ink bg-sky-100 px-2 py-0.5 rounded-md border border-ink flex items-center gap-1">
                             <Shield className="w-3 h-3" /> Prinsip
                           </span>
                         )}
@@ -226,7 +226,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
 
             {/* Review Confirmation Button (PRD 9.3 A - Syarat Selesai) */}
             <div className="pt-2 border-t border-ink/10">
-              <label className="flex items-center gap-3 p-3.5 bg-blush/30 rounded-2xl border-2 border-ink cursor-pointer hover:bg-blush/50 transition-colors">
+              <label className="flex items-center gap-3 p-3.5 bg-sky-50 rounded-2xl border-2 border-ink cursor-pointer hover:bg-sky-100 transition-colors">
                 <input
                   type="checkbox"
                   disabled={isReadOnly}
@@ -306,7 +306,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                         },
                       })
                     }
-                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                   />
                 </div>
 
@@ -326,14 +326,14 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                       })
                     }
                     placeholder="Wejangan orang tua pihak saya..."
-                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Restu Pihak Calon */}
-            <div className="p-4 rounded-2xl border-2 border-ink bg-blush/30 space-y-3">
+            <div className="p-4 rounded-2xl border-2 border-ink bg-sky-50 space-y-3">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -372,7 +372,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                         },
                       })
                     }
-                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                   />
                 </div>
 
@@ -392,7 +392,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                       })
                     }
                     placeholder="Wejangan orang tua pihak calon..."
-                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                   />
                 </div>
               </div>
@@ -422,7 +422,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                   disabled={isReadOnly}
                   value={khitbahData?.eventDate || ''}
                   onChange={(e) => saveKhitbah({ ...khitbahData, eventDate: e.target.value })}
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
 
@@ -435,7 +435,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                   disabled={isReadOnly}
                   value={khitbahData?.eventStartTime || '09:00'}
                   onChange={(e) => saveKhitbah({ ...khitbahData, eventStartTime: e.target.value })}
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
 
@@ -449,7 +449,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                   value={khitbahData?.locationName || ''}
                   onChange={(e) => saveKhitbah({ ...khitbahData, locationName: e.target.value })}
                   placeholder="Contoh: Rumah Kediaman Mempelai Wanita"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
 
@@ -461,7 +461,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                   value={khitbahData?.locationAddress || ''}
                   onChange={(e) => saveKhitbah({ ...khitbahData, locationAddress: e.target.value })}
                   placeholder="Jl. Mawar No. 12, Kel. Sukamaju..."
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
 
@@ -474,7 +474,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                     value={khitbahData?.gmapsUrl || ''}
                     onChange={(e) => saveKhitbah({ ...khitbahData, gmapsUrl: e.target.value })}
                     placeholder="https://maps.google.com/..."
-                    className="flex-1 px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                    className="flex-1 px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                   />
                   {khitbahData?.gmapsUrl && (
                     <a
@@ -499,7 +499,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                   value={khitbahData?.maleFamilyCount || 0}
                   onChange={(e) => saveKhitbah({ ...khitbahData, maleFamilyCount: Number(e.target.value) })}
                   placeholder="Estimasi orang"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
 
@@ -511,7 +511,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                   value={khitbahData?.femaleFamilyCount || 0}
                   onChange={(e) => saveKhitbah({ ...khitbahData, femaleFamilyCount: Number(e.target.value) })}
                   placeholder="Estimasi orang"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
 
@@ -523,7 +523,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                   value={khitbahData?.spokesperson || ''}
                   onChange={(e) => saveKhitbah({ ...khitbahData, spokesperson: e.target.value })}
                   placeholder="Nama perwakilan juru bicara"
-                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
             </div>
@@ -536,7 +536,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                 value={khitbahData?.agreedRulesNotes || ''}
                 onChange={(e) => saveKhitbah({ ...khitbahData, agreedRulesNotes: e.target.value })}
                 placeholder="Contoh: Busana sopan bernuansa pastel, tanpa musik keras, acara khidmat dan sederhana..."
-                className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                className="w-full px-3 py-2 text-sm bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
               />
             </div>
           </div>
@@ -587,7 +587,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                             ? 'bg-sky text-ink border-2 border-ink shadow-xs'
                             : opt.id === 'tidak'
                             ? 'bg-white text-ink border-2 border-ink shadow-xs'
-                            : 'bg-blush text-ink border-2 border-ink shadow-xs'
+                            : 'bg-sky-100 text-ink border-2 border-ink shadow-xs'
                           : 'bg-white text-ink/60 border border-ink/30 hover:border-ink'
                       }`}
                     >
@@ -613,13 +613,13 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                     })
                   }
                   placeholder="Catatan persiapan atau doa..."
-                  className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Pilihan Calon */}
-            <div className="p-4 rounded-2xl border-2 border-ink bg-blush/30 space-y-3">
+            <div className="p-4 rounded-2xl border-2 border-ink bg-sky-50 space-y-3">
               <span className="text-[10px] font-black uppercase tracking-wider text-ink bg-white px-2.5 py-0.5 rounded-full border border-ink">
                 Keputusan Calon
               </span>
@@ -651,7 +651,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                             ? 'bg-sky text-ink border-2 border-ink shadow-xs'
                             : opt.id === 'tidak'
                             ? 'bg-white text-ink border-2 border-ink shadow-xs'
-                            : 'bg-blush text-ink border-2 border-ink shadow-xs'
+                            : 'bg-sky-100 text-ink border-2 border-ink shadow-xs'
                           : 'bg-white text-ink/60 border border-ink/30 hover:border-ink'
                       }`}
                     >
@@ -677,7 +677,7 @@ export function Stage3KesepakatanKhitbah({ workspaceId, isReadOnly, onDataChange
                     })
                   }
                   placeholder="Catatan dari calon pasangan..."
-                  className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-blush/20 focus:outline-none"
+                  className="w-full px-3 py-2 text-xs bg-white border-2 border-ink rounded-xl focus:bg-sky-50 focus:outline-none"
                 />
               </div>
             </div>

@@ -64,7 +64,17 @@ export const VendorSchema = MetaSchema.extend({
 
 export type Vendor = z.infer<typeof VendorSchema>;
 
+export const BudgetAgreementSchema = z.object({
+  akadDate: z.string().default(''),
+  waliNasab: z.string().default(''),
+  familyConsent: z.boolean().default(false),
+  notes: z.string().default(''),
+});
+
+export type BudgetAgreement = z.infer<typeof BudgetAgreementSchema>;
+
 export const BudgetFileSchema = ModuleFileBaseSchema.extend({
+  agreement: BudgetAgreementSchema.default({}),
   categories: z.array(BudgetCategorySchema).default([
     { id: 'khitbah', name: 'Biaya Khitbah / Lamaran', targetBudget: 5000000, color: '#FFE4EE' },
     { id: 'mahar', name: 'Mahar & Mas Kawin', targetBudget: 10000000, color: '#D6EBFF' },

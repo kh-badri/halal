@@ -11,7 +11,7 @@ interface QueuedMutation {
   timestamp: number;
 }
 
-const DB_NAME = 'nikahku_offline_store';
+const DB_NAME = 'roadtohalal_offline_store';
 const STORE_NAME = 'mutation_queue';
 
 function openOfflineDB(): Promise<IDBDatabase> {
@@ -98,7 +98,7 @@ export async function flushOfflineQueue(onStatusChange?: (count: number) => void
 // Auto-register listener in browser
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
-    console.log('[Nikahku] Connection restored. Flushing offline queue...');
+    console.log('[Road To Halal] Connection restored. Flushing offline queue...');
     flushOfflineQueue();
   });
 }
