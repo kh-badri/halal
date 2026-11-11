@@ -25,6 +25,7 @@ import {
   X,
   ArrowRight,
   ShieldAlert,
+  Eye,
 } from 'lucide-react';
 import { QA_CATEGORIES, DEFAULT_QA_CARDS } from '@/lib/constants/qa-data';
 import { BottomSheet } from '@/components/ui/BottomSheet';
@@ -98,6 +99,28 @@ export function Stage2ProsesTaaruf({
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isIdeaSheetOpen, setIsIdeaSheetOpen] = useState(false);
   const [isLogOpen, setIsLogOpen] = useState(false);
+
+  // Full Text Viewer Popup Modal
+  const [viewFullModal, setViewFullModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle?: string;
+    content: string;
+    badgeText?: string;
+    badgeColor?: 'blue' | 'sky' | 'amber' | 'slate';
+  } | null>(null);
+
+  // Handle Escape key to close popup modal
+  useEffect(() => {
+    if (!viewFullModal?.isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setViewFullModal(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [viewFullModal?.isOpen]);
 
   // Edit Pertanyaan Modal
   const [editingQuestion, setEditingQuestion] = useState<QuestionItem | null>(null);
@@ -1212,13 +1235,33 @@ export function Stage2ProsesTaaruf({
 
                 {/* Colom Pertanyaan */}
                 <div className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-50 to-rose-50/30 rounded-2xl border border-slate-200/80">
-                  <div className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-md bg-sky-500/10 text-azure-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
-                      ?
-                    </span>
-                    <h4 className="text-[13px] sm:text-[14px] font-bold text-slate-900 leading-relaxed break-words">
-                      {q.question}
-                    </h4>
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                      <span className="w-5 h-5 rounded-md bg-sky-500/10 text-azure-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                        ?
+                      </span>
+                      <h4 className="text-[13px] sm:text-[14px] font-bold text-slate-900 leading-relaxed break-words">
+                        {q.question}
+                      </h4>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setViewFullModal({
+                          isOpen: true,
+                          title: 'Pertanyaan Lengkap',
+                          subtitle: q.category,
+                          content: q.question,
+                          badgeText: q.category,
+                          badgeColor: 'sky',
+                        })
+                      }
+                      className="p-1.5 text-slate-400 hover:text-azure-700 hover:bg-sky-50 rounded-lg transition-colors shrink-0"
+                      title="Lihat pertanyaan full"
+                      aria-label="Lihat pertanyaan full"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
@@ -1226,14 +1269,32 @@ export function Stage2ProsesTaaruf({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                   {/* Kolom Jawaban Catin Pria */}
                   <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-black text-slate-700 flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px]">
+                    <div className="flex items-center justify-between gap-1">
+                      <label className="text-[11px] font-black text-slate-700 flex items-center gap-1.5 min-w-0">
+                        <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] shrink-0">
                           👨
                         </span>
-                        <span>Jawaban {priaName ? priaName : 'Catin Pria'}</span>
+                        <span className="truncate">Jawaban {priaName ? priaName : 'Catin Pria'}</span>
                       </label>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setViewFullModal({
+                              isOpen: true,
+                              title: `Jawaban ${priaName ? priaName : 'Catin Pria'}`,
+                              subtitle: q.question,
+                              content: q.answerPria || '',
+                              badgeText: priaName ? priaName : 'Catin Pria',
+                              badgeColor: 'blue',
+                            })
+                          }
+                          className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-100/70 rounded-md transition-colors"
+                          title="Lihat jawaban full"
+                          aria-label="Lihat jawaban full"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
                         {!canEditAnswers && (
                           <span className="text-[9px] text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 font-bold">
                             <Lock size={9} /> Terkunci
@@ -1272,14 +1333,32 @@ export function Stage2ProsesTaaruf({
 
                   {/* Kolom Jawaban Catin Perempuan */}
                   <div className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded-full bg-sky-100 text-azure-700 flex items-center justify-center text-[10px]">
+                    <div className="flex items-center justify-between gap-1">
+                      <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5 min-w-0">
+                        <span className="w-4 h-4 rounded-full bg-sky-100 text-azure-700 flex items-center justify-center text-[10px] shrink-0">
                           👩
                         </span>
-                        <span>Jawaban {wanitaName ? wanitaName : 'Catin Perempuan'}</span>
+                        <span className="truncate">Jawaban {wanitaName ? wanitaName : 'Catin Perempuan'}</span>
                       </label>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setViewFullModal({
+                              isOpen: true,
+                              title: `Jawaban ${wanitaName ? wanitaName : 'Catin Perempuan'}`,
+                              subtitle: q.question,
+                              content: q.answerWanita || '',
+                              badgeText: wanitaName ? wanitaName : 'Catin Perempuan',
+                              badgeColor: 'sky',
+                            })
+                          }
+                          className="p-1 text-slate-400 hover:text-azure-700 hover:bg-sky-100/70 rounded-md transition-colors"
+                          title="Lihat jawaban full"
+                          aria-label="Lihat jawaban full"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
                         {!canEditAnswers && (
                           <span className="text-[9px] text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 font-bold">
                             <Lock size={9} /> Terkunci
@@ -1319,16 +1398,36 @@ export function Stage2ProsesTaaruf({
 
                 {/* Colom Kesimpulan / Catatan Kesepakatan Bersama */}
                 <div className="bg-amber-50/40 border border-amber-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-amber-400 focus-within:bg-amber-50/70 transition-all">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-black text-amber-900 flex items-center gap-1.5">
-                      <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-[10px]">
+                  <div className="flex items-center justify-between gap-1">
+                    <label className="text-[11px] font-black text-amber-900 flex items-center gap-1.5 min-w-0">
+                      <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-[10px] shrink-0">
                         📝
                       </span>
-                      <span>Kesimpulan / Catatan Bersama</span>
+                      <span className="truncate">Kesimpulan / Catatan Bersama</span>
                     </label>
-                    <span className="text-[9px] text-amber-700/80 font-medium hidden xs:inline">
-                      Diteruskan ke Tahap 3
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setViewFullModal({
+                            isOpen: true,
+                            title: 'Kesimpulan / Catatan Bersama',
+                            subtitle: q.question,
+                            content: q.note || '',
+                            badgeText: 'Kesepakatan',
+                            badgeColor: 'amber',
+                          })
+                        }
+                        className="p-1 text-amber-700 hover:text-amber-900 hover:bg-amber-100/80 rounded-md transition-colors"
+                        title="Lihat catatan full"
+                        aria-label="Lihat catatan full"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-[9px] text-amber-700/80 font-medium hidden xs:inline">
+                        Diteruskan ke Tahap 3
+                      </span>
+                    </div>
                   </div>
                   <textarea
                     rows={2}
@@ -1977,6 +2076,84 @@ export function Stage2ProsesTaaruf({
           </div>
         </div>
       </BottomSheet>
+
+      {/* POPUP MODAL: LIHAT TEKS LENGKAP (FULL) */}
+      {viewFullModal && viewFullModal.isOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => setViewFullModal(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white rounded-3xl border border-line shadow-sheet p-5 sm:p-6 space-y-4 max-h-[85vh] flex flex-col animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Modal */}
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-line">
+              <div className="space-y-1 min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {viewFullModal.badgeText && (
+                    <span
+                      className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                        viewFullModal.badgeColor === 'blue'
+                          ? 'bg-blue-100 text-blue-700'
+                          : viewFullModal.badgeColor === 'sky'
+                          ? 'bg-sky-100 text-azure-700'
+                          : viewFullModal.badgeColor === 'amber'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {viewFullModal.badgeText}
+                    </span>
+                  )}
+                  <h3 className="text-sm sm:text-base font-extrabold text-navy-900 truncate">
+                    {viewFullModal.title}
+                  </h3>
+                </div>
+                {viewFullModal.subtitle && (
+                  <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed">
+                    {viewFullModal.subtitle}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewFullModal(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-navy-900 flex items-center justify-center transition-colors shrink-0"
+                aria-label="Tutup dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Isi Konten Lengkap (Scrollable) */}
+            <div className="flex-1 overflow-y-auto pr-1">
+              {viewFullModal.content && viewFullModal.content.trim() ? (
+                <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 text-slate-800 text-[13px] sm:text-sm leading-relaxed whitespace-pre-wrap break-words select-text font-medium">
+                  {viewFullModal.content}
+                </div>
+              ) : (
+                <div className="p-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 text-slate-400 text-xs italic">
+                  (Belum ada jawaban atau catatan yang ditulis)
+                </div>
+              )}
+            </div>
+
+            {/* Footer Modal */}
+            <div className="pt-2 border-t border-line flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setViewFullModal(null)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-xs transition-colors shadow-subtle flex items-center justify-center gap-1.5"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
