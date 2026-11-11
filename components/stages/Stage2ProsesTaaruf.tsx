@@ -90,7 +90,7 @@ export function Stage2ProsesTaaruf({
   const [userRole, setUserRole] = useState<'pria' | 'wanita'>('pria');
   const [userAccessState, setUserAccessState] = useState<string>(initialUserAccess || 'owner');
 
-  // Navigation tab: 'pria' = Pertanyaan Catin Pria, 'wanita' = Pertanyaan Catin Perempuan, 'all' = Semua
+  // Navigation tab: 'pria' = Pertanyaan Calon Pria, 'wanita' = Pertanyaan Calon Perempuan, 'all' = Semua
   const [activeTab, setActiveTab] = useState<'pria' | 'wanita' | 'all'>('pria');
   const [statusFilter, setStatusFilter] = useState<'all' | 'unagreed' | 'principle'>('all');
 
@@ -336,19 +336,19 @@ export function Stage2ProsesTaaruf({
     return isOwner ? 'Pemilik' : 'Pasangan (Undangan)';
   }, [isOwner]);
 
-  // Nama Catin Pria & Perempuan
+  // Nama Calon Pria & Calon Perempuan
   const priaName = useMemo(() => {
     if (userRole === 'pria') {
-      return profileData?.self?.fullName || profileData?.self?.nickname || 'Catin Pria';
+      return profileData?.self?.fullName || profileData?.self?.nickname || 'Calon Pria';
     }
-    return profileData?.partner?.fullName || profileData?.partner?.nickname || 'Catin Pria';
+    return profileData?.partner?.fullName || profileData?.partner?.nickname || 'Calon Pria';
   }, [userRole, profileData]);
 
   const wanitaName = useMemo(() => {
     if (userRole === 'wanita') {
-      return profileData?.self?.fullName || profileData?.self?.nickname || 'Catin Perempuan';
+      return profileData?.self?.fullName || profileData?.self?.nickname || 'Calon Perempuan';
     }
-    return profileData?.partner?.fullName || profileData?.partner?.nickname || 'Catin Perempuan';
+    return profileData?.partner?.fullName || profileData?.partner?.nickname || 'Calon Perempuan';
   }, [userRole, profileData]);
 
   // Helper to append a structured activity log
@@ -536,10 +536,10 @@ export function Stage2ProsesTaaruf({
       let title = '';
       let action = '';
       if (field === 'answerPria') {
-        title = `Edit Jawaban Catin Pria (${priaName})`;
+        title = `Edit Jawaban Calon Pria (${priaName})`;
         action = 'edit_answer_pria';
       } else if (field === 'answerWanita') {
-        title = `Edit Jawaban Catin Perempuan (${wanitaName})`;
+        title = `Edit Jawaban Calon Perempuan (${wanitaName})`;
         action = 'edit_answer_wanita';
       } else {
         title = 'Edit Catatan Kesepakatan';
@@ -639,8 +639,8 @@ export function Stage2ProsesTaaruf({
 
     const oldText = editingQuestion.question;
     const newText = editTextValue.trim();
-    const oldAsker = editingQuestion.asker === 'pria' ? 'Catin Pria' : 'Catin Perempuan';
-    const newAsker = editAskerValue === 'pria' ? 'Catin Pria' : 'Catin Perempuan';
+    const oldAsker = editingQuestion.asker === 'pria' ? 'Calon Pria' : 'Calon Perempuan';
+    const newAsker = editAskerValue === 'pria' ? 'Calon Pria' : 'Calon Perempuan';
 
     const hasTextChanged = oldText !== newText;
     const hasAskerChanged = editingQuestion.asker !== editAskerValue;
@@ -704,7 +704,7 @@ export function Stage2ProsesTaaruf({
       'delete_question',
       'Hapus Pertanyaan Pranikah',
       card.question,
-      `Pertanyaan: "${card.question}" (Penanya: ${card.asker === 'pria' ? 'Catin Pria' : 'Catin Perempuan'})`,
+      `Pertanyaan: "${card.question}" (Penanya: ${card.asker === 'pria' ? 'Calon Pria' : 'Calon Perempuan'})`,
       'Dihapus dari daftar tanya jawab',
       deletedDetails ? `Data yang ikut terhapus: ${deletedDetails}` : `${currentActorName} menghapus pertanyaan ini`
     );
@@ -736,7 +736,7 @@ export function Stage2ProsesTaaruf({
       status: 'belum',
     };
 
-    const askerText = formAsker === 'pria' ? `Catin Pria (${priaName})` : `Catin Perempuan (${wanitaName})`;
+    const askerText = formAsker === 'pria' ? `Calon Pria (${priaName})` : `Calon Perempuan (${wanitaName})`;
 
     const log = createLogEntry(
       'add_question',
@@ -754,7 +754,7 @@ export function Stage2ProsesTaaruf({
     setFormAnswerSelf('');
     setFormPrinciple(false);
     setIsAddOpen(false);
-    showToast(`Pertanyaan untuk ${formAsker === 'pria' ? 'Catin Pria' : 'Catin Perempuan'} berhasil ditambahkan`, 'success');
+    showToast(`Pertanyaan untuk ${formAsker === 'pria' ? 'Calon Pria' : 'Calon Perempuan'} berhasil ditambahkan`, 'success');
   };
 
   // Add from Preset Ideas with Log
@@ -780,7 +780,7 @@ export function Stage2ProsesTaaruf({
       status: 'belum',
     };
 
-    const askerText = targetAsker === 'pria' ? `Catin Pria (${priaName})` : `Catin Perempuan (${wanitaName})`;
+    const askerText = targetAsker === 'pria' ? `Calon Pria (${priaName})` : `Calon Perempuan (${wanitaName})`;
 
     const log = createLogEntry(
       'add_question',
@@ -793,7 +793,7 @@ export function Stage2ProsesTaaruf({
 
     const existingCards = taarufData?.qaCards || [];
     saveTaarufWithLog({ ...taarufData, qaCards: [...existingCards, newCard] }, log);
-    showToast(`Pertanyaan ditambahkan ke kolom ${targetAsker === 'pria' ? 'Catin Pria' : 'Catin Perempuan'}`, 'success');
+    showToast(`Pertanyaan ditambahkan ke kolom ${targetAsker === 'pria' ? 'Calon Pria' : 'Calon Perempuan'}`, 'success');
   };
 
   if (loading) {
@@ -971,15 +971,15 @@ export function Stage2ProsesTaaruf({
           <button
             type="button"
             onClick={() => setActiveTab('pria')}
-            className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 sm:px-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${
               activeTab === 'pria'
                 ? 'bg-white text-blue-700 shadow-xs border border-blue-100 font-black'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>👨</span>
-            <span className="truncate">Catin Pria</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'pria' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>
+            <span className="shrink-0">👨</span>
+            <span className="truncate">Calon Pria</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full shrink-0 ${activeTab === 'pria' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>
               {priaQuestions.length}
             </span>
           </button>
@@ -987,15 +987,15 @@ export function Stage2ProsesTaaruf({
           <button
             type="button"
             onClick={() => setActiveTab('wanita')}
-            className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 sm:px-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${
               activeTab === 'wanita'
                 ? 'bg-white text-azure-700 shadow-xs border border-line font-black'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>👩</span>
-            <span className="truncate">Catin Wanita</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'wanita' ? 'bg-sky-100 text-azure-700' : 'bg-slate-200 text-slate-600'}`}>
+            <span className="shrink-0">👩</span>
+            <span className="truncate">Calon Wanita</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full shrink-0 ${activeTab === 'wanita' ? 'bg-sky-100 text-azure-700' : 'bg-slate-200 text-slate-600'}`}>
               {wanitaQuestions.length}
             </span>
           </button>
@@ -1003,15 +1003,15 @@ export function Stage2ProsesTaaruf({
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 sm:px-2 rounded-lg text-[11px] sm:text-xs font-bold transition-all ${
               activeTab === 'all'
                 ? 'bg-white text-slate-900 shadow-xs border border-slate-200 font-black'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <span>📋</span>
+            <span className="shrink-0">📋</span>
             <span>Semua</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'all' ? 'bg-slate-200 text-slate-800' : 'bg-slate-200 text-slate-600'}`}>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full shrink-0 ${activeTab === 'all' ? 'bg-slate-200 text-slate-800' : 'bg-slate-200 text-slate-600'}`}>
               {totalCount}
             </span>
           </button>
@@ -1102,7 +1102,7 @@ export function Stage2ProsesTaaruf({
           </div>
           <div className="space-y-1">
             <h4 className="text-base font-black text-slate-800">
-              Belum Ada Pertanyaan {activeTab === 'pria' ? 'dari Catin Pria' : activeTab === 'wanita' ? 'dari Catin Perempuan' : ''}
+              Belum Ada Pertanyaan {activeTab === 'pria' ? 'dari Calon Pria' : activeTab === 'wanita' ? 'dari Calon Perempuan' : ''}
             </h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
               Tuliskan pertanyaan penting yang ingin Anda diskusikan bersama pasangan untuk menyatukan visi pranikah.
@@ -1165,7 +1165,7 @@ export function Stage2ProsesTaaruf({
                     >
                       <span>{q.asker === 'pria' ? '👨' : '👩'}</span>
                       <span className="truncate max-w-[130px] sm:max-w-none">
-                        {q.asker === 'pria' ? (priaName || 'Catin Pria') : (wanitaName || 'Catin Perempuan')}
+                        {q.asker === 'pria' ? (priaName || 'Calon Pria') : (wanitaName || 'Calon Perempuan')}
                       </span>
                     </span>
 
@@ -1267,14 +1267,14 @@ export function Stage2ProsesTaaruf({
 
                 {/* DUA KOLOM JAWABAN (RESPONSIF: 1 KOLOM DI MOBILE, 2 KOLOM DI TABLET/DESKTOP) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                  {/* Kolom Jawaban Catin Pria */}
+                  {/* Kolom Jawaban Calon Pria */}
                   <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
                     <div className="flex items-center justify-between gap-1">
                       <label className="text-[11px] font-black text-slate-700 flex items-center gap-1.5 min-w-0">
                         <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] shrink-0">
                           👨
                         </span>
-                        <span className="truncate">Jawaban {priaName ? priaName : 'Catin Pria'}</span>
+                        <span className="truncate">Jawaban {priaName ? priaName : 'Calon Pria'}</span>
                       </label>
                       <div className="flex items-center gap-1 shrink-0">
                         <button
@@ -1282,10 +1282,10 @@ export function Stage2ProsesTaaruf({
                           onClick={() =>
                             setViewFullModal({
                               isOpen: true,
-                              title: `Jawaban ${priaName ? priaName : 'Catin Pria'}`,
+                              title: `Jawaban ${priaName ? priaName : 'Calon Pria'}`,
                               subtitle: q.question,
                               content: q.answerPria || '',
-                              badgeText: priaName ? priaName : 'Catin Pria',
+                              badgeText: priaName ? priaName : 'Calon Pria',
                               badgeColor: 'blue',
                             })
                           }
@@ -1322,7 +1322,7 @@ export function Stage2ProsesTaaruf({
                       onChange={(e) => updateQuestion(q.id, { answerPria: e.target.value })}
                       placeholder={
                         canEditAnswers
-                          ? `Tulis jawaban dari ${priaName ? priaName : 'catin pria'}...`
+                          ? `Tulis jawaban dari ${priaName ? priaName : 'calon pria'}...`
                           : 'Pengisian jawaban terkunci...'
                       }
                       className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-slate-200/90 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
@@ -1331,14 +1331,14 @@ export function Stage2ProsesTaaruf({
                     />
                   </div>
 
-                  {/* Kolom Jawaban Catin Perempuan */}
+                  {/* Kolom Jawaban Calon Perempuan */}
                   <div className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
                     <div className="flex items-center justify-between gap-1">
                       <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5 min-w-0">
                         <span className="w-4 h-4 rounded-full bg-sky-100 text-azure-700 flex items-center justify-center text-[10px] shrink-0">
                           👩
                         </span>
-                        <span className="truncate">Jawaban {wanitaName ? wanitaName : 'Catin Perempuan'}</span>
+                        <span className="truncate">Jawaban {wanitaName ? wanitaName : 'Calon Perempuan'}</span>
                       </label>
                       <div className="flex items-center gap-1 shrink-0">
                         <button
@@ -1346,10 +1346,10 @@ export function Stage2ProsesTaaruf({
                           onClick={() =>
                             setViewFullModal({
                               isOpen: true,
-                              title: `Jawaban ${wanitaName ? wanitaName : 'Catin Perempuan'}`,
+                              title: `Jawaban ${wanitaName ? wanitaName : 'Calon Perempuan'}`,
                               subtitle: q.question,
                               content: q.answerWanita || '',
-                              badgeText: wanitaName ? wanitaName : 'Catin Perempuan',
+                              badgeText: wanitaName ? wanitaName : 'Calon Perempuan',
                               badgeColor: 'sky',
                             })
                           }
@@ -1386,7 +1386,7 @@ export function Stage2ProsesTaaruf({
                       onChange={(e) => updateQuestion(q.id, { answerWanita: e.target.value })}
                       placeholder={
                         canEditAnswers
-                          ? `Tulis jawaban dari ${wanitaName ? wanitaName : 'catin perempuan'}...`
+                          ? `Tulis jawaban dari ${wanitaName ? wanitaName : 'calon perempuan'}...`
                           : 'Pengisian jawaban terkunci...'
                       }
                       className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-sky-200/90 rounded-xl focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
@@ -1519,7 +1519,7 @@ export function Stage2ProsesTaaruf({
                     : 'bg-white border-slate-200 text-slate-600'
                 }`}
               >
-                <span>👨 Catin Pria</span>
+                <span>👨 Calon Pria</span>
               </button>
               <button
                 type="button"
@@ -1530,7 +1530,7 @@ export function Stage2ProsesTaaruf({
                     : 'bg-white border-slate-200 text-slate-600'
                 }`}
               >
-                <span>👩 Catin Perempuan</span>
+                <span>👩 Calon Perempuan</span>
               </button>
             </div>
           </div>
@@ -1604,7 +1604,7 @@ export function Stage2ProsesTaaruf({
                 }`}
               >
                 <span>👨</span>
-                <span>Catin Pria ({priaName})</span>
+                <span>Calon Pria ({priaName})</span>
               </button>
 
               <button
@@ -1617,7 +1617,7 @@ export function Stage2ProsesTaaruf({
                 }`}
               >
                 <span>👩</span>
-                <span>Catin Perempuan ({wanitaName})</span>
+                <span>Calon Perempuan ({wanitaName})</span>
               </button>
             </div>
           </div>
@@ -1698,7 +1698,7 @@ export function Stage2ProsesTaaruf({
       >
         <div className="space-y-4 max-h-[72vh] overflow-y-auto pr-1">
           <p className="text-xs text-slate-500 leading-relaxed">
-            Pilih pertanyaan pranikah islami di bawah ini untuk langsung dimasukkan ke kolom Catin Pria atau Catin Perempuan.
+            Pilih pertanyaan pranikah islami di bawah ini untuk langsung dimasukkan ke kolom Calon Pria atau Calon Perempuan.
           </p>
 
           {/* Search & Category Filter */}
@@ -1784,14 +1784,14 @@ export function Stage2ProsesTaaruf({
                           onClick={() => handleAddFromIdea(item, 'pria')}
                           className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg text-[11px] font-bold transition-all"
                         >
-                          + Catin Pria
+                          + Calon Pria
                         </button>
                         <button
                           type="button"
                           onClick={() => handleAddFromIdea(item, 'wanita')}
                           className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 border border-sky-200 text-azure-700 rounded-lg text-[11px] font-bold transition-all"
                         >
-                          + Catin Perempuan
+                          + Calon Perempuan
                         </button>
                       </div>
                     )}
@@ -1992,7 +1992,7 @@ export function Stage2ProsesTaaruf({
                     <div key={q.id} className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-1.5">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                          {q.asker === 'pria' ? '👨 Catin Pria' : '👩 Catin Perempuan'}
+                          {q.asker === 'pria' ? '👨 Calon Pria' : '👩 Calon Perempuan'}
                         </span>
                         {q.principle && (
                           <span className="text-[10px] font-bold text-azure-700 bg-sky-100 px-1.5 py-0.5 rounded-md">
@@ -2026,7 +2026,7 @@ export function Stage2ProsesTaaruf({
                     <div key={q.id} className="p-3 bg-purple-50/70 border border-purple-200 rounded-2xl space-y-1.5">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                          {q.asker === 'pria' ? '👨 Catin Pria' : '👩 Catin Perempuan'}
+                          {q.asker === 'pria' ? '👨 Calon Pria' : '👩 Calon Perempuan'}
                         </span>
                         {q.principle && (
                           <span className="text-[10px] font-bold text-azure-700 bg-sky-100 px-1.5 py-0.5 rounded-md">
@@ -2060,7 +2060,7 @@ export function Stage2ProsesTaaruf({
                     <div key={q.id} className="p-3 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-1.5">
                       <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                          {q.asker === 'pria' ? '👨 Catin Pria' : '👩 Catin Perempuan'}
+                          {q.asker === 'pria' ? '👨 Calon Pria' : '👩 Calon Perempuan'}
                         </span>
                       </div>
                       <p className="text-xs font-black text-slate-900">{q.question}</p>
