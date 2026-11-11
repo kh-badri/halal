@@ -10,8 +10,8 @@ export default function GabungPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  // 8 separate digit slots for the invite code
-  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '', '', '']);
+  // 6 separate digit slots for the invite code
+  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [checking, setChecking] = useState(false);
@@ -45,7 +45,7 @@ export default function GabungPage() {
     setDigits(newDigits);
 
     // Auto-advance to next box if char entered
-    if (val && index < 7) {
+    if (val && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -62,11 +62,11 @@ export default function GabungPage() {
     if (!pasted) return;
 
     const newDigits = [...digits];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 6; i++) {
       newDigits[i] = pasted[i] || '';
     }
     setDigits(newDigits);
-    const targetIdx = Math.min(pasted.length, 7);
+    const targetIdx = Math.min(pasted.length, 5);
     inputRefs.current[targetIdx]?.focus();
   };
 
@@ -76,7 +76,7 @@ export default function GabungPage() {
     setErrorMsg('');
     const cleanCode = fullCode.trim();
     if (cleanCode.length < 6) {
-      setErrorMsg('Masukkan 8 karakter kode undangan');
+      setErrorMsg('Masukkan 6 karakter kode undangan');
       setIsShaking(true);
       setTimeout(() => setIsShaking(false), 500);
       return;
@@ -174,7 +174,7 @@ export default function GabungPage() {
           Gabung Lewat Kode
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Masukkan 8 karakter kode undangan yang dibagikan oleh calon pasangan atau keluarga
+          Masukkan 6 karakter kode undangan yang dibagikan oleh calon pasangan atau keluarga
         </p>
       </div>
 
@@ -187,15 +187,15 @@ export default function GabungPage() {
             </div>
           )}
 
-          {/* Form 1: Input Code in 8 separate 48x56 px boxes (PRD 8.9) */}
+          {/* Form 1: Input Code in 6 separate 48x56 px boxes (PRD 8.9) */}
           {!invitePreview ? (
             <form onSubmit={handleCheckCode} className="space-y-6">
               <div>
                 <label className="block text-xs font-bold text-navy-900 mb-3 text-center">
-                  8 Karakter Kode Undangan
+                  6 Karakter Kode Undangan
                 </label>
                 <div
-                  className={`flex items-center justify-center gap-1.5 sm:gap-2 ${
+                  className={`flex items-center justify-center gap-2 sm:gap-2.5 ${
                     isShaking ? 'animate-shake' : ''
                   }`}
                   onPaste={handlePaste}
@@ -209,7 +209,7 @@ export default function GabungPage() {
                       value={digit}
                       onChange={(e) => handleDigitChange(idx, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(idx, e)}
-                      className={`w-[38px] xs:w-[44px] h-[54px] text-center font-display font-extrabold text-lg rounded-2xl border transition-all outline-none ${
+                      className={`w-[44px] xs:w-[48px] h-[56px] text-center font-display font-extrabold text-xl rounded-2xl border transition-all outline-none ${
                         isSuccess
                           ? 'bg-mint-100 border-mint-400 text-mint-700'
                           : digit

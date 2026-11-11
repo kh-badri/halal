@@ -293,10 +293,10 @@ export class StorageAdapter {
     return await withLock(invitesPath, async () => {
       const index = await this.getInvitesIndex();
 
-      // Generate 8-character uppercase alphanumeric code
+      // Generate 6-character uppercase alphanumeric code
       let code = '';
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 6; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
 
