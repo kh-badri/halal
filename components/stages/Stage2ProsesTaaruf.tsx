@@ -29,10 +29,19 @@ import {
   Calendar,
   ArrowUpDown,
   Filter,
+  Bell,
+  BellRing,
+  BellOff,
 } from 'lucide-react';
 import { QA_CATEGORIES, DEFAULT_QA_CARDS } from '@/lib/constants/qa-data';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { useToast } from '@/components/ui/Toast';
+import {
+  isNotificationSupported,
+  getNotificationPermission,
+  requestNotificationPermission,
+  showPushNotification,
+} from '@/lib/notifications/pwa-notifications';
 
 // Date Helpers for Taaruf Sessions
 function getTodayDateString(): string {
@@ -145,6 +154,21 @@ export function Stage2ProsesTaaruf({
   const [userRole, setUserRole] = useState<'pria' | 'wanita'>('pria');
   const [userAccessState, setUserAccessState] = useState<string>(initialUserAccess || 'owner');
 
+  // Nama Calon Pria & Calon Perempuan
+  const priaName = useMemo(() => {
+    if (userRole === 'pria') {
+      return profileData?.self?.fullName || profileData?.self?.nickname || 'Calon Pria';
+    }
+    return profileData?.partner?.fullName || profileData?.partner?.nickname || 'Calon Pria';
+  }, [userRole, profileData]);
+
+  const wanitaName = useMemo(() => {
+    if (userRole === 'wanita') {
+      return profileData?.self?.fullName || profileData?.self?.nickname || 'Calon Perempuan';
+    }
+    return profileData?.partner?.fullName || profileData?.partner?.nickname || 'Calon Perempuan';
+  }, [userRole, profileData]);
+
   // Navigation tab: 'pria' = Pertanyaan Calon Pria, 'wanita' = Pertanyaan Calon Perempuan, 'all' = Semua
   const [activeTab, setActiveTab] = useState<'pria' | 'wanita' | 'all'>('pria');
   const [statusFilter, setStatusFilter] = useState<'all' | 'unagreed' | 'principle'>('all');
@@ -196,6 +220,35 @@ export function Stage2ProsesTaaruf({
   const [formAnswerSelf, setFormAnswerSelf] = useState('');
   const [formSessionDate, setFormSessionDate] = useState<string>(() => getTodayDateString());
 
+  // Push Notification States
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('default');
+  const previousQaCardsRef = useRef<any[] | null>(null);
+  const isInitialDataLoadedRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    setNotificationPermission(getNotificationPermission());
+  }, []);
+
+  const handleEnableNotification = async () => {
+    const res = await requestNotificationPermission();
+    setNotificationPermission(res);
+    if (res === 'granted') {
+      showToast('Notifikasi pop-up layar HP berhasil diaktifkan!', 'success');
+    } else if (res === 'denied') {
+      showToast('Izin notifikasi ditolak. Anda dapat mengaktifkannya di pengaturan browser HP.', 'error');
+    }
+  };
+
+  const handleTestNotification = async () => {
+    const partnerNameDisplay = userRole === 'pria' ? (wanitaName || 'Calon Pasangan') : (priaName || 'Calon Pasangan');
+    await showPushNotification('💌 Uji Coba: Jawaban dari Calon Pasangan', {
+      body: `${partnerNameDisplay} telah menjawab pertanyaan ta'aruf. Ketuk untuk membuka!`,
+      url: '/tahap/proses-taaruf',
+      tag: 'test-notification-' + Date.now(),
+    });
+    showToast('Uji coba notifikasi telah dikirim ke layar HP Anda!', 'info');
+  };
+
   // Search in Idea Sheet & Log Sheet
   const [ideaSearch, setIdeaSearch] = useState('');
   const [ideaCategory, setIdeaCategory] = useState<string>('Semua');
@@ -235,6 +288,57 @@ export function Stage2ProsesTaaruf({
 
       lastKnownUpdatedAtRef.current = serverUpdatedAt;
 
+      // Detect Partner Activities and Trigger Push Notification
+      if (isInitialDataLoadedRef.current && previousQaCardsRef.current && Array.isArray(serverData.qaCards)) {
+        const prevCards: any[] = previousQaCardsRef.current;
+        const newCards: any[] = serverData.qaCards;
+
+        const currentRole = userRole || 'pria';
+        const partnerRole = currentRole === 'pria' ? 'wanita' : 'pria';
+        const partnerNameDisplay = partnerRole === 'pria' ? (priaName || 'Calon Pria') : (wanitaName || 'Calon Pasangan');
+
+        for (const card of newCards) {
+          if (card.deletedAt) continue;
+          const oldCard = prevCards.find((oc: any) => oc.id === card.id);
+
+          // 1. Detect new question asked by partner
+          if (!oldCard && card.asker === partnerRole) {
+            showPushNotification('💬 Pertanyaan Baru Masuk', {
+              body: `${partnerNameDisplay}: "${card.question}"`,
+              tag: `new-question-${card.id}`,
+              url: '/tahap/proses-taaruf',
+            });
+            continue;
+          }
+
+          // 2. Detect partner's answer submitted/updated
+          if (oldCard) {
+            const partnerAnswerField = partnerRole === 'pria' ? 'answerPria' : 'answerWanita';
+            const oldPartnerAnswer = (oldCard[partnerAnswerField] || '').trim();
+            const newPartnerAnswer = (card[partnerAnswerField] || '').trim();
+
+            if (newPartnerAnswer && newPartnerAnswer !== oldPartnerAnswer) {
+              showPushNotification('💌 Jawaban Baru Masuk', {
+                body: `${partnerNameDisplay} menjawab: "${card.question.slice(0, 42)}${card.question.length > 42 ? '...' : ''}"`,
+                tag: `new-answer-${card.id}`,
+                url: '/tahap/proses-taaruf',
+              });
+            }
+
+            // 3. Detect question status changed to agreed
+            if (oldCard.status !== 'sepakat' && card.status === 'sepakat') {
+              showPushNotification('🎉 Poin Pertanyaan Disepakati!', {
+                body: `"${card.question.slice(0, 45)}..." telah disepakati bersama.`,
+                tag: `agreed-${card.id}`,
+                url: '/tahap/proses-taaruf',
+              });
+            }
+          }
+        }
+      }
+
+      previousQaCardsRef.current = serverData.qaCards || [];
+
       // Merge gracefully: never overwrite the field currently focused by the local user
       setTaarufData((prevData: any) => {
         if (!prevData) return serverData;
@@ -270,7 +374,7 @@ export function Stage2ProsesTaaruf({
     } catch (err) {
       console.warn('Live sync poll error (retrying):', err);
     }
-  }, [onDataChanged]);
+  }, [onDataChanged, userRole, priaName, wanitaName]);
 
   useEffect(() => {
     async function loadData() {
@@ -289,6 +393,8 @@ export function Stage2ProsesTaaruf({
           if (tData?.updatedAt) {
             lastKnownUpdatedAtRef.current = tData.updatedAt;
           }
+          previousQaCardsRef.current = tData?.qaCards || [];
+          isInitialDataLoadedRef.current = true;
         }
         if (profileRes.ok) {
           const pJson = await profileRes.json();
@@ -397,21 +503,6 @@ export function Stage2ProsesTaaruf({
     return isOwner ? 'Pemilik' : 'Pasangan (Undangan)';
   }, [isOwner]);
 
-  // Nama Calon Pria & Calon Perempuan
-  const priaName = useMemo(() => {
-    if (userRole === 'pria') {
-      return profileData?.self?.fullName || profileData?.self?.nickname || 'Calon Pria';
-    }
-    return profileData?.partner?.fullName || profileData?.partner?.nickname || 'Calon Pria';
-  }, [userRole, profileData]);
-
-  const wanitaName = useMemo(() => {
-    if (userRole === 'wanita') {
-      return profileData?.self?.fullName || profileData?.self?.nickname || 'Calon Perempuan';
-    }
-    return profileData?.partner?.fullName || profileData?.partner?.nickname || 'Calon Perempuan';
-  }, [userRole, profileData]);
-
   // Helper to append a structured activity log
   const createLogEntry = (
     action: string,
@@ -446,6 +537,7 @@ export function Stage2ProsesTaaruf({
     }
 
     setTaarufData(dataToSave);
+    previousQaCardsRef.current = dataToSave.qaCards || [];
     if (isReadOnly) return;
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -1501,6 +1593,63 @@ export function Stage2ProsesTaaruf({
                 <strong>Mode Baca:</strong> Pengisian jawaban saat ini dikunci oleh pemilik. Hubungi pemilik untuk membuka izin pengisian jawaban.
               </span>
             </>
+          )}
+        </div>
+      )}
+
+      {/* Banner Notifikasi Pop-up HP */}
+      {notificationPermission !== 'unsupported' && (
+        <div className="animate-fade-in">
+          {notificationPermission === 'default' && (
+            <div className="p-3.5 bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50/50 border border-sky-200 rounded-2xl shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-azure text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <BellRing className="w-4 h-4 animate-bounce" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-slate-900">
+                    Aktifkan Notifikasi Pop-Up Layar HP
+                  </h4>
+                  <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
+                    Dapatkan pemberitahuan di layar HP saat calon pasangan mengirim pertanyaan atau jawaban baru.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleEnableNotification}
+                className="w-full sm:w-auto px-4 py-2 bg-azure hover:bg-azure-700 text-white rounded-xl text-xs font-black shadow-subtle shrink-0 active:scale-95 transition-all text-center"
+              >
+                Aktifkan Notifikasi
+              </button>
+            </div>
+          )}
+
+          {notificationPermission === 'granted' && (
+            <div className="px-3.5 py-2 bg-emerald-50/80 border border-emerald-200/90 rounded-2xl flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-emerald-900 font-bold min-w-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
+                <span className="truncate">Notifikasi Pop-Up Layar HP: <strong>Aktif</strong></span>
+              </div>
+              <button
+                type="button"
+                onClick={handleTestNotification}
+                className="px-2.5 py-1 bg-white hover:bg-emerald-100 border border-emerald-200 text-emerald-800 rounded-lg text-[11px] font-black shrink-0 transition-colors shadow-2xs"
+                title="Kirim notifikasi uji coba sekarang ke layar HP Anda"
+              >
+                Uji Coba Notifikasi
+              </button>
+            </div>
+          )}
+
+          {notificationPermission === 'denied' && (
+            <div className="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-2 text-[11px] text-slate-600">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <BellOff className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="truncate">Izin notifikasi diblokir di browser HP Anda.</span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-medium shrink-0">Buka izin di info situs</span>
+            </div>
           )}
         </div>
       )}

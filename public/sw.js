@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roadtohalal-cache-v5';
+const CACHE_NAME = 'roadtohalal-cache-v6';
 const PRECACHE_ASSETS = [
   '/',
   '/rute',
@@ -107,3 +107,80 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+// ==========================================
+// PWA PUSH & SCREEN NOTIFICATION HANDLERS
+// ==========================================
+
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'Road To Halal',
+    body: 'Ada pesan atau aktivitas baru dari calon pasangan',
+    url: '/tahap/proses-taaruf',
+  };
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    vibrate: [200, 100, 200, 100, 200],
+    data: {
+      url: data.url || '/tahap/proses-taaruf',
+      timestamp: Date.now(),
+    },
+    actions: [
+      { action: 'open', title: 'Buka Sekarang' },
+    ],
+  };
+
+  event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const targetUrl = event.notification.data?.url || '/tahap/proses-taaruf';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // 1. If an existing window is already open at the target URL, focus it
+      for (const client of clientList) {
+        if (client.url && client.url.includes(targetUrl) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // 2. If any client window of our app is open, navigate and focus it
+      for (const client of clientList) {
+        if ('focus' in client && 'navigate' in client) {
+          client.focus();
+          return client.navigate(targetUrl);
+        }
+      }
+      // 3. Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, options } = event.data;
+    self.registration.showNotification(title, {
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
+      vibrate: [200, 100, 200],
+      ...options,
+    });
+  }
+});
+
