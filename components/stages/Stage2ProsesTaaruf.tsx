@@ -1675,16 +1675,38 @@ export function Stage2ProsesTaaruf({
                         </span>
                       </div>
 
-                      {!isReadOnly && (
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
                           type="button"
-                          onClick={() => handleDeleteSubQuestion(q, sub.id)}
-                          className="w-5 h-5 rounded flex items-center justify-center text-slate-300 hover:text-azure-700 transition-colors"
-                          title="Hapus sanggahan ini"
+                          onClick={() =>
+                            setViewFullModal({
+                              isOpen: true,
+                              title: `Sanggahan #${sIdx + 1} (${subAskerName})`,
+                              subtitle: q.question,
+                              content: sub.question,
+                              badgeText: isSubPria ? 'Calon Pria' : 'Calon Perempuan',
+                              badgeColor: isSubPria ? 'blue' : 'sky',
+                            })
+                          }
+                          className="p-1 text-slate-400 hover:text-navy-900 hover:bg-slate-100 rounded-md transition-colors"
+                          title="Lihat teks sanggahan full"
+                          aria-label="Lihat teks sanggahan full"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
-                      )}
+
+                        {!isReadOnly && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSubQuestion(q, sub.id)}
+                            className="p-1 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
+                            title="Hapus sanggahan ini"
+                            aria-label="Hapus sanggahan ini"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {/* Teks Sub-Pertanyaan / Sanggahan */}
@@ -1696,9 +1718,29 @@ export function Stage2ProsesTaaruf({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
                       {/* Tanggapan Pria */}
                       <div className="p-2 bg-slate-50/60 border border-slate-200 rounded-lg space-y-1">
-                        <div className="flex items-center justify-between text-[10px] font-bold text-slate-600">
-                          <span>👨 Jawaban {priaName ? priaName : 'Pria'}</span>
-                          {userRole === 'pria' && <span className="text-blue-600 font-extrabold">Anda</span>}
+                        <div className="flex items-center justify-between gap-1 text-[10px] font-bold text-slate-600">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <span className="truncate">👨 Jawaban {priaName ? priaName : 'Pria'}</span>
+                            {userRole === 'pria' && <span className="text-blue-600 font-extrabold text-[9px] bg-blue-50 px-1 rounded">Anda</span>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setViewFullModal({
+                                isOpen: true,
+                                title: `Jawaban Sanggahan: ${priaName || 'Calon Pria'}`,
+                                subtitle: `Sanggahan #${sIdx + 1}: "${sub.question}"`,
+                                content: sub.answerPria || '',
+                                badgeText: priaName || 'Calon Pria',
+                                badgeColor: 'blue',
+                              })
+                            }
+                            className="p-0.5 text-slate-400 hover:text-blue-600 hover:bg-blue-100/70 rounded transition-colors shrink-0"
+                            title="Lihat tanggapan full"
+                            aria-label="Lihat tanggapan full"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </button>
                         </div>
                         <textarea
                           rows={2}
@@ -1733,9 +1775,29 @@ export function Stage2ProsesTaaruf({
 
                       {/* Tanggapan Wanita */}
                       <div className="p-2 bg-sky-50/30 border border-sky-200/70 rounded-lg space-y-1">
-                        <div className="flex items-center justify-between text-[10px] font-bold text-rose-900">
-                          <span>👩 Jawaban {wanitaName ? wanitaName : 'Perempuan'}</span>
-                          {userRole === 'wanita' && <span className="text-azure-600 font-extrabold">Anda</span>}
+                        <div className="flex items-center justify-between gap-1 text-[10px] font-bold text-rose-900">
+                          <div className="flex items-center gap-1 min-w-0">
+                            <span className="truncate">👩 Jawaban {wanitaName ? wanitaName : 'Perempuan'}</span>
+                            {userRole === 'wanita' && <span className="text-azure-600 font-extrabold text-[9px] bg-sky-50 px-1 rounded">Anda</span>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setViewFullModal({
+                                isOpen: true,
+                                title: `Jawaban Sanggahan: ${wanitaName || 'Calon Perempuan'}`,
+                                subtitle: `Sanggahan #${sIdx + 1}: "${sub.question}"`,
+                                content: sub.answerWanita || '',
+                                badgeText: wanitaName || 'Calon Perempuan',
+                                badgeColor: 'sky',
+                              })
+                            }
+                            className="p-0.5 text-slate-400 hover:text-azure-700 hover:bg-sky-100/70 rounded transition-colors shrink-0"
+                            title="Lihat tanggapan full"
+                            aria-label="Lihat tanggapan full"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </button>
                         </div>
                         <textarea
                           rows={2}
