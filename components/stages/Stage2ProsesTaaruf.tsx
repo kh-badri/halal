@@ -32,6 +32,9 @@ import {
   Bell,
   BellRing,
   BellOff,
+  Send,
+  MessageSquareReply,
+  CornerDownRight,
 } from 'lucide-react';
 import { QA_CATEGORIES, DEFAULT_QA_CARDS } from '@/lib/constants/qa-data';
 import { BottomSheet } from '@/components/ui/BottomSheet';
@@ -101,12 +104,26 @@ interface Stage2Props {
   onDataChanged?: () => void;
 }
 
+interface SubQuestionItem {
+  id: string;
+  createdAt: string;
+  asker: 'pria' | 'wanita';
+  question: string;
+  answerPria?: string;
+  answerWanita?: string;
+  sentAtPria?: string;
+  sentAtWanita?: string;
+}
+
 interface QuestionItem {
   id: string;
   asker: 'pria' | 'wanita';
   question: string;
   answerPria: string;
   answerWanita: string;
+  sentAtPria?: string;
+  sentAtWanita?: string;
+  subQuestions?: SubQuestionItem[];
   note: string;
   status: 'belum' | 'dibahas' | 'sepakat' | 'ulang' | 'pertimbangan';
   principle: boolean;
@@ -225,6 +242,17 @@ export function Stage2ProsesTaaruf({
   const previousQaCardsRef = useRef<any[] | null>(null);
   const isInitialDataLoadedRef = useRef<boolean>(false);
 
+  // Sub-Question Modal State
+  const [subQuestionModal, setSubQuestionModal] = useState<{
+    isOpen: boolean;
+    targetCard: QuestionItem | null;
+  }>({
+    isOpen: false,
+    targetCard: null,
+  });
+  const [subQuestionText, setSubQuestionText] = useState('');
+  const [subQuestionAsker, setSubQuestionAsker] = useState<'pria' | 'wanita'>('pria');
+
   useEffect(() => {
     setNotificationPermission(getNotificationPermission());
   }, []);
@@ -288,7 +316,7 @@ export function Stage2ProsesTaaruf({
 
       lastKnownUpdatedAtRef.current = serverUpdatedAt;
 
-      // Detect Partner Activities and Trigger Push Notification
+      // Detect Partner Activities and Trigger Push Notification (ONLY when explicitly sent, not during typing)
       if (isInitialDataLoadedRef.current && previousQaCardsRef.current && Array.isArray(serverData.qaCards)) {
         const prevCards: any[] = previousQaCardsRef.current;
         const newCards: any[] = serverData.qaCards;
@@ -311,21 +339,49 @@ export function Stage2ProsesTaaruf({
             continue;
           }
 
-          // 2. Detect partner's answer submitted/updated
           if (oldCard) {
-            const partnerAnswerField = partnerRole === 'pria' ? 'answerPria' : 'answerWanita';
-            const oldPartnerAnswer = (oldCard[partnerAnswerField] || '').trim();
-            const newPartnerAnswer = (card[partnerAnswerField] || '').trim();
+            // 2. Detect partner's answer explicitly SENT (sentAt changed, never during typing)
+            const partnerSentField = partnerRole === 'pria' ? 'sentAtPria' : 'sentAtWanita';
+            const oldSentAt = oldCard[partnerSentField];
+            const newSentAt = card[partnerSentField];
 
-            if (newPartnerAnswer && newPartnerAnswer !== oldPartnerAnswer) {
-              showPushNotification('💌 Jawaban Baru Masuk', {
-                body: `${partnerNameDisplay} menjawab: "${card.question.slice(0, 42)}${card.question.length > 42 ? '...' : ''}"`,
-                tag: `new-answer-${card.id}`,
-                url: '/tahap/proses-taaruf',
-              });
+            if (newSentAt && newSentAt !== oldSentAt) {
+              const partnerAnswerField = partnerRole === 'pria' ? 'answerPria' : 'answerWanita';
+              const answerText = (card[partnerAnswerField] || '').trim();
+              if (answerText) {
+                showPushNotification('💌 Jawaban Masuk dari Pasangan', {
+                  body: `${partnerNameDisplay} telah mengirim jawaban: "${card.question.slice(0, 42)}${card.question.length > 42 ? '...' : ''}"`,
+                  tag: `new-answer-${card.id}-${newSentAt}`,
+                  url: '/tahap/proses-taaruf',
+                });
+              }
             }
 
-            // 3. Detect question status changed to agreed
+            // 3. Detect new sub-question / sanggahan from partner
+            const oldSubs: any[] = oldCard.subQuestions || [];
+            const newSubs: any[] = card.subQuestions || [];
+            for (const sub of newSubs) {
+              const oldSub = oldSubs.find((os: any) => os.id === sub.id);
+              if (!oldSub && sub.asker === partnerRole) {
+                showPushNotification('💬 Sanggahan / Sub-Pertanyaan Baru', {
+                  body: `${partnerNameDisplay}: "${sub.question.slice(0, 45)}${sub.question.length > 45 ? '...' : ''}"`,
+                  tag: `new-sub-q-${sub.id}`,
+                  url: '/tahap/proses-taaruf',
+                });
+              } else if (oldSub) {
+                // Check if partner answered the sub-question
+                const subPartnerSentField = partnerRole === 'pria' ? 'sentAtPria' : 'sentAtWanita';
+                if (sub[subPartnerSentField] && sub[subPartnerSentField] !== oldSub[subPartnerSentField]) {
+                  showPushNotification('💬 Tanggapan Sanggahan Masuk', {
+                    body: `${partnerNameDisplay} menanggapi sanggahan pada: "${card.question.slice(0, 35)}..."`,
+                    tag: `sub-ans-${sub.id}-${sub[subPartnerSentField]}`,
+                    url: '/tahap/proses-taaruf',
+                  });
+                }
+              }
+            }
+
+            // 4. Detect question status changed to agreed
             if (oldCard.status !== 'sepakat' && card.status === 'sepakat') {
               showPushNotification('🎉 Poin Pertanyaan Disepakati!', {
                 body: `"${card.question.slice(0, 45)}..." telah disepakati bersama.`,
@@ -614,6 +670,9 @@ export function Stage2ProsesTaaruf({
           asker,
           answerPria,
           answerWanita,
+          sentAtPria: c.sentAtPria,
+          sentAtWanita: c.sentAtWanita,
+          subQuestions: c.subQuestions || [],
           status: c.status || 'belum',
           principle: Boolean(c.principle),
           note: c.note || '',
@@ -963,6 +1022,197 @@ export function Stage2ProsesTaaruf({
     showToast('Pertanyaan berhasil dihapus', 'info');
   };
 
+  // Send Answer to Partner (marks as sent, triggers notification only on send)
+  const handleSendAnswer = (card: QuestionItem, role: 'pria' | 'wanita') => {
+    if (isReadOnly) return;
+    const nowIso = new Date().toISOString();
+    const sentField = role === 'pria' ? 'sentAtPria' : 'sentAtWanita';
+    const answerField = role === 'pria' ? 'answerPria' : 'answerWanita';
+    const currentAnswer = (card[answerField] || '').trim();
+
+    if (!currentAnswer) {
+      showToast('Tuliskan jawaban terlebih dahulu sebelum mengirim.', 'error');
+      return;
+    }
+
+    const roleName = role === 'pria' ? (priaName || 'Calon Pria') : (wanitaName || 'Calon Perempuan');
+
+    const log = createLogEntry(
+      'send_answer',
+      `Kirim Jawaban ${roleName}`,
+      card.question,
+      '(Jawaban dikirim)',
+      currentAnswer,
+      `${roleName} telah mengirim jawaban untuk pertanyaan: "${card.question.slice(0, 35)}..."`
+    );
+
+    const updatedCards = (taarufData?.qaCards || []).map((c: any) => {
+      if (c.id === card.id) {
+        return {
+          ...c,
+          [sentField]: nowIso,
+          updatedAt: nowIso,
+        };
+      }
+      return c;
+    });
+
+    saveTaarufWithLog({ ...taarufData, qaCards: updatedCards }, log);
+    showToast('Jawaban berhasil dikirim ke calon pasangan!', 'success');
+  };
+
+  // Open Add Sub-Question Modal
+  const handleOpenAddSubQuestion = (card: QuestionItem) => {
+    setSubQuestionModal({ isOpen: true, targetCard: card });
+    setSubQuestionAsker(userRole);
+    setSubQuestionText('');
+  };
+
+  // Save New Sub-Question / Sanggahan
+  const handleSaveSubQuestion = () => {
+    if (isReadOnly || !subQuestionModal.targetCard || !subQuestionText.trim()) return;
+    const targetCard = subQuestionModal.targetCard;
+    const nowIso = new Date().toISOString();
+
+    const newSub: SubQuestionItem = {
+      id: `sub_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      createdAt: nowIso,
+      asker: subQuestionAsker,
+      question: subQuestionText.trim(),
+      answerPria: '',
+      answerWanita: '',
+    };
+
+    const askerText = subQuestionAsker === 'pria' ? `Calon Pria (${priaName})` : `Calon Perempuan (${wanitaName})`;
+    const log = createLogEntry(
+      'add_sub_question',
+      'Tambah Sub-Pertanyaan / Sanggahan',
+      targetCard.question,
+      '(Sub-pertanyaan baru)',
+      `Sanggahan: "${subQuestionText.trim()}" oleh ${askerText}`,
+      `${currentActorName} menambahkan sanggahan / sub-pertanyaan pada "${targetCard.question.slice(0, 35)}..."`
+    );
+
+    const updatedCards = (taarufData?.qaCards || []).map((c: any) => {
+      if (c.id === targetCard.id) {
+        const existingSubs = c.subQuestions || [];
+        return {
+          ...c,
+          subQuestions: [...existingSubs, newSub],
+          updatedAt: nowIso,
+        };
+      }
+      return c;
+    });
+
+    saveTaarufWithLog({ ...taarufData, qaCards: updatedCards }, log);
+    setSubQuestionModal({ isOpen: false, targetCard: null });
+    setSubQuestionText('');
+    showToast('Sub-pertanyaan / sanggahan berhasil ditambahkan!', 'success');
+  };
+
+  // Delete Sub-Question
+  const handleDeleteSubQuestion = (card: QuestionItem, subId: string) => {
+    if (isReadOnly) return;
+    if (!window.confirm('Hapus sub-pertanyaan / sanggahan ini?')) return;
+    const nowIso = new Date().toISOString();
+
+    const updatedCards = (taarufData?.qaCards || []).map((c: any) => {
+      if (c.id === card.id) {
+        const existingSubs = (c.subQuestions || []).filter((s: any) => s.id !== subId);
+        return {
+          ...c,
+          subQuestions: existingSubs,
+          updatedAt: nowIso,
+        };
+      }
+      return c;
+    });
+
+    const log = createLogEntry(
+      'delete_sub_question',
+      'Hapus Sub-Pertanyaan / Sanggahan',
+      card.question,
+      'Sub-pertanyaan dihapus',
+      '-',
+      `${currentActorName} menghapus sub-pertanyaan pada "${card.question.slice(0, 35)}..."`
+    );
+
+    saveTaarufWithLog({ ...taarufData, qaCards: updatedCards }, log);
+    showToast('Sub-pertanyaan berhasil dihapus', 'info');
+  };
+
+  // Update Sub-Answer (draft while typing)
+  const handleUpdateSubAnswer = (cardId: string, subId: string, role: 'pria' | 'wanita', value: string) => {
+    if (isReadOnly) return;
+    const answerField = role === 'pria' ? 'answerPria' : 'answerWanita';
+
+    const updatedCards = (taarufData?.qaCards || []).map((c: any) => {
+      if (c.id === cardId) {
+        const subs = (c.subQuestions || []).map((s: any) => {
+          if (s.id === subId) {
+            return { ...s, [answerField]: value };
+          }
+          return s;
+        });
+        return { ...c, subQuestions: subs };
+      }
+      return c;
+    });
+
+    setTaarufData({ ...taarufData, qaCards: updatedCards });
+    previousQaCardsRef.current = updatedCards;
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        await fetch('/api/m/taaruf', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...taarufData, qaCards: updatedCards, updatedAt: new Date().toISOString() }),
+        });
+        showSaveIndicator();
+      } catch (err) {
+        console.warn('Draft save error:', err);
+      }
+    }, 1200);
+  };
+
+  // Send Sub-Answer (marks as sent, triggers notification only on send)
+  const handleSendSubAnswer = (cardId: string, subId: string, role: 'pria' | 'wanita') => {
+    if (isReadOnly) return;
+    const nowIso = new Date().toISOString();
+    const sentField = role === 'pria' ? 'sentAtPria' : 'sentAtWanita';
+    const roleName = role === 'pria' ? (priaName || 'Calon Pria') : (wanitaName || 'Calon Perempuan');
+
+    let questionTitle = '';
+    const updatedCards = (taarufData?.qaCards || []).map((c: any) => {
+      if (c.id === cardId) {
+        questionTitle = c.question || '';
+        const subs = (c.subQuestions || []).map((s: any) => {
+          if (s.id === subId) {
+            return { ...s, [sentField]: nowIso };
+          }
+          return s;
+        });
+        return { ...c, subQuestions: subs, updatedAt: nowIso };
+      }
+      return c;
+    });
+
+    const log = createLogEntry(
+      'send_sub_answer',
+      `Kirim Tanggapan Sanggahan ${roleName}`,
+      questionTitle,
+      '(Tanggapan dikirim)',
+      'Terkirim',
+      `${roleName} telah mengirim tanggapan atas sanggahan pada: "${questionTitle.slice(0, 35)}..."`
+    );
+
+    saveTaarufWithLog({ ...taarufData, qaCards: updatedCards }, log);
+    showToast('Tanggapan sanggahan berhasil dikirim!', 'success');
+  };
+
   // Helper buka Modal Tambah Pertanyaan dengan Tanggal Sesi terisi
   const handleOpenAddModal = (targetAsker?: 'pria' | 'wanita', initialDate?: string) => {
     setFormAsker(targetAsker || (activeTab === 'wanita' ? 'wanita' : 'pria'));
@@ -1259,6 +1509,28 @@ export function Stage2ProsesTaaruf({
                 !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
               }`}
             />
+            {userRole === 'pria' && canEditAnswers && (
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[10px] text-slate-400">
+                  {q.sentAtPria ? (
+                    <span className="text-emerald-600 font-semibold flex items-center gap-0.5">
+                      <Check className="w-2.5 h-2.5" /> Terkirim ke calon
+                    </span>
+                  ) : (
+                    <span className="italic text-slate-400">Draf (belum dikirim)</span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleSendAnswer(q, 'pria')}
+                  disabled={!q.answerPria?.trim()}
+                  className="flex items-center gap-1 px-3 py-1 bg-azure hover:bg-azure-700 disabled:opacity-40 text-white rounded-lg text-[11px] font-bold shadow-2xs transition-all active:scale-95"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>Kirim Jawaban</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Kolom Jawaban Calon Perempuan */}
@@ -1323,7 +1595,188 @@ export function Stage2ProsesTaaruf({
                 !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
               }`}
             />
+            {userRole === 'wanita' && canEditAnswers && (
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[10px] text-slate-400">
+                  {q.sentAtWanita ? (
+                    <span className="text-emerald-600 font-semibold flex items-center gap-0.5">
+                      <Check className="w-2.5 h-2.5" /> Terkirim ke calon
+                    </span>
+                  ) : (
+                    <span className="italic text-slate-400">Draf (belum dikirim)</span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleSendAnswer(q, 'wanita')}
+                  disabled={!q.answerWanita?.trim()}
+                  className="flex items-center gap-1 px-3 py-1 bg-azure hover:bg-azure-700 disabled:opacity-40 text-white rounded-lg text-[11px] font-bold shadow-2xs transition-all active:scale-95"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>Kirim Jawaban</span>
+                </button>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* SUB-PERTANYAAN & SANGGAHAN (DISKUSI LANJUTAN) */}
+        <div className="p-3 bg-gradient-to-r from-slate-50 via-sky-50/20 to-slate-50 rounded-2xl border border-slate-200/90 space-y-2.5">
+          <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="w-5 h-5 rounded-md bg-sky-100 text-azure-700 flex items-center justify-center text-xs shrink-0 font-bold">
+                <MessageSquareReply className="w-3 h-3" />
+              </span>
+              <span className="text-xs font-black text-slate-800 truncate">
+                Sub-Pertanyaan & Sanggahan
+              </span>
+              {q.subQuestions && q.subQuestions.length > 0 && (
+                <span className="text-[10px] font-bold bg-sky-100 text-azure-700 px-1.5 py-0.2 rounded-full">
+                  {q.subQuestions.length}
+                </span>
+              )}
+            </div>
+
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={() => handleOpenAddSubQuestion(q)}
+                className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-sky-50 border border-sky-200 text-azure-700 rounded-lg text-[11px] font-bold transition-all shadow-2xs shrink-0 active:scale-95"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Sanggahan / Sub-Tanya</span>
+              </button>
+            )}
+          </div>
+
+          {/* List of Sub-Questions */}
+          {q.subQuestions && q.subQuestions.length > 0 ? (
+            <div className="space-y-2.5 pt-0.5">
+              {q.subQuestions.map((sub, sIdx) => {
+                const isSubPria = sub.asker === 'pria';
+                const subAskerName = isSubPria ? (priaName || 'Calon Pria') : (wanitaName || 'Calon Perempuan');
+
+                return (
+                  <div
+                    key={sub.id || sIdx}
+                    className="p-2.5 sm:p-3 bg-white border border-slate-200 rounded-xl space-y-2 shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                        <span className={`text-[10px] font-bold px-2 py-0.2 rounded-full border ${
+                          isSubPria
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : 'bg-sky-50 text-azure-700 border-sky-200'
+                        }`}>
+                          {isSubPria ? '👨 ' : '👩 '} {subAskerName}
+                        </span>
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.2 rounded-full">
+                          Sanggahan #{sIdx + 1}
+                        </span>
+                      </div>
+
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSubQuestion(q, sub.id)}
+                          className="w-5 h-5 rounded flex items-center justify-center text-slate-300 hover:text-azure-700 transition-colors"
+                          title="Hapus sanggahan ini"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Teks Sub-Pertanyaan / Sanggahan */}
+                    <div className="p-2 bg-slate-50/80 rounded-lg border border-slate-200/70 text-xs text-slate-800 font-bold leading-relaxed break-words">
+                      “{sub.question}”
+                    </div>
+
+                    {/* Dua Kolom Tanggapan Kecil */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
+                      {/* Tanggapan Pria */}
+                      <div className="p-2 bg-slate-50/60 border border-slate-200 rounded-lg space-y-1">
+                        <div className="flex items-center justify-between text-[10px] font-bold text-slate-600">
+                          <span>👨 Jawaban {priaName ? priaName : 'Pria'}</span>
+                          {userRole === 'pria' && <span className="text-blue-600 font-extrabold">Anda</span>}
+                        </div>
+                        <textarea
+                          rows={2}
+                          disabled={userRole !== 'pria' || !canEditAnswers}
+                          value={sub.answerPria || ''}
+                          onChange={(e) => handleUpdateSubAnswer(q.id, sub.id, 'pria', e.target.value)}
+                          placeholder={userRole === 'pria' ? 'Tulis tanggapan...' : 'Menunggu tanggapan...'}
+                          className="w-full text-xs p-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400 resize-none leading-relaxed"
+                        />
+                        {userRole === 'pria' && canEditAnswers && (
+                          <div className="flex items-center justify-between pt-0.5">
+                            <span className="text-[9px] text-slate-400">
+                              {sub.sentAtPria ? (
+                                <span className="text-emerald-600 font-semibold flex items-center gap-0.5">
+                                  <Check className="w-2.5 h-2.5" /> Terkirim
+                                </span>
+                              ) : (
+                                <span>Draf</span>
+                              )}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleSendSubAnswer(q.id, sub.id, 'pria')}
+                              disabled={!sub.answerPria?.trim()}
+                              className="px-2.5 py-0.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded text-[10px] font-bold flex items-center gap-1 transition-all"
+                            >
+                              <Send className="w-2.5 h-2.5" /> Kirim
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Tanggapan Wanita */}
+                      <div className="p-2 bg-sky-50/30 border border-sky-200/70 rounded-lg space-y-1">
+                        <div className="flex items-center justify-between text-[10px] font-bold text-rose-900">
+                          <span>👩 Jawaban {wanitaName ? wanitaName : 'Perempuan'}</span>
+                          {userRole === 'wanita' && <span className="text-azure-600 font-extrabold">Anda</span>}
+                        </div>
+                        <textarea
+                          rows={2}
+                          disabled={userRole !== 'wanita' || !canEditAnswers}
+                          value={sub.answerWanita || ''}
+                          onChange={(e) => handleUpdateSubAnswer(q.id, sub.id, 'wanita', e.target.value)}
+                          placeholder={userRole === 'wanita' ? 'Tulis tanggapan...' : 'Menunggu tanggapan...'}
+                          className="w-full text-xs p-1.5 bg-white border border-sky-200 rounded-lg focus:outline-none focus:border-rose-400 resize-none leading-relaxed"
+                        />
+                        {userRole === 'wanita' && canEditAnswers && (
+                          <div className="flex items-center justify-between pt-0.5">
+                            <span className="text-[9px] text-slate-400">
+                              {sub.sentAtWanita ? (
+                                <span className="text-emerald-600 font-semibold flex items-center gap-0.5">
+                                  <Check className="w-2.5 h-2.5" /> Terkirim
+                                </span>
+                              ) : (
+                                <span>Draf</span>
+                              )}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleSendSubAnswer(q.id, sub.id, 'wanita')}
+                              disabled={!sub.answerWanita?.trim()}
+                              className="px-2.5 py-0.5 bg-azure hover:bg-azure-700 disabled:opacity-40 text-white rounded text-[10px] font-bold flex items-center gap-1 transition-all"
+                            >
+                              <Send className="w-2.5 h-2.5" /> Kirim
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-[11px] text-slate-400 italic">
+              Belum ada sub-pertanyaan atau sanggahan lanjutan pada topik ini.
+            </p>
+          )}
         </div>
 
         {/* Colom Kesimpulan / Catatan Kesepakatan Bersama */}
@@ -2646,6 +3099,86 @@ export function Stage2ProsesTaaruf({
                   ))}
               </div>
             )}
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* BOTTOM SHEET: TAMBAH SUB-PERTANYAAN / SANGGAHAN */}
+      <BottomSheet
+        isOpen={subQuestionModal.isOpen}
+        onClose={() => setSubQuestionModal({ isOpen: false, targetCard: null })}
+        title="Tambah Sub-Pertanyaan / Sanggahan"
+      >
+        <div className="space-y-4">
+          {subQuestionModal.targetCard && (
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
+                Menanggapi Pertanyaan:
+              </span>
+              <p className="text-xs font-bold text-slate-800 leading-snug">
+                “{subQuestionModal.targetCard.question}”
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">Diajukan Oleh</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setSubQuestionAsker('pria')}
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-black transition-all ${
+                  subQuestionAsker === 'pria'
+                    ? 'bg-blue-50 border-blue-400 text-blue-700 shadow-xs'
+                    : 'bg-white border-slate-200 text-slate-600'
+                }`}
+              >
+                <span>👨 Calon Pria ({priaName})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubQuestionAsker('wanita')}
+                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-black transition-all ${
+                  subQuestionAsker === 'wanita'
+                    ? 'bg-sky-50 border-sky-300 text-azure-700 shadow-xs'
+                    : 'bg-white border-slate-200 text-slate-600'
+                }`}
+              >
+                <span>👩 Calon Perempuan ({wanitaName})</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">
+              Teks Sub-Pertanyaan / Sanggahan <span className="text-azure-600">*</span>
+            </label>
+            <textarea
+              rows={3}
+              value={subQuestionText}
+              onChange={(e) => setSubQuestionText(e.target.value)}
+              placeholder="Contoh: Namun jika setelah menikah ada tawaran tugas kerja di luar kota, bagaimana kesiapanmu?"
+              className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-rose-400 focus:outline-none leading-relaxed"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setSubQuestionModal({ isOpen: false, targetCard: null })}
+              className="px-4 py-2.5 rounded-full text-xs font-bold text-slate-600 hover:bg-slate-100"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveSubQuestion}
+              disabled={!subQuestionText.trim()}
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-azure text-white rounded-full text-xs font-black shadow-subtle disabled:opacity-40 hover:opacity-90 active:scale-95 transition-all"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Kirim Sub-Pertanyaan</span>
+            </button>
           </div>
         </div>
       </BottomSheet>

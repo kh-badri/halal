@@ -35,6 +35,19 @@ export const FamilyRecordSchema = z.object({
   familyNotes: z.string().default(''),
 });
 
+export const SubQuestionSchema = z.object({
+  id: z.string(),
+  createdAt: z.string(),
+  asker: z.enum(['pria', 'wanita']).default('pria'),
+  question: z.string(),
+  answerPria: z.string().default(''),
+  answerWanita: z.string().default(''),
+  sentAtPria: z.string().optional(),
+  sentAtWanita: z.string().optional(),
+});
+
+export type SubQuestion = z.infer<typeof SubQuestionSchema>;
+
 export const QACardSchema = MetaSchema.extend({
   category: z.string().default('Umum'),
   questionNumber: z.number().optional(),
@@ -45,6 +58,9 @@ export const QACardSchema = MetaSchema.extend({
   answerPartner: z.string().default(''),
   answerPria: z.string().default(''),
   answerWanita: z.string().default(''),
+  sentAtPria: z.string().optional(),
+  sentAtWanita: z.string().optional(),
+  subQuestions: z.array(SubQuestionSchema).default([]),
   note: z.string().default(''),
   principle: z.boolean().default(false),
   status: z.enum(['belum', 'dibahas', 'sepakat', 'ulang', 'pertimbangan']).default('belum'),
