@@ -26,10 +26,64 @@ import {
   ArrowRight,
   ShieldAlert,
   Eye,
+  Calendar,
+  ArrowUpDown,
+  Filter,
 } from 'lucide-react';
 import { QA_CATEGORIES, DEFAULT_QA_CARDS } from '@/lib/constants/qa-data';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { useToast } from '@/components/ui/Toast';
+
+// Date Helpers for Taaruf Sessions
+function getTodayDateString(): string {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateIndonesian(dateStr: string): string {
+  if (!dateStr) return '';
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const d = new Date(year, month, day);
+      return d.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+    return dateStr;
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatShortDateIndonesian(dateStr: string): string {
+  if (!dateStr) return '';
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const d = new Date(year, month, day);
+      return d.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+      });
+    }
+    return dateStr;
+  } catch {
+    return dateStr;
+  }
+}
 
 interface Stage2Props {
   workspaceId: string;
@@ -48,6 +102,7 @@ interface QuestionItem {
   status: 'belum' | 'dibahas' | 'sepakat' | 'ulang' | 'pertimbangan';
   principle: boolean;
   category?: string;
+  sessionDate?: string;
   createdAt?: string;
   updatedAt?: string;
   deletedAt?: string;
@@ -122,11 +177,16 @@ export function Stage2ProsesTaaruf({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [viewFullModal?.isOpen]);
 
+  // Sesi Tanggal Filter States
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('all');
+  const [dateSortOrder, setDateSortOrder] = useState<'asc' | 'desc'>('asc');
+
   // Edit Pertanyaan Modal
   const [editingQuestion, setEditingQuestion] = useState<QuestionItem | null>(null);
   const [editTextValue, setEditTextValue] = useState('');
   const [editCategoryValue, setEditCategoryValue] = useState('');
   const [editAskerValue, setEditAskerValue] = useState<'pria' | 'wanita'>('pria');
+  const [editSessionDateValue, setEditSessionDateValue] = useState<string>('');
 
   // Form tambah pertanyaan
   const [formAsker, setFormAsker] = useState<'pria' | 'wanita'>('pria');
@@ -134,6 +194,7 @@ export function Stage2ProsesTaaruf({
   const [formCategory, setFormCategory] = useState<string>('Visi, Agama & Ibadah');
   const [formPrinciple, setFormPrinciple] = useState(false);
   const [formAnswerSelf, setFormAnswerSelf] = useState('');
+  const [formSessionDate, setFormSessionDate] = useState<string>(() => getTodayDateString());
 
   // Search in Idea Sheet & Log Sheet
   const [ideaSearch, setIdeaSearch] = useState('');
@@ -444,6 +505,18 @@ export function Stage2ProsesTaaruf({
         const answerWanita = c.answerWanita ?? (userRole === 'wanita' ? c.answerSelf : c.answerPartner) ?? '';
         const asker = c.asker || (c.id?.includes('wanita') ? 'wanita' : 'pria');
 
+        let sessionDate = c.sessionDate;
+        if (!sessionDate && c.createdAt) {
+          try {
+            sessionDate = new Date(c.createdAt).toISOString().slice(0, 10);
+          } catch {
+            sessionDate = c.createdAt.slice(0, 10);
+          }
+        }
+        if (!sessionDate) {
+          sessionDate = getTodayDateString();
+        }
+
         return {
           ...c,
           asker,
@@ -452,6 +525,7 @@ export function Stage2ProsesTaaruf({
           status: c.status || 'belum',
           principle: Boolean(c.principle),
           note: c.note || '',
+          sessionDate,
         };
       });
   }, [taarufData, userRole]);
@@ -472,16 +546,92 @@ export function Stage2ProsesTaaruf({
   const priaQuestions = useMemo(() => questions.filter((q) => q.asker === 'pria'), [questions]);
   const wanitaQuestions = useMemo(() => questions.filter((q) => q.asker === 'wanita'), [questions]);
 
-  // Filtered by active tab and status
+  // Available session dates from all questions, generating sequence from start date up to today
+  const availableSessionDates = useMemo(() => {
+    const today = getTodayDateString();
+    const dateMap = new Map<string, number>();
+
+    // Initial min date default: 2026-11-10 as requested by user ("misal tanggal 10, tanggal 11...")
+    let minDateStr = '2026-11-10';
+    if (minDateStr > today) minDateStr = today;
+
+    questions.forEach((q) => {
+      const d = q.sessionDate || today;
+      if (d < minDateStr) minDateStr = d;
+
+      const matchesTab = activeTab === 'all' || q.asker === activeTab;
+      if (matchesTab) {
+        dateMap.set(d, (dateMap.get(d) || 0) + 1);
+      }
+    });
+
+    // Generate continuous sequence of dates from minDateStr to today
+    const allDates: string[] = [];
+    try {
+      const startDate = new Date(minDateStr + 'T00:00:00');
+      const endDate = new Date(today + 'T00:00:00');
+      const diffDays = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 0 && diffDays <= 60) {
+        const cur = new Date(startDate);
+        while (cur <= endDate) {
+          const y = cur.getFullYear();
+          const m = String(cur.getMonth() + 1).padStart(2, '0');
+          const day = String(cur.getDate()).padStart(2, '0');
+          allDates.push(`${y}-${m}-${day}`);
+          cur.setDate(cur.getDate() + 1);
+        }
+      } else {
+        dateMap.set(today, dateMap.get(today) || 0);
+        allDates.push(...Array.from(dateMap.keys()));
+      }
+    } catch {
+      dateMap.set(today, dateMap.get(today) || 0);
+      allDates.push(...Array.from(dateMap.keys()));
+    }
+
+    // Sort order: 'asc' = 10, 11, 12 ... Hari Ini; 'desc' = Hari Ini ... 12, 11, 10
+    const uniqueSorted = Array.from(new Set(allDates)).sort((a, b) => {
+      return dateSortOrder === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
+    });
+
+    return uniqueSorted.map((d) => ({
+      date: d,
+      count: dateMap.get(d) || 0,
+      isToday: d === today,
+    }));
+  }, [questions, activeTab, dateSortOrder]);
+
+  // Filtered by active tab, status, and selected date session
   const visibleQuestions = useMemo(() => {
     return questions.filter((q) => {
       if (activeTab === 'pria' && q.asker !== 'pria') return false;
       if (activeTab === 'wanita' && q.asker !== 'wanita') return false;
       if (statusFilter === 'unagreed' && q.status === 'sepakat') return false;
       if (statusFilter === 'principle' && !q.principle) return false;
+      if (selectedDateFilter !== 'all' && q.sessionDate !== selectedDateFilter) return false;
       return true;
     });
-  }, [questions, activeTab, statusFilter]);
+  }, [questions, activeTab, statusFilter, selectedDateFilter]);
+
+  // Grouped questions by session date for 'all' mode
+  const groupedQuestionsByDate = useMemo(() => {
+    const groups: Record<string, QuestionItem[]> = {};
+    visibleQuestions.forEach((q) => {
+      const dateKey = q.sessionDate || getTodayDateString();
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(q);
+    });
+
+    const sortedDates = Object.keys(groups).sort((a, b) => {
+      return dateSortOrder === 'asc' ? a.localeCompare(b) : b.localeCompare(a);
+    });
+
+    return sortedDates.map((date) => ({
+      date,
+      items: groups[date],
+    }));
+  }, [visibleQuestions, dateSortOrder]);
 
   // Activity logs list
   const activityLogs: ActivityLogItem[] = useMemo(() => {
@@ -631,6 +781,7 @@ export function Stage2ProsesTaaruf({
     setEditTextValue(card.question);
     setEditCategoryValue(card.category || 'Visi, Agama & Ibadah');
     setEditAskerValue(card.asker || 'pria');
+    setEditSessionDateValue(card.sessionDate || getTodayDateString());
   };
 
   // Simpan Perubahan Teks Pertanyaan (dengan Log yang jelas)
@@ -641,12 +792,15 @@ export function Stage2ProsesTaaruf({
     const newText = editTextValue.trim();
     const oldAsker = editingQuestion.asker === 'pria' ? 'Calon Pria' : 'Calon Perempuan';
     const newAsker = editAskerValue === 'pria' ? 'Calon Pria' : 'Calon Perempuan';
+    const oldDate = editingQuestion.sessionDate || '';
+    const newDate = editSessionDateValue || getTodayDateString();
 
     const hasTextChanged = oldText !== newText;
     const hasAskerChanged = editingQuestion.asker !== editAskerValue;
     const hasCategoryChanged = editingQuestion.category !== editCategoryValue;
+    const hasDateChanged = oldDate !== newDate;
 
-    if (!hasTextChanged && !hasAskerChanged && !hasCategoryChanged) {
+    if (!hasTextChanged && !hasAskerChanged && !hasCategoryChanged && !hasDateChanged) {
       setEditingQuestion(null);
       return;
     }
@@ -658,6 +812,9 @@ export function Stage2ProsesTaaruf({
     if (hasAskerChanged) {
       details += ` Penanya diubah dari ${oldAsker} ke ${newAsker}.`;
     }
+    if (hasDateChanged) {
+      details += ` Sesi tanggal diubah ke ${formatDateIndonesian(newDate)}.`;
+    }
 
     updateQuestion(
       editingQuestion.id,
@@ -665,6 +822,7 @@ export function Stage2ProsesTaaruf({
         question: newText,
         asker: editAskerValue,
         category: editCategoryValue,
+        sessionDate: newDate,
       },
       {
         action: 'edit_question',
@@ -713,16 +871,28 @@ export function Stage2ProsesTaaruf({
     showToast('Pertanyaan berhasil dihapus', 'info');
   };
 
+  // Helper buka Modal Tambah Pertanyaan dengan Tanggal Sesi terisi
+  const handleOpenAddModal = (targetAsker?: 'pria' | 'wanita', initialDate?: string) => {
+    setFormAsker(targetAsker || (activeTab === 'wanita' ? 'wanita' : 'pria'));
+    setFormSessionDate(initialDate || (selectedDateFilter !== 'all' ? selectedDateFilter : getTodayDateString()));
+    setFormQuestion('');
+    setFormAnswerSelf('');
+    setFormPrinciple(false);
+    setIsAddOpen(true);
+  };
+
   // Add New Question with Log
   const handleSaveNewQuestion = () => {
     if (isReadOnly || !formQuestion.trim()) return;
     const now = new Date().toISOString();
+    const targetSessionDate = formSessionDate || getTodayDateString();
     const newId = `qa_${formAsker}_${Date.now()}`;
 
     const newCard: any = {
       id: newId,
       createdAt: now,
       updatedAt: now,
+      sessionDate: targetSessionDate,
       category: formCategory || 'Umum',
       asker: formAsker,
       question: formQuestion.trim(),
@@ -743,8 +913,8 @@ export function Stage2ProsesTaaruf({
       'Tambah Pertanyaan Baru',
       formQuestion.trim(),
       '(Pertanyaan baru)',
-      `Pertanyaan: "${formQuestion.trim()}" · Penanya: ${askerText}${formPrinciple ? ' · (Bertanda Prinsip)' : ''}`,
-      `${currentActorName} menambahkan pertanyaan baru pada topik: ${formCategory}`
+      `Pertanyaan: "${formQuestion.trim()}" · Penanya: ${askerText} · Sesi: ${formatDateIndonesian(targetSessionDate)}${formPrinciple ? ' · (Bertanda Prinsip)' : ''}`,
+      `${currentActorName} menambahkan pertanyaan baru pada sesi ${formatDateIndonesian(targetSessionDate)} (topik: ${formCategory})`
     );
 
     const existingCards = taarufData?.qaCards || [];
@@ -761,12 +931,14 @@ export function Stage2ProsesTaaruf({
   const handleAddFromIdea = (card: typeof DEFAULT_QA_CARDS[0], targetAsker: 'pria' | 'wanita') => {
     if (isReadOnly) return;
     const now = new Date().toISOString();
+    const targetSessionDate = selectedDateFilter !== 'all' ? selectedDateFilter : getTodayDateString();
     const newId = `qa_${targetAsker}_idea_${Date.now()}`;
 
     const newCard: any = {
       id: newId,
       createdAt: now,
       updatedAt: now,
+      sessionDate: targetSessionDate,
       category: card.category,
       asker: targetAsker,
       question: card.question,
@@ -787,13 +959,381 @@ export function Stage2ProsesTaaruf({
       'Tambah Pertanyaan dari Ide Topik',
       card.question,
       '(Pertanyaan baru)',
-      `Pertanyaan: "${card.question}" · Penanya: ${askerText}`,
-      `${currentActorName} menambahkan pertanyaan dari ide topik ${card.category}`
+      `Pertanyaan: "${card.question}" · Penanya: ${askerText} · Sesi: ${formatDateIndonesian(targetSessionDate)}`,
+      `${currentActorName} menambahkan pertanyaan dari ide topik ${card.category} ke sesi ${formatDateIndonesian(targetSessionDate)}`
     );
 
     const existingCards = taarufData?.qaCards || [];
     saveTaarufWithLog({ ...taarufData, qaCards: [...existingCards, newCard] }, log);
-    showToast(`Pertanyaan ditambahkan ke kolom ${targetAsker === 'pria' ? 'Calon Pria' : 'Calon Perempuan'}`, 'success');
+    showToast(`Pertanyaan ditambahkan ke kolom ${targetAsker === 'pria' ? 'Calon Pria' : 'Calon Perempuan'} (Sesi ${formatShortDateIndonesian(targetSessionDate)})`, 'success');
+  };
+
+  const renderQuestionCard = (q: QuestionItem) => {
+    return (
+      <div
+        key={q.id}
+        className={`bg-white border rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xs transition-all space-y-3 sm:space-y-3.5 ${
+          q.status === 'sepakat'
+            ? 'border-emerald-200/90 ring-1 ring-emerald-100/70 shadow-emerald-50/50'
+            : q.status === 'dibahas'
+            ? 'border-sky-200/90 ring-1 ring-rose-100/70 shadow-rose-50/50'
+            : q.status === 'pertimbangan'
+            ? 'border-purple-200/90 ring-1 ring-purple-100/70 shadow-purple-50/50'
+            : q.status === 'ulang'
+            ? 'border-amber-200/90 ring-1 ring-amber-100/70 shadow-amber-50/50'
+            : 'border-slate-200/90'
+        }`}
+      >
+        {/* Header Pertanyaan */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+            {/* Penanya Badge */}
+            <span
+              className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                q.asker === 'pria'
+                  ? 'bg-blue-50/80 border-blue-200/80 text-blue-700'
+                  : 'bg-sky-50 border-sky-200 text-azure-700'
+              }`}
+            >
+              <span>{q.asker === 'pria' ? '👨' : '👩'}</span>
+              <span className="truncate max-w-[130px] sm:max-w-none">
+                {q.asker === 'pria' ? (priaName || 'Calon Pria') : (wanitaName || 'Calon Perempuan')}
+              </span>
+            </span>
+
+            {/* Tanggal Sesi Badge */}
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-azure-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full shrink-0">
+              <Calendar className="w-2.5 h-2.5" />
+              {formatShortDateIndonesian(q.sessionDate || getTodayDateString())}
+            </span>
+
+            {/* Category Badge */}
+            {q.category && (
+              <span className="text-[10px] font-semibold text-slate-500 bg-slate-100/80 px-2 py-0.5 rounded-full border border-slate-200/60 hidden xs:inline-block">
+                {q.category}
+              </span>
+            )}
+
+            {/* Principle Badge */}
+            {q.principle && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-azure-700 bg-sky-100/80 px-2 py-0.5 rounded-full border border-sky-200">
+                <Shield className="w-2.5 h-2.5" /> Prinsip
+              </span>
+            )}
+          </div>
+
+          {/* Actions & Status */}
+          <div className="flex items-center gap-1 shrink-0">
+            <span
+              className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                q.status === 'sepakat'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                  : q.status === 'dibahas'
+                  ? 'bg-sky-50 text-azure-700 border-sky-300'
+                  : q.status === 'pertimbangan'
+                  ? 'bg-purple-50 text-purple-700 border-purple-300'
+                  : q.status === 'ulang'
+                  ? 'bg-amber-50 text-amber-800 border-amber-300'
+                  : 'bg-slate-50 text-slate-500 border-slate-200'
+              }`}
+            >
+              {q.status === 'sepakat'
+                ? 'Sepakat'
+                : q.status === 'dibahas'
+                ? 'Dibahas'
+                : q.status === 'pertimbangan'
+                ? 'Dipertimbangkan'
+                : q.status === 'ulang'
+                ? 'Bahas Ulang'
+                : 'Belum'}
+            </span>
+
+            {!isReadOnly && (
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  onClick={() => handleOpenEditModal(q)}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                  title="Edit teks pertanyaan & sesi"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteQuestion(q)}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-azure-700 hover:bg-sky-50 transition-colors"
+                  title="Hapus pertanyaan ini"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Colom Pertanyaan */}
+        <div className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-50 to-rose-50/30 rounded-2xl border border-slate-200/80">
+          <div className="flex items-start justify-between gap-2.5">
+            <div className="flex items-start gap-2.5 min-w-0 flex-1">
+              <span className="w-5 h-5 rounded-md bg-sky-500/10 text-azure-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                ?
+              </span>
+              <h4 className="text-[13px] sm:text-[14px] font-bold text-slate-900 leading-relaxed break-words">
+                {q.question}
+              </h4>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setViewFullModal({
+                  isOpen: true,
+                  title: 'Pertanyaan Lengkap',
+                  subtitle: `${q.category ? q.category + ' · ' : ''}Sesi ${formatDateIndonesian(q.sessionDate || getTodayDateString())}`,
+                  content: q.question,
+                  badgeText: q.category || 'Pertanyaan',
+                  badgeColor: 'sky',
+                })
+              }
+              className="p-1.5 text-slate-400 hover:text-azure-700 hover:bg-sky-50 rounded-lg transition-colors shrink-0"
+              title="Lihat pertanyaan full"
+              aria-label="Lihat pertanyaan full"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* DUA KOLOM JAWABAN (RESPONSIF: 1 KOLOM DI MOBILE, 2 KOLOM DI TABLET/DESKTOP) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {/* Kolom Jawaban Calon Pria */}
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
+            <div className="flex items-center justify-between gap-1">
+              <label className="text-[11px] font-black text-slate-700 flex items-center gap-1.5 min-w-0">
+                <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] shrink-0">
+                  👨
+                </span>
+                <span className="truncate">Jawaban {priaName ? priaName : 'Calon Pria'}</span>
+              </label>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setViewFullModal({
+                      isOpen: true,
+                      title: `Jawaban ${priaName ? priaName : 'Calon Pria'}`,
+                      subtitle: q.question,
+                      content: q.answerPria || '',
+                      badgeText: priaName ? priaName : 'Calon Pria',
+                      badgeColor: 'blue',
+                    })
+                  }
+                  className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-100/70 rounded-md transition-colors"
+                  title="Lihat jawaban full"
+                  aria-label="Lihat jawaban full"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </button>
+                {!canEditAnswers && (
+                  <span className="text-[9px] text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 font-bold">
+                    <Lock size={9} /> Terkunci
+                  </span>
+                )}
+                {userRole === 'pria' && (
+                  <span className="text-[9px] font-bold text-blue-700 bg-blue-100/90 px-1.5 py-0.2 rounded-md">
+                    Anda
+                  </span>
+                )}
+              </div>
+            </div>
+            <textarea
+              rows={3}
+              disabled={!canEditAnswers}
+              value={q.answerPria || ''}
+              onFocus={() => {
+                focusedFieldRef.current = {
+                  cardId: q.id,
+                  field: 'answerPria',
+                  initialValue: q.answerPria || '',
+                };
+              }}
+              onBlur={(e) => handleFieldBlur(q, 'answerPria', e.target.value)}
+              onChange={(e) => updateQuestion(q.id, { answerPria: e.target.value })}
+              placeholder={
+                canEditAnswers
+                  ? `Tulis jawaban dari ${priaName ? priaName : 'calon pria'}...`
+                  : 'Pengisian jawaban terkunci...'
+              }
+              className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-slate-200/90 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
+                !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
+              }`}
+            />
+          </div>
+
+          {/* Kolom Jawaban Calon Perempuan */}
+          <div className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
+            <div className="flex items-center justify-between gap-1">
+              <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5 min-w-0">
+                <span className="w-4 h-4 rounded-full bg-sky-100 text-azure-700 flex items-center justify-center text-[10px] shrink-0">
+                  👩
+                </span>
+                <span className="truncate">Jawaban {wanitaName ? wanitaName : 'Calon Perempuan'}</span>
+              </label>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setViewFullModal({
+                      isOpen: true,
+                      title: `Jawaban ${wanitaName ? wanitaName : 'Calon Perempuan'}`,
+                      subtitle: q.question,
+                      content: q.answerWanita || '',
+                      badgeText: wanitaName ? wanitaName : 'Calon Perempuan',
+                      badgeColor: 'sky',
+                    })
+                  }
+                  className="p-1 text-slate-400 hover:text-azure-700 hover:bg-sky-100/70 rounded-md transition-colors"
+                  title="Lihat jawaban full"
+                  aria-label="Lihat jawaban full"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </button>
+                {!canEditAnswers && (
+                  <span className="text-[9px] text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 font-bold">
+                    <Lock size={9} /> Terkunci
+                  </span>
+                )}
+                {userRole === 'wanita' && (
+                  <span className="text-[9px] font-bold text-azure-700 bg-sky-100/90 px-1.5 py-0.2 rounded-md">
+                    Anda
+                  </span>
+                )}
+              </div>
+            </div>
+            <textarea
+              rows={3}
+              disabled={!canEditAnswers}
+              value={q.answerWanita || ''}
+              onFocus={() => {
+                focusedFieldRef.current = {
+                  cardId: q.id,
+                  field: 'answerWanita',
+                  initialValue: q.answerWanita || '',
+                };
+              }}
+              onBlur={(e) => handleFieldBlur(q, 'answerWanita', e.target.value)}
+              onChange={(e) => updateQuestion(q.id, { answerWanita: e.target.value })}
+              placeholder={
+                canEditAnswers
+                  ? `Tulis jawaban dari ${wanitaName ? wanitaName : 'calon perempuan'}...`
+                  : 'Pengisian jawaban terkunci...'
+              }
+              className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-sky-200/90 rounded-xl focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
+                !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
+              }`}
+            />
+          </div>
+        </div>
+
+        {/* Colom Kesimpulan / Catatan Kesepakatan Bersama */}
+        <div className="bg-amber-50/40 border border-amber-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-amber-400 focus-within:bg-amber-50/70 transition-all">
+          <div className="flex items-center justify-between gap-1">
+            <label className="text-[11px] font-black text-amber-900 flex items-center gap-1.5 min-w-0">
+              <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-[10px] shrink-0">
+                📝
+              </span>
+              <span className="truncate">Kesimpulan / Catatan Bersama</span>
+            </label>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() =>
+                  setViewFullModal({
+                    isOpen: true,
+                    title: 'Kesimpulan / Catatan Bersama',
+                    subtitle: q.question,
+                    content: q.note || '',
+                    badgeText: 'Kesepakatan',
+                    badgeColor: 'amber',
+                  })
+                }
+                className="p-1 text-amber-700 hover:text-amber-900 hover:bg-amber-100/80 rounded-md transition-colors"
+                title="Lihat catatan full"
+                aria-label="Lihat catatan full"
+              >
+                <Eye className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-[9px] text-amber-700/80 font-medium hidden xs:inline">
+                Diteruskan ke Tahap 3
+              </span>
+            </div>
+          </div>
+          <textarea
+            rows={2}
+            disabled={isReadOnly}
+            value={q.note || ''}
+            onFocus={() => {
+              focusedFieldRef.current = {
+                cardId: q.id,
+                field: 'note',
+                initialValue: q.note || '',
+              };
+            }}
+            onBlur={(e) => handleFieldBlur(q, 'note', e.target.value)}
+            onChange={(e) => updateQuestion(q.id, { note: e.target.value })}
+            placeholder="Tuliskan poin yang telah Anda berdua sepakati terkait hal ini..."
+            className="w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-amber-200/90 rounded-xl focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none"
+          />
+        </div>
+
+        {/* Baris Status & Prinsip Dealbreaker */}
+        <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 border-t border-slate-100">
+          <label className="flex items-center gap-2 cursor-pointer text-[11px] sm:text-xs font-bold text-slate-700 select-none">
+            <input
+              type="checkbox"
+              disabled={isReadOnly}
+              checked={Boolean(q.principle)}
+              onChange={(e) => handlePrincipleToggle(q, e.target.checked)}
+              className="w-3.5 h-3.5 rounded border-sky-300 text-azure-700 accent-rose-500"
+            />
+            <span>Tandai sebagai Prinsip (Dealbreaker)</span>
+          </label>
+
+          <div className="flex flex-wrap gap-1 sm:gap-1.5 w-full sm:w-auto">
+            {(['belum', 'dibahas', 'pertimbangan', 'sepakat', 'ulang'] as const).map((st) => (
+              <button
+                key={st}
+                type="button"
+                disabled={isReadOnly}
+                onClick={() => handleStatusChange(q, st)}
+                className={`flex-1 sm:flex-none px-2 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all text-center whitespace-nowrap ${
+                  q.status === st
+                    ? st === 'sepakat'
+                      ? 'bg-emerald-600 text-white shadow-xs font-black'
+                      : st === 'dibahas'
+                      ? 'bg-sky-500 text-white shadow-xs font-black'
+                      : st === 'pertimbangan'
+                      ? 'bg-purple-600 text-white shadow-xs font-black'
+                      : st === 'ulang'
+                      ? 'bg-amber-500 text-white shadow-xs font-black'
+                      : 'bg-slate-700 text-white shadow-xs font-black'
+                    : 'bg-slate-50/80 text-slate-600 border border-slate-200/90 hover:bg-slate-100'
+                }`}
+              >
+                {st === 'belum'
+                  ? 'Belum'
+                  : st === 'dibahas'
+                  ? 'Dibahas'
+                  : st === 'pertimbangan'
+                  ? 'Dipertimbangkan'
+                  : st === 'sepakat'
+                  ? 'Sepakat'
+                  : 'Bahas Ulang'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -1079,6 +1619,117 @@ export function Stage2ProsesTaaruf({
         </div>
       </div>
 
+      {/* Sesi Diskusi Berdasarkan Tanggal (Filter Bar) */}
+      <div className="bg-white border border-line rounded-2xl p-3 shadow-xs space-y-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="w-5 h-5 rounded-md bg-sky-100 text-azure-700 flex items-center justify-center text-xs shrink-0 font-bold">
+              <Calendar className="w-3 h-3" />
+            </span>
+            <span className="text-xs font-black text-slate-800 truncate">
+              Sesi Tanya Jawab per Tanggal
+            </span>
+            {selectedDateFilter !== 'all' && (
+              <span className="text-[10px] font-bold text-azure-700 bg-sky-50 border border-sky-200 px-2 py-0.2 rounded-full hidden sm:inline-block">
+                Sesi: {formatDateIndonesian(selectedDateFilter)}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Sort Order Toggle */}
+            <button
+              type="button"
+              onClick={() => setDateSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              title="Urutan tanggal"
+            >
+              <ArrowUpDown className="w-3 h-3 text-slate-500" />
+              <span>{dateSortOrder === 'asc' ? 'Lama → Baru' : 'Baru → Lama'}</span>
+            </button>
+
+            {/* Custom Date Picker Pill */}
+            <div className="relative">
+              <button
+                type="button"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-azure-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 transition-colors"
+              >
+                <Filter className="w-3 h-3" />
+                <span>Pilih Tgl</span>
+              </button>
+              <input
+                type="date"
+                value={selectedDateFilter !== 'all' ? selectedDateFilter : getTodayDateString()}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setSelectedDateFilter(e.target.value);
+                  }
+                }}
+                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                title="Pilih tanggal sesi spesifik"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Horizontal Scrollable Date Session Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5 pb-0.5">
+          {/* Semua Sesi Pill */}
+          <button
+            type="button"
+            onClick={() => setSelectedDateFilter('all')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
+              selectedDateFilter === 'all'
+                ? 'bg-navy-900 text-white shadow-xs font-black'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <span>Semua Sesi</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                selectedDateFilter === 'all' ? 'bg-white/20 text-white font-bold' : 'bg-slate-200 text-slate-700'
+              }`}
+            >
+              {activeTab === 'pria' ? priaQuestions.length : activeTab === 'wanita' ? wanitaQuestions.length : totalCount}
+            </span>
+          </button>
+
+          {/* Individual Date Session Pills */}
+          {availableSessionDates.map((item) => {
+            const isSelected = selectedDateFilter === item.date;
+            const shortLabel = formatShortDateIndonesian(item.date);
+
+            return (
+              <button
+                key={item.date}
+                type="button"
+                onClick={() => setSelectedDateFilter(item.date)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all border ${
+                  isSelected
+                    ? 'bg-azure border-azure-600 text-white shadow-xs font-black'
+                    : item.count > 0
+                    ? 'bg-white border-slate-200 text-slate-800 hover:border-sky-300'
+                    : 'bg-slate-50/70 border-slate-200 text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                <span>{item.isToday ? `Hari Ini (${shortLabel})` : shortLabel}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    isSelected
+                      ? 'bg-white/25 text-white'
+                      : item.count > 0
+                      ? 'bg-sky-100 text-azure-700'
+                      : 'bg-slate-200 text-slate-500'
+                  }`}
+                >
+                  {item.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Info Context Bar */}
       <div className="px-1 text-xs text-slate-500 flex items-center justify-between">
         <p>
@@ -1102,10 +1753,14 @@ export function Stage2ProsesTaaruf({
           </div>
           <div className="space-y-1">
             <h4 className="text-base font-black text-slate-800">
-              Belum Ada Pertanyaan {activeTab === 'pria' ? 'dari Calon Pria' : activeTab === 'wanita' ? 'dari Calon Perempuan' : ''}
+              {selectedDateFilter !== 'all'
+                ? `Belum Ada Pertanyaan di Sesi ${formatDateIndonesian(selectedDateFilter)}`
+                : `Belum Ada Pertanyaan ${activeTab === 'pria' ? 'dari Calon Pria' : activeTab === 'wanita' ? 'dari Calon Perempuan' : ''}`}
             </h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-              Tuliskan pertanyaan penting yang ingin Anda diskusikan bersama pasangan untuk menyatukan visi pranikah.
+              {selectedDateFilter !== 'all'
+                ? 'Belum ada pertanyaan diskusi yang dicatat pada tanggal sesi ini. Klik tombol di bawah untuk menambah pertanyaan ke sesi ini.'
+                : 'Tuliskan pertanyaan penting yang ingin Anda diskusikan bersama pasangan untuk menyatukan visi pranikah.'}
             </p>
           </div>
 
@@ -1113,16 +1768,19 @@ export function Stage2ProsesTaaruf({
             {!isReadOnly && (
               <button
                 type="button"
-                onClick={() => {
-                  setFormAsker(activeTab === 'wanita' ? 'wanita' : 'pria');
-                  setFormQuestion('');
-                  setFormAnswerSelf('');
-                  setFormPrinciple(false);
-                  setIsAddOpen(true);
-                }}
+                onClick={() => handleOpenAddModal(activeTab === 'wanita' ? 'wanita' : 'pria', selectedDateFilter !== 'all' ? selectedDateFilter : undefined)}
                 className="flex items-center gap-1.5 px-4 py-2.5 bg-azure text-white rounded-full text-xs font-bold shadow-subtle hover:scale-[1.02] active:scale-95 transition-all"
               >
-                <Plus className="w-4 h-4" /> Tulis Pertanyaan Baru
+                <Plus className="w-4 h-4" /> Tulis Pertanyaan {selectedDateFilter !== 'all' ? 'di Sesi Ini' : 'Baru'}
+              </button>
+            )}
+            {selectedDateFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setSelectedDateFilter('all')}
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-bold active:scale-95 transition-all"
+              >
+                Lihat Semua Sesi
               </button>
             )}
             <button
@@ -1134,369 +1792,76 @@ export function Stage2ProsesTaaruf({
             </button>
           </div>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {visibleQuestions.map((q) => {
-            return (
-              <div
-                key={q.id}
-                className={`bg-white border rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xs transition-all space-y-3 sm:space-y-3.5 ${
-                  q.status === 'sepakat'
-                    ? 'border-emerald-200/90 ring-1 ring-emerald-100/70 shadow-emerald-50/50'
-                    : q.status === 'dibahas'
-                    ? 'border-sky-200/90 ring-1 ring-rose-100/70 shadow-rose-50/50'
-                    : q.status === 'pertimbangan'
-                    ? 'border-purple-200/90 ring-1 ring-purple-100/70 shadow-purple-50/50'
-                    : q.status === 'ulang'
-                    ? 'border-amber-200/90 ring-1 ring-amber-100/70 shadow-amber-50/50'
-                    : 'border-slate-200/90'
-                }`}
-              >
-                {/* Header Pertanyaan */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-                    {/* Penanya Badge */}
-                    <span
-                      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                        q.asker === 'pria'
-                          ? 'bg-blue-50/80 border-blue-200/80 text-blue-700'
-                          : 'bg-sky-50 border-sky-200 text-azure-700'
-                      }`}
-                    >
-                      <span>{q.asker === 'pria' ? '👨' : '👩'}</span>
-                      <span className="truncate max-w-[130px] sm:max-w-none">
-                        {q.asker === 'pria' ? (priaName || 'Calon Pria') : (wanitaName || 'Calon Perempuan')}
-                      </span>
+      ) : selectedDateFilter === 'all' ? (
+        /* Render per session date group when viewing All */
+        <div className="space-y-6">
+          {groupedQuestionsByDate.map((group) => (
+            <div key={group.date} className="space-y-3">
+              {/* Session Group Header */}
+              <div className="flex items-center justify-between px-1 pt-2 pb-1 border-b border-slate-200/80">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-azure shadow-xs" />
+                  <h4 className="text-xs sm:text-sm font-black text-slate-800">
+                    Sesi {formatDateIndonesian(group.date)}
+                  </h4>
+                  {group.date === getTodayDateString() && (
+                    <span className="text-[10px] font-bold text-azure-700 bg-sky-100 border border-sky-200 px-2 py-0.2 rounded-full">
+                      Hari Ini
                     </span>
-
-                    {/* Category Badge */}
-                    {q.category && (
-                      <span className="text-[10px] font-semibold text-slate-500 bg-slate-100/80 px-2 py-0.5 rounded-full border border-slate-200/60 hidden xs:inline-block">
-                        {q.category}
-                      </span>
-                    )}
-
-                    {/* Principle Badge */}
-                    {q.principle && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-azure-700 bg-sky-100/80 px-2 py-0.5 rounded-full border border-sky-200">
-                        <Shield className="w-2.5 h-2.5" /> Prinsip
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Actions & Status */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span
-                      className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
-                        q.status === 'sepakat'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                          : q.status === 'dibahas'
-                          ? 'bg-sky-50 text-azure-700 border-sky-300'
-                          : q.status === 'pertimbangan'
-                          ? 'bg-purple-50 text-purple-700 border-purple-300'
-                          : q.status === 'ulang'
-                          ? 'bg-amber-50 text-amber-800 border-amber-300'
-                          : 'bg-slate-50 text-slate-500 border-slate-200'
-                      }`}
-                    >
-                      {q.status === 'sepakat'
-                        ? 'Sepakat'
-                        : q.status === 'dibahas'
-                        ? 'Dibahas'
-                        : q.status === 'pertimbangan'
-                        ? 'Dipertimbangkan'
-                        : q.status === 'ulang'
-                        ? 'Bahas Ulang'
-                        : 'Belum'}
-                    </span>
-
-                    {!isReadOnly && (
-                      <div className="flex items-center">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEditModal(q)}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-                          title="Edit teks pertanyaan"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteQuestion(q)}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-azure-700 hover:bg-sky-50 transition-colors"
-                          title="Hapus pertanyaan ini"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
 
-                {/* Colom Pertanyaan */}
-                <div className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-50 to-rose-50/30 rounded-2xl border border-slate-200/80">
-                  <div className="flex items-start justify-between gap-2.5">
-                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      <span className="w-5 h-5 rounded-md bg-sky-500/10 text-azure-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
-                        ?
-                      </span>
-                      <h4 className="text-[13px] sm:text-[14px] font-bold text-slate-900 leading-relaxed break-words">
-                        {q.question}
-                      </h4>
-                    </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                    {group.items.length} Pertanyaan
+                  </span>
+                  {!isReadOnly && (
                     <button
                       type="button"
-                      onClick={() =>
-                        setViewFullModal({
-                          isOpen: true,
-                          title: 'Pertanyaan Lengkap',
-                          subtitle: q.category,
-                          content: q.question,
-                          badgeText: q.category,
-                          badgeColor: 'sky',
-                        })
-                      }
-                      className="p-1.5 text-slate-400 hover:text-azure-700 hover:bg-sky-50 rounded-lg transition-colors shrink-0"
-                      title="Lihat pertanyaan full"
-                      aria-label="Lihat pertanyaan full"
+                      onClick={() => handleOpenAddModal(activeTab === 'wanita' ? 'wanita' : 'pria', group.date)}
+                      className="text-[11px] font-bold text-azure-700 hover:text-azure-900 flex items-center gap-0.5 px-2 py-0.5 hover:bg-sky-50 rounded-lg transition-colors"
+                      title={`Tambah pertanyaan ke sesi ${formatShortDateIndonesian(group.date)}`}
                     >
-                      <Eye className="w-4 h-4" />
+                      <Plus className="w-3 h-3" /> Tambah
                     </button>
-                  </div>
-                </div>
-
-                {/* DUA KOLOM JAWABAN (RESPONSIF: 1 KOLOM DI MOBILE, 2 KOLOM DI TABLET/DESKTOP) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                  {/* Kolom Jawaban Calon Pria */}
-                  <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
-                    <div className="flex items-center justify-between gap-1">
-                      <label className="text-[11px] font-black text-slate-700 flex items-center gap-1.5 min-w-0">
-                        <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] shrink-0">
-                          👨
-                        </span>
-                        <span className="truncate">Jawaban {priaName ? priaName : 'Calon Pria'}</span>
-                      </label>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setViewFullModal({
-                              isOpen: true,
-                              title: `Jawaban ${priaName ? priaName : 'Calon Pria'}`,
-                              subtitle: q.question,
-                              content: q.answerPria || '',
-                              badgeText: priaName ? priaName : 'Calon Pria',
-                              badgeColor: 'blue',
-                            })
-                          }
-                          className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-100/70 rounded-md transition-colors"
-                          title="Lihat jawaban full"
-                          aria-label="Lihat jawaban full"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        {!canEditAnswers && (
-                          <span className="text-[9px] text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 font-bold">
-                            <Lock size={9} /> Terkunci
-                          </span>
-                        )}
-                        {userRole === 'pria' && (
-                          <span className="text-[9px] font-bold text-blue-700 bg-blue-100/90 px-1.5 py-0.2 rounded-md">
-                            Anda
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <textarea
-                      rows={3}
-                      disabled={!canEditAnswers}
-                      value={q.answerPria || ''}
-                      onFocus={() => {
-                        focusedFieldRef.current = {
-                          cardId: q.id,
-                          field: 'answerPria',
-                          initialValue: q.answerPria || '',
-                        };
-                      }}
-                      onBlur={(e) => handleFieldBlur(q, 'answerPria', e.target.value)}
-                      onChange={(e) => updateQuestion(q.id, { answerPria: e.target.value })}
-                      placeholder={
-                        canEditAnswers
-                          ? `Tulis jawaban dari ${priaName ? priaName : 'calon pria'}...`
-                          : 'Pengisian jawaban terkunci...'
-                      }
-                      className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-slate-200/90 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
-                        !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
-                      }`}
-                    />
-                  </div>
-
-                  {/* Kolom Jawaban Calon Perempuan */}
-                  <div className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
-                    <div className="flex items-center justify-between gap-1">
-                      <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5 min-w-0">
-                        <span className="w-4 h-4 rounded-full bg-sky-100 text-azure-700 flex items-center justify-center text-[10px] shrink-0">
-                          👩
-                        </span>
-                        <span className="truncate">Jawaban {wanitaName ? wanitaName : 'Calon Perempuan'}</span>
-                      </label>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setViewFullModal({
-                              isOpen: true,
-                              title: `Jawaban ${wanitaName ? wanitaName : 'Calon Perempuan'}`,
-                              subtitle: q.question,
-                              content: q.answerWanita || '',
-                              badgeText: wanitaName ? wanitaName : 'Calon Perempuan',
-                              badgeColor: 'sky',
-                            })
-                          }
-                          className="p-1 text-slate-400 hover:text-azure-700 hover:bg-sky-100/70 rounded-md transition-colors"
-                          title="Lihat jawaban full"
-                          aria-label="Lihat jawaban full"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                        {!canEditAnswers && (
-                          <span className="text-[9px] text-amber-700 bg-amber-100/90 px-1.5 py-0.2 rounded-md flex items-center gap-0.5 font-bold">
-                            <Lock size={9} /> Terkunci
-                          </span>
-                        )}
-                        {userRole === 'wanita' && (
-                          <span className="text-[9px] font-bold text-azure-700 bg-sky-100/90 px-1.5 py-0.2 rounded-md">
-                            Anda
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <textarea
-                      rows={3}
-                      disabled={!canEditAnswers}
-                      value={q.answerWanita || ''}
-                      onFocus={() => {
-                        focusedFieldRef.current = {
-                          cardId: q.id,
-                          field: 'answerWanita',
-                          initialValue: q.answerWanita || '',
-                        };
-                      }}
-                      onBlur={(e) => handleFieldBlur(q, 'answerWanita', e.target.value)}
-                      onChange={(e) => updateQuestion(q.id, { answerWanita: e.target.value })}
-                      placeholder={
-                        canEditAnswers
-                          ? `Tulis jawaban dari ${wanitaName ? wanitaName : 'calon perempuan'}...`
-                          : 'Pengisian jawaban terkunci...'
-                      }
-                      className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-sky-200/90 rounded-xl focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
-                        !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                {/* Colom Kesimpulan / Catatan Kesepakatan Bersama */}
-                <div className="bg-amber-50/40 border border-amber-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-amber-400 focus-within:bg-amber-50/70 transition-all">
-                  <div className="flex items-center justify-between gap-1">
-                    <label className="text-[11px] font-black text-amber-900 flex items-center gap-1.5 min-w-0">
-                      <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-[10px] shrink-0">
-                        📝
-                      </span>
-                      <span className="truncate">Kesimpulan / Catatan Bersama</span>
-                    </label>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setViewFullModal({
-                            isOpen: true,
-                            title: 'Kesimpulan / Catatan Bersama',
-                            subtitle: q.question,
-                            content: q.note || '',
-                            badgeText: 'Kesepakatan',
-                            badgeColor: 'amber',
-                          })
-                        }
-                        className="p-1 text-amber-700 hover:text-amber-900 hover:bg-amber-100/80 rounded-md transition-colors"
-                        title="Lihat catatan full"
-                        aria-label="Lihat catatan full"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-[9px] text-amber-700/80 font-medium hidden xs:inline">
-                        Diteruskan ke Tahap 3
-                      </span>
-                    </div>
-                  </div>
-                  <textarea
-                    rows={2}
-                    disabled={isReadOnly}
-                    value={q.note || ''}
-                    onFocus={() => {
-                      focusedFieldRef.current = {
-                        cardId: q.id,
-                        field: 'note',
-                        initialValue: q.note || '',
-                      };
-                    }}
-                    onBlur={(e) => handleFieldBlur(q, 'note', e.target.value)}
-                    onChange={(e) => updateQuestion(q.id, { note: e.target.value })}
-                    placeholder="Tuliskan poin yang telah Anda berdua sepakati terkait hal ini..."
-                    className="w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-amber-200/90 rounded-xl focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none"
-                  />
-                </div>
-
-                {/* Baris Status & Prinsip Dealbreaker */}
-                <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 border-t border-slate-100">
-                  <label className="flex items-center gap-2 cursor-pointer text-[11px] sm:text-xs font-bold text-slate-700 select-none">
-                    <input
-                      type="checkbox"
-                      disabled={isReadOnly}
-                      checked={Boolean(q.principle)}
-                      onChange={(e) => handlePrincipleToggle(q, e.target.checked)}
-                      className="w-3.5 h-3.5 rounded border-sky-300 text-azure-700 accent-rose-500"
-                    />
-                    <span>Tandai sebagai Prinsip (Dealbreaker)</span>
-                  </label>
-
-                  <div className="flex flex-wrap gap-1 sm:gap-1.5 w-full sm:w-auto">
-                    {(['belum', 'dibahas', 'pertimbangan', 'sepakat', 'ulang'] as const).map((st) => (
-                      <button
-                        key={st}
-                        type="button"
-                        disabled={isReadOnly}
-                        onClick={() => handleStatusChange(q, st)}
-                        className={`flex-1 sm:flex-none px-2 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all text-center whitespace-nowrap ${
-                          q.status === st
-                            ? st === 'sepakat'
-                              ? 'bg-emerald-600 text-white shadow-xs font-black'
-                              : st === 'dibahas'
-                              ? 'bg-sky-500 text-white shadow-xs font-black'
-                              : st === 'pertimbangan'
-                              ? 'bg-purple-600 text-white shadow-xs font-black'
-                              : st === 'ulang'
-                              ? 'bg-amber-500 text-white shadow-xs font-black'
-                              : 'bg-slate-700 text-white shadow-xs font-black'
-                            : 'bg-slate-50/80 text-slate-600 border border-slate-200/90 hover:bg-slate-100'
-                        }`}
-                      >
-                        {st === 'belum'
-                          ? 'Belum'
-                          : st === 'dibahas'
-                          ? 'Dibahas'
-                          : st === 'pertimbangan'
-                          ? 'Dipertimbangkan'
-                          : st === 'sepakat'
-                          ? 'Sepakat'
-                          : 'Bahas Ulang'}
-                      </button>
-                    ))}
-                  </div>
+                  )}
                 </div>
               </div>
-            );
-          })}
+
+              {/* Questions Cards in this Session Date */}
+              <div className="space-y-3.5">
+                {group.items.map((q) => renderQuestionCard(q))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Render questions for single selected session date */
+        <div className="space-y-3.5">
+          <div className="flex items-center justify-between px-3 py-2 bg-sky-50/70 border border-sky-200 rounded-2xl">
+            <div className="flex items-center gap-2 min-w-0">
+              <Calendar className="w-3.5 h-3.5 text-azure-600 shrink-0" />
+              <span className="text-xs font-black text-slate-800 truncate">
+                Sesi Diskusi: <strong>{formatDateIndonesian(selectedDateFilter)}</strong>
+              </span>
+              {selectedDateFilter === getTodayDateString() && (
+                <span className="text-[10px] font-bold text-azure-700 bg-sky-100 px-1.5 py-0.2 rounded-full shrink-0">
+                  Hari Ini
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedDateFilter('all')}
+              className="text-xs font-bold text-azure-700 hover:underline shrink-0 ml-2"
+            >
+              Lihat Semua Sesi
+            </button>
+          </div>
+
+          <div className="space-y-3.5">
+            {visibleQuestions.map((q) => renderQuestionCard(q))}
+          </div>
         </div>
       )}
 
@@ -1531,6 +1896,25 @@ export function Stage2ProsesTaaruf({
                 }`}
               >
                 <span>👩 Calon Perempuan</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Tanggal Sesi Diskusi</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={editSessionDateValue}
+                onChange={(e) => setEditSessionDateValue(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-rose-400 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setEditSessionDateValue(getTodayDateString())}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold shrink-0 transition-colors"
+              >
+                Hari Ini
               </button>
             </div>
           </div>
@@ -1622,6 +2006,29 @@ export function Stage2ProsesTaaruf({
             </div>
           </div>
 
+          {/* Tanggal Sesi Diskusi */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-slate-700">Tanggal Sesi Diskusi</label>
+              <span className="text-[10px] text-slate-400">Pilihan sesi harian (10, 11, dst)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={formSessionDate}
+                onChange={(e) => setFormSessionDate(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:border-rose-400 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setFormSessionDate(getTodayDateString())}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold shrink-0 transition-colors"
+              >
+                Hari Ini
+              </button>
+            </div>
+          </div>
+
           {/* Kategori */}
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">Kategori / Topik</label>
@@ -1700,6 +2107,23 @@ export function Stage2ProsesTaaruf({
           <p className="text-xs text-slate-500 leading-relaxed">
             Pilih pertanyaan pranikah islami di bawah ini untuk langsung dimasukkan ke kolom Calon Pria atau Calon Perempuan.
           </p>
+
+          {/* Sesi Tanggal Notice */}
+          <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-xl flex items-center justify-between text-xs text-azure-800">
+            <span className="flex items-center gap-1.5 font-medium truncate">
+              <Calendar className="w-3.5 h-3.5 text-azure-600 shrink-0" />
+              <span>Dimasukkan ke sesi: <strong>{formatDateIndonesian(selectedDateFilter !== 'all' ? selectedDateFilter : getTodayDateString())}</strong></span>
+            </span>
+            {selectedDateFilter !== getTodayDateString() && (
+              <button
+                type="button"
+                onClick={() => setSelectedDateFilter(getTodayDateString())}
+                className="text-[11px] font-bold text-azure-700 underline shrink-0 ml-2"
+              >
+                Ganti ke Hari Ini
+              </button>
+            )}
+          </div>
 
           {/* Search & Category Filter */}
           <div className="space-y-2">
