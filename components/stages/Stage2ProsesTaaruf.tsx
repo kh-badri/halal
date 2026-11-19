@@ -700,6 +700,119 @@ export function Stage2ProsesTaaruf({
       });
   }, [taarufData, userRole]);
 
+  // Handler to scroll, ensure visibility and highlight target question card & column
+  const navigateToCard = useCallback(
+    (cardId: string, focusType?: string) => {
+      if (!cardId) return;
+
+      // 1. Ensure the card is visible: switch activeTab and selectedDateFilter if needed
+      setActiveTab((prevTab) => {
+        const targetCard = questions.find((c) => c.id === cardId);
+        if (targetCard && prevTab !== 'all' && prevTab !== targetCard.asker) {
+          return 'all';
+        }
+        return prevTab;
+      });
+
+      setSelectedDateFilter((prevFilter) => {
+        const targetCard = questions.find((c) => c.id === cardId);
+        if (targetCard && prevFilter !== 'all' && prevFilter !== targetCard.sessionDate) {
+          return 'all';
+        }
+        return prevFilter;
+      });
+
+      setStatusFilter((prevStatus) => (prevStatus !== 'all' ? 'all' : prevStatus));
+
+      // 2. Wait for React render cycle, then scroll & focus
+      setTimeout(() => {
+        let targetEl: HTMLElement | null = null;
+
+        if (focusType === 'answer-pria') {
+          targetEl = document.getElementById(`answer-box-pria-${cardId}`);
+        } else if (focusType === 'answer-wanita') {
+          targetEl = document.getElementById(`answer-box-wanita-${cardId}`);
+        } else if (focusType === 'question') {
+          targetEl = document.getElementById(`question-box-${cardId}`);
+        } else if (focusType === 'sub') {
+          targetEl = document.getElementById(`sub-questions-${cardId}`);
+        }
+
+        // Fallback to the whole card container
+        if (!targetEl) {
+          targetEl =
+            document.getElementById(cardId) ||
+            document.querySelector(`[data-card-id="${cardId}"]`);
+        }
+
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          // Highlight with vibrant glowing ring
+          targetEl.classList.add(
+            'ring-4',
+            'ring-azure-500',
+            'ring-offset-2',
+            'shadow-lg',
+            'transition-all',
+            'duration-500'
+          );
+
+          // Focus textarea if editable
+          const textarea =
+            targetEl.querySelector('textarea') ||
+            (targetEl instanceof HTMLTextAreaElement ? targetEl : null);
+          if (textarea && !textarea.disabled) {
+            textarea.focus();
+          }
+
+          setTimeout(() => {
+            targetEl?.classList.remove(
+              'ring-4',
+              'ring-azure-500',
+              'ring-offset-2',
+              'shadow-lg'
+            );
+          }, 3500);
+        }
+      }, 250);
+    },
+    [questions]
+  );
+
+  // Listen for direct navigation events from NotificationBell or URL Hash
+  useEffect(() => {
+    const handleCustomNav = (e: any) => {
+      if (e.detail?.cardId) {
+        navigateToCard(e.detail.cardId, e.detail.focusType);
+      }
+    };
+
+    const handleHash = () => {
+      if (typeof window !== 'undefined' && window.location.hash) {
+        const hashId = window.location.hash.substring(1);
+        if (hashId) {
+          const params = new URLSearchParams(window.location.search);
+          const focusType = params.get('focus') || undefined;
+          navigateToCard(hashId, focusType);
+        }
+      }
+    };
+
+    window.addEventListener('rth_navigate_card', handleCustomNav);
+    window.addEventListener('hashchange', handleHash);
+
+    // Initial check on mount once questions are ready
+    if (questions.length > 0) {
+      handleHash();
+    }
+
+    return () => {
+      window.removeEventListener('rth_navigate_card', handleCustomNav);
+      window.removeEventListener('hashchange', handleHash);
+    };
+  }, [navigateToCard, questions.length]);
+
   // Statistics
   const totalCount = questions.length;
   const agreedCount = questions.filter((q) => q.status === 'sepakat').length;
@@ -1333,6 +1446,8 @@ export function Stage2ProsesTaaruf({
     return (
       <div
         key={q.id}
+        id={q.id}
+        data-card-id={q.id}
         className={`bg-white border rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-xs transition-all space-y-3 sm:space-y-3.5 ${
           q.status === 'sepakat'
             ? 'border-emerald-200/90 ring-1 ring-emerald-100/70 shadow-emerald-50/50'
@@ -1433,7 +1548,7 @@ export function Stage2ProsesTaaruf({
         </div>
 
         {/* Colom Pertanyaan */}
-        <div className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-50 to-rose-50/30 rounded-2xl border border-slate-200/80">
+        <div id={`question-box-${q.id}`} className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-50 to-rose-50/30 rounded-2xl border border-slate-200/80 transition-all">
           <div className="flex items-start justify-between gap-2.5">
             <div className="flex items-start gap-2.5 min-w-0 flex-1">
               <span className="w-5 h-5 rounded-md bg-sky-500/10 text-azure-700 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
@@ -1467,7 +1582,7 @@ export function Stage2ProsesTaaruf({
         {/* DUA KOLOM JAWABAN (RESPONSIF: 1 KOLOM DI MOBILE, 2 KOLOM DI TABLET/DESKTOP) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {/* Kolom Jawaban Calon Pria */}
-          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
+          <div id={`answer-box-pria-${q.id}`} className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
             <div className="flex items-center justify-between gap-1">
               <label className="text-[11px] font-black text-slate-700 flex items-center gap-1.5 min-w-0">
                 <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] shrink-0">
@@ -1507,6 +1622,7 @@ export function Stage2ProsesTaaruf({
               </div>
             </div>
             <textarea
+              id={`textarea-pria-${q.id}`}
               rows={3}
               disabled={!canEditAnswers}
               value={q.answerPria || ''}
@@ -1553,7 +1669,7 @@ export function Stage2ProsesTaaruf({
           </div>
 
           {/* Kolom Jawaban Calon Perempuan */}
-          <div className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
+          <div id={`answer-box-wanita-${q.id}`} className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
             <div className="flex items-center justify-between gap-1">
               <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5 min-w-0">
                 <span className="w-4 h-4 rounded-full bg-sky-100 text-azure-700 flex items-center justify-center text-[10px] shrink-0">
@@ -1593,6 +1709,7 @@ export function Stage2ProsesTaaruf({
               </div>
             </div>
             <textarea
+              id={`textarea-wanita-${q.id}`}
               rows={3}
               disabled={!canEditAnswers}
               value={q.answerWanita || ''}
@@ -1640,7 +1757,7 @@ export function Stage2ProsesTaaruf({
         </div>
 
         {/* SUB-PERTANYAAN & SANGGAHAN (DISKUSI LANJUTAN) */}
-        <div className="p-3 bg-gradient-to-r from-slate-50 via-sky-50/20 to-slate-50 rounded-2xl border border-slate-200/90 space-y-2.5">
+        <div id={`sub-questions-${q.id}`} className="p-3 bg-gradient-to-r from-slate-50 via-sky-50/20 to-slate-50 rounded-2xl border border-slate-200/90 space-y-2.5 transition-all">
           <div className="flex items-center justify-between gap-1.5">
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="w-5 h-5 rounded-md bg-sky-100 text-azure-700 flex items-center justify-center text-xs shrink-0 font-bold">

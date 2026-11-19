@@ -62,6 +62,28 @@ export const NotificationBell: React.FC = () => {
   const [filterTab, setFilterTab] = useState<'all' | 'unread'>('all');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const lastCloseTimeRef = useRef<number>(0);
+
+  // Close popup with timestamp record to prevent ghost click
+  const closePopup = useCallback(() => {
+    lastCloseTimeRef.current = Date.now();
+    setIsOpen(false);
+  }, []);
+
+  // Toggle bell button
+  const handleToggleBell = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Guard against ghost-click from closing backdrop touch
+    if (Date.now() - lastCloseTimeRef.current < 450) {
+      return;
+    }
+    if (isOpen) {
+      closePopup();
+    } else {
+      setIsOpen(true);
+      fetchNotifications();
+    }
+  };
 
   // Client-side mount flag
   useEffect(() => {
@@ -115,7 +137,7 @@ export const NotificationBell: React.FC = () => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Escape') closePopup();
     };
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -126,22 +148,22 @@ export const NotificationBell: React.FC = () => {
       if (modalRef.current && modalRef.current.contains(target)) {
         return;
       }
-      setIsOpen(false);
+      closePopup();
     };
 
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside, { passive: true });
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, closePopup]);
 
-  // Mark a single notification as read
+  // Mark a single notification as read and directly navigate to question/answer chat column
   const handleItemClick = async (notif: NotificationItem) => {
+    closePopup();
+
     try {
       // Mark as read in local state
       setNotifications((prev) =>
@@ -161,25 +183,37 @@ export const NotificationBell: React.FC = () => {
       console.warn('Failed to mark read:', err);
     }
 
-    setIsOpen(false);
+    if (!notif.url) return;
 
-    // Navigate to target URL
-    if (notif.url) {
-      router.push(notif.url);
+    // Extract target card ID
+    const hashIndex = notif.url.indexOf('#');
+    const cardId = hashIndex !== -1 ? notif.url.substring(hashIndex + 1) : '';
 
-      // If URL has hash, scroll to target card
-      const hashIndex = notif.url.indexOf('#');
-      if (hashIndex !== -1) {
-        const targetId = notif.url.substring(hashIndex + 1);
-        setTimeout(() => {
-          const el = document.getElementById(targetId);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.classList.add('ring-2', 'ring-azure-500', 'transition-all');
-            setTimeout(() => el.classList.remove('ring-2', 'ring-azure-500'), 2500);
-          }
-        }, 300);
+    // Determine target column focus
+    let focusType = '';
+    if (notif.type === 'answer') {
+      focusType = notif.senderRole === 'pria' ? 'answer-pria' : 'answer-wanita';
+    } else if (notif.type === 'sub_question') {
+      focusType = 'sub';
+    } else if (notif.type === 'question') {
+      focusType = 'question';
+    }
+
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/tahap/proses-taaruf')) {
+      if (cardId) {
+        window.location.hash = cardId;
       }
+      // Broadcast instant navigation event to Stage2ProsesTaaruf component
+      window.dispatchEvent(
+        new CustomEvent('rth_navigate_card', {
+          detail: { cardId, focusType, notifType: notif.type },
+        })
+      );
+    } else {
+      const targetUrl = cardId && focusType
+        ? `/tahap/proses-taaruf?cardId=${encodeURIComponent(cardId)}&focus=${encodeURIComponent(focusType)}#${encodeURIComponent(cardId)}`
+        : notif.url;
+      router.push(targetUrl);
     }
   };
 
@@ -242,11 +276,7 @@ export const NotificationBell: React.FC = () => {
       {/* Bell Button */}
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen((prev) => !prev);
-          if (!isOpen) fetchNotifications();
-        }}
+        onClick={handleToggleBell}
         className={`w-9 h-9 rounded-2xl bg-white border flex items-center justify-center transition-all relative active:scale-95 shadow-xs ${
           isOpen
             ? 'border-azure-500 bg-sky-50 text-azure-700 ring-2 ring-sky-100'
@@ -273,7 +303,11 @@ export const NotificationBell: React.FC = () => {
             {/* Fullscreen Backdrop */}
             <div
               className="fixed inset-0 bg-navy-950/45 backdrop-blur-2xs pointer-events-auto transition-opacity animate-fade-in"
-              onClick={() => setIsOpen(false)}
+              onClick={closePopup}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                closePopup();
+              }}
               aria-hidden="true"
             />
 
