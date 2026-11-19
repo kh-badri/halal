@@ -33,6 +33,9 @@ if ($envDataDir && is_dir($envDataDir)) {
     }
 }
 
+// Require WebPush Engine for Background PWA Screen Notifications
+require_once __DIR__ . '/WebPush.php';
+
 // Session Management
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
@@ -539,6 +542,15 @@ if ($route === 'auth/me') {
     ]);
 }
 
+// Route: /api/notifications/vapid-key (GET) - Public endpoint for PWA Web Push subscription
+if ($route === 'notifications/vapid-key' && $method === 'GET') {
+    $keys = WebPushEngine::getVapidKeys($DATA_DIR);
+    if (!$keys || empty($keys['publicKey'])) {
+        jsonResponse(['error' => 'Gagal memuat kunci VAPID server.'], 500);
+    }
+    jsonResponse(['publicKey' => $keys['publicKey']]);
+}
+
 // Route: /api/auth/login
 if ($route === 'auth/login' && $method === 'POST') {
     $identifier = trim(strtolower($input['identifier'] ?? $input['email'] ?? $input['username'] ?? ''));
@@ -979,6 +991,90 @@ if (!$user) {
 $workspaceId = $user['workspaceId'] ?? 'ws_default';
 $wsDir = $DATA_DIR . '/workspaces/' . $workspaceId;
 ensureDir($wsDir);
+
+// Route: /api/notifications/subscribe (POST) - Save device PushSubscription for background Web Push
+if ($route === 'notifications/subscribe' && $method === 'POST') {
+    $subData = $input['subscription'] ?? $input;
+    $role = $input['role'] ?? 'pria';
+    $endpoint = $subData['endpoint'] ?? '';
+    $p256dh = $subData['keys']['p256dh'] ?? '';
+    $auth = $subData['keys']['auth'] ?? '';
+
+    if (empty($endpoint) || empty($p256dh) || empty($auth)) {
+        jsonResponse(['error' => 'Data subscription push tidak lengkap.'], 400);
+    }
+
+    $subsFile = $wsDir . '/push_subscriptions.json';
+    $subs = readJson($subsFile, []);
+
+    // Remove any existing subscription with the same endpoint to avoid duplicates
+    $updatedSubs = array_values(array_filter($subs, function($s) use ($endpoint) {
+        return ($s['endpoint'] ?? '') !== $endpoint;
+    }));
+
+    $newSub = [
+        'id' => 'sub_' . bin2hex(random_bytes(6)),
+        'userId' => $user['id'],
+        'userName' => $user['name'] ?? '',
+        'role' => $role,
+        'endpoint' => $endpoint,
+        'keys' => [
+            'p256dh' => $p256dh,
+            'auth' => $auth,
+        ],
+        'userAgent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+        'subscribedAt' => date('c'),
+    ];
+
+    $updatedSubs[] = $newSub;
+    writeJsonAtomic($subsFile, $updatedSubs);
+
+    jsonResponse([
+        'success' => true,
+        'message' => 'Langganan notifikasi push berhasil disimpan di server.',
+        'subscriptionCount' => count($updatedSubs),
+    ]);
+}
+
+// Route: /api/notifications/test (POST) - Trigger immediate background push test to current user
+if ($route === 'notifications/test' && $method === 'POST') {
+    $subsFile = $wsDir . '/push_subscriptions.json';
+    $subs = readJson($subsFile, []);
+
+    // Target current user subscriptions or all active in workspace
+    $userSubs = array_values(array_filter($subs, fn($s) => ($s['userId'] ?? '') === $user['id']));
+    if (empty($userSubs)) {
+        $userSubs = $subs;
+    }
+
+    if (empty($userSubs)) {
+        jsonResponse([
+            'success' => false,
+            'message' => 'Belum ada perangkat HP yang terdaftar untuk notifikasi push pada akun ini. Silakan klik "Aktifkan Notifikasi" terlebih dahulu.',
+        ], 404);
+    }
+
+    $payload = [
+        'title' => '🔔 Uji Coba: Road To Halal',
+        'body' => 'Alhamdulillah! Sinyal push server berhasil masuk ke HP Anda meskipun aplikasi diclose.',
+        'url' => '/tahap/proses-taaruf',
+        'timestamp' => time() * 1000,
+    ];
+
+    $sent = 0;
+    foreach ($userSubs as $sub) {
+        $res = WebPushEngine::sendPush($sub, $payload, $DATA_DIR);
+        if (!empty($res['success'])) {
+            $sent++;
+        }
+    }
+
+    jsonResponse([
+        'success' => $sent > 0,
+        'sent' => $sent,
+        'message' => $sent > 0 ? "Uji coba push berhasil dikirim ke {$sent} perangkat!" : "Gagal mengirim push ke perangkat.",
+    ]);
+}
 
 // STAGE DEFINITIONS
 $STAGE_ORDER = [
@@ -1454,6 +1550,111 @@ if (preg_match('#^m/([a-zA-Z0-9_-]+)$#', $route, $matches)) {
 
         $merged['updatedAt'] = date('c');
         writeJsonAtomic($moduleFile, $merged);
+
+        // Server-Side Web Push Trigger for Ta'aruf module
+        if ($module === 'taaruf') {
+            try {
+                $oldCards = $existing['qaCards'] ?? [];
+                $newCards = $merged['qaCards'] ?? [];
+                $oldMap = [];
+                foreach ($oldCards as $oc) {
+                    $oldMap[$oc['id'] ?? ''] = $oc;
+                }
+
+                $profileData = readJson($wsDir . '/profile.json', []);
+                $priaNameDisplay = $profileData['self']['fullName'] ?? 'Calon Pria';
+                $wanitaNameDisplay = $profileData['partner']['fullName'] ?? 'Calon Perempuan';
+
+                $partnerPushTitle = null;
+                $partnerPushBody = null;
+                $senderRole = $input['lastActorRole'] ?? ($isPartner ? 'wanita' : 'pria');
+
+                foreach ($newCards as $nc) {
+                    $ncId = $nc['id'] ?? '';
+                    $old = $oldMap[$ncId] ?? null;
+
+                    if (!$old) {
+                        // 1. New Question Added
+                        if (!empty($nc['question'])) {
+                            $isWanitaAsker = ($nc['asker'] ?? '') === 'wanita';
+                            $askerName = $isWanitaAsker ? $wanitaNameDisplay : $priaNameDisplay;
+                            $partnerPushTitle = '💬 Pertanyaan Baru Masuk';
+                            $partnerPushBody = $askerName . ': "' . mb_substr($nc['question'], 0, 45) . (mb_strlen($nc['question']) > 45 ? '...' : '') . '"';
+                            $senderRole = $nc['asker'] ?? $senderRole;
+                            break;
+                        }
+                    } else {
+                        // 2. Main Answer sent
+                        if (!empty($nc['sentAtPria']) && $nc['sentAtPria'] !== ($old['sentAtPria'] ?? '')) {
+                            $partnerPushTitle = '💌 Jawaban Masuk dari Pasangan';
+                            $partnerPushBody = $priaNameDisplay . ' telah mengirim jawaban pada: "' . mb_substr($nc['question'] ?? '', 0, 38) . '..."';
+                            $senderRole = 'pria';
+                            break;
+                        }
+                        if (!empty($nc['sentAtWanita']) && $nc['sentAtWanita'] !== ($old['sentAtWanita'] ?? '')) {
+                            $partnerPushTitle = '💌 Jawaban Masuk dari Pasangan';
+                            $partnerPushBody = $wanitaNameDisplay . ' telah mengirim jawaban pada: "' . mb_substr($nc['question'] ?? '', 0, 38) . '..."';
+                            $senderRole = 'wanita';
+                            break;
+                        }
+
+                        // 3. Sub-Question / Sanggahan Added
+                        $oldSubs = $old['subQuestions'] ?? [];
+                        $newSubs = $nc['subQuestions'] ?? [];
+                        if (count($newSubs) > count($oldSubs)) {
+                            $lastSub = end($newSubs);
+                            $isWanitaSub = ($lastSub['asker'] ?? '') === 'wanita';
+                            $subAskerName = $isWanitaSub ? $wanitaNameDisplay : $priaNameDisplay;
+                            $partnerPushTitle = '💬 Sanggahan / Sub-Pertanyaan Baru';
+                            $partnerPushBody = $subAskerName . ': "' . mb_substr($lastSub['question'] ?? '', 0, 42) . '..."';
+                            $senderRole = $lastSub['asker'] ?? $senderRole;
+                            break;
+                        }
+
+                        // 4. Sub-Question Answer Sent
+                        $oldSubMap = [];
+                        foreach ($oldSubs as $os) { $oldSubMap[$os['id'] ?? ''] = $os; }
+                        foreach ($newSubs as $ns) {
+                            $nsId = $ns['id'] ?? '';
+                            $os = $oldSubMap[$nsId] ?? null;
+                            if ($os) {
+                                if (!empty($ns['sentAtPria']) && $ns['sentAtPria'] !== ($os['sentAtPria'] ?? '')) {
+                                    $partnerPushTitle = '💬 Tanggapan Sanggahan Masuk';
+                                    $partnerPushBody = $priaNameDisplay . ' menanggapi sanggahan pada: "' . mb_substr($nc['question'] ?? '', 0, 35) . '..."';
+                                    $senderRole = 'pria';
+                                    break 2;
+                                }
+                                if (!empty($ns['sentAtWanita']) && $ns['sentAtWanita'] !== ($os['sentAtWanita'] ?? '')) {
+                                    $partnerPushTitle = '💬 Tanggapan Sanggahan Masuk';
+                                    $partnerPushBody = $wanitaNameDisplay . ' menanggapi sanggahan pada: "' . mb_substr($nc['question'] ?? '', 0, 35) . '..."';
+                                    $senderRole = 'wanita';
+                                    break 2;
+                                }
+                            }
+                        }
+
+                        // 5. Question agreed
+                        if (($nc['status'] ?? '') === 'sepakat' && ($old['status'] ?? '') !== 'sepakat') {
+                            $partnerPushTitle = '🎉 Poin Pertanyaan Disepakati!';
+                            $partnerPushBody = '"' . mb_substr($nc['question'] ?? '', 0, 45) . '..." telah disepakati bersama.';
+                            break;
+                        }
+                    }
+                }
+
+                if ($partnerPushTitle && $partnerPushBody) {
+                    $payload = [
+                        'title' => $partnerPushTitle,
+                        'body' => $partnerPushBody,
+                        'url' => '/tahap/proses-taaruf',
+                        'timestamp' => time() * 1000,
+                    ];
+                    WebPushEngine::notifyPartner($workspaceId, $senderRole, $payload, $DATA_DIR);
+                }
+            } catch (Exception $e) {
+                error_log('WebPush trigger error: ' . $e->getMessage());
+            }
+        }
 
         // Sync name to user.json if fullName changed
         if ($module === 'profile' && !empty($input['self']['fullName'])) {
