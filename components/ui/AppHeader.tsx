@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ChevronLeft, User, Check, Cloud } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
 
 interface AppHeaderProps {
   title: string;
@@ -92,6 +93,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             {userRoleBadge}
           </span>
         )}
+
+        {/* Lonceng Notifikasi Pesan Masuk dengan Badge Angka Merah */}
+        <NotificationBell />
 
         {rightAction ? (
           rightAction

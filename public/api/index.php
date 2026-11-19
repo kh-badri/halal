@@ -1076,6 +1076,172 @@ if ($route === 'notifications/test' && $method === 'POST') {
     ]);
 }
 
+// Route: /api/notifications (GET) - Get list of in-app notifications & unread count
+if ($route === 'notifications' && $method === 'GET') {
+    $notifFile = $wsDir . '/notifications.json';
+    $notifs = readJson($notifFile, []);
+
+    $workspace = readJson($wsDir . '/workspace.json', []);
+    $isPartner = isWorkspacePartner($user, $workspace);
+    $userRole = $isPartner ? 'wanita' : 'pria';
+
+    // If notifications file is empty, auto-seed from taaruf.json
+    if (empty($notifs)) {
+        $taaruf = readJson($wsDir . '/taaruf.json', []);
+        $profile = readJson($wsDir . '/profile.json', []);
+        $priaName = $profile['self']['fullName'] ?? 'Calon Pria';
+        $wanitaName = $profile['partner']['fullName'] ?? 'Calon Perempuan';
+
+        $seeded = [];
+        $qaCards = $taaruf['qaCards'] ?? [];
+        foreach ($qaCards as $card) {
+            $cId = $card['id'] ?? '';
+            $qText = $card['question'] ?? '';
+            $asker = $card['asker'] ?? 'pria';
+            $askerName = $asker === 'pria' ? $priaName : $wanitaName;
+
+            // Question from partner
+            if ($asker !== $userRole && !empty($qText)) {
+                $seeded[] = [
+                    'id' => 'notif_q_' . $cId,
+                    'type' => 'question',
+                    'title' => '💬 Pertanyaan Baru Masuk',
+                    'body' => $askerName . ': "' . mb_substr($qText, 0, 48) . (mb_strlen($qText) > 48 ? '...' : '') . '"',
+                    'url' => '/tahap/proses-taaruf#' . $cId,
+                    'targetRole' => $userRole,
+                    'senderRole' => $asker,
+                    'senderName' => $askerName,
+                    'createdAt' => $card['createdAt'] ?? date('c'),
+                    'readBy' => [],
+                ];
+            }
+
+            // Partner answer
+            if ($userRole === 'pria' && !empty($card['sentAtWanita']) && !empty($card['answerWanita'])) {
+                $seeded[] = [
+                    'id' => 'notif_ans_w_' . $cId,
+                    'type' => 'answer',
+                    'title' => '💌 Jawaban dari ' . $wanitaName,
+                    'body' => 'Jawaban terkirim: "' . mb_substr($card['answerWanita'], 0, 48) . '..."',
+                    'url' => '/tahap/proses-taaruf#' . $cId,
+                    'targetRole' => 'pria',
+                    'senderRole' => 'wanita',
+                    'senderName' => $wanitaName,
+                    'createdAt' => $card['sentAtWanita'] ?? ($card['updatedAt'] ?? date('c')),
+                    'readBy' => [],
+                ];
+            } else if ($userRole === 'wanita' && !empty($card['sentAtPria']) && !empty($card['answerPria'])) {
+                $seeded[] = [
+                    'id' => 'notif_ans_p_' . $cId,
+                    'type' => 'answer',
+                    'title' => '💌 Jawaban dari ' . $priaName,
+                    'body' => 'Jawaban terkirim: "' . mb_substr($card['answerPria'], 0, 48) . '..."',
+                    'url' => '/tahap/proses-taaruf#' . $cId,
+                    'targetRole' => 'wanita',
+                    'senderRole' => 'pria',
+                    'senderName' => $priaName,
+                    'createdAt' => $card['sentAtPria'] ?? ($card['updatedAt'] ?? date('c')),
+                    'readBy' => [],
+                ];
+            }
+
+            // Sub questions
+            foreach (($card['subQuestions'] ?? []) as $sub) {
+                $subAsker = $sub['asker'] ?? 'pria';
+                $subAskerName = $subAsker === 'pria' ? $priaName : $wanitaName;
+                if ($subAsker !== $userRole) {
+                    $seeded[] = [
+                        'id' => 'notif_sub_' . ($sub['id'] ?? uniqid()),
+                        'type' => 'sub_question',
+                        'title' => '💬 Sanggahan Baru dari ' . $subAskerName,
+                        'body' => '"' . mb_substr($sub['question'] ?? '', 0, 48) . '..."',
+                        'url' => '/tahap/proses-taaruf#' . $cId,
+                        'targetRole' => $userRole,
+                        'senderRole' => $subAsker,
+                        'senderName' => $subAskerName,
+                        'createdAt' => $sub['createdAt'] ?? date('c'),
+                        'readBy' => [],
+                    ];
+                }
+            }
+
+            // Agreement
+            if (($card['status'] ?? '') === 'sepakat') {
+                $seeded[] = [
+                    'id' => 'notif_agree_' . $cId,
+                    'type' => 'agreed',
+                    'title' => '🎉 Poin Pertanyaan Disepakati!',
+                    'body' => '"' . mb_substr($qText, 0, 45) . '..." telah disepakati bersama.',
+                    'url' => '/tahap/proses-taaruf#' . $cId,
+                    'targetRole' => $userRole,
+                    'senderRole' => 'system',
+                    'senderName' => 'Road To Halal',
+                    'createdAt' => $card['updatedAt'] ?? date('c'),
+                    'readBy' => [],
+                ];
+            }
+        }
+
+        if (!empty($seeded)) {
+            usort($seeded, fn($a, $b) => strcmp($b['createdAt'] ?? '', $a['createdAt'] ?? ''));
+            writeJsonAtomic($notifFile, $seeded);
+            $notifs = $seeded;
+        }
+    }
+
+    // Filter notifications for this user / role
+    $userNotifs = [];
+    $unreadCount = 0;
+
+    foreach ($notifs as $n) {
+        $target = $n['targetRole'] ?? '';
+        if (empty($target) || $target === $userRole || ($n['senderRole'] ?? '') !== $userRole) {
+            $isRead = in_array($user['id'], $n['readBy'] ?? []);
+            if (!$isRead) {
+                $unreadCount++;
+            }
+            $item = $n;
+            $item['isRead'] = $isRead;
+            $userNotifs[] = $item;
+        }
+    }
+
+    usort($userNotifs, fn($a, $b) => strcmp($b['createdAt'] ?? '', $a['createdAt'] ?? ''));
+
+    jsonResponse([
+        'success' => true,
+        'notifications' => array_slice($userNotifs, 0, 50),
+        'unreadCount' => $unreadCount,
+        'total' => count($userNotifs),
+    ]);
+}
+
+// Route: /api/notifications/read (POST) - Mark one or all notifications as read
+if ($route === 'notifications/read' && $method === 'POST') {
+    $notifFile = $wsDir . '/notifications.json';
+    $notifs = readJson($notifFile, []);
+    $targetId = $input['id'] ?? null;
+    $markAll = !empty($input['all']);
+
+    foreach ($notifs as &$n) {
+        $readBy = $n['readBy'] ?? [];
+        if ($markAll || ($targetId && ($n['id'] ?? '') === $targetId)) {
+            if (!in_array($user['id'], $readBy)) {
+                $readBy[] = $user['id'];
+                $n['readBy'] = $readBy;
+            }
+        }
+    }
+    unset($n);
+
+    writeJsonAtomic($notifFile, $notifs);
+
+    jsonResponse([
+        'success' => true,
+        'message' => 'Status notifikasi berhasil diperbarui.',
+    ]);
+}
+
 // STAGE DEFINITIONS
 $STAGE_ORDER = [
     'persetujuan-taaruf',
@@ -1643,13 +1809,37 @@ if (preg_match('#^m/([a-zA-Z0-9_-]+)$#', $route, $matches)) {
                 }
 
                 if ($partnerPushTitle && $partnerPushBody) {
+                    $targetCardId = !empty($nc['id']) ? '#' . $nc['id'] : '';
+                    $notifUrl = '/tahap/proses-taaruf' . $targetCardId;
+
                     $payload = [
                         'title' => $partnerPushTitle,
                         'body' => $partnerPushBody,
-                        'url' => '/tahap/proses-taaruf',
+                        'url' => $notifUrl,
                         'timestamp' => time() * 1000,
                     ];
                     WebPushEngine::notifyPartner($workspaceId, $senderRole, $payload, $DATA_DIR);
+
+                    // Also store in in-app notification list
+                    $notifFile = $wsDir . '/notifications.json';
+                    $existingNotifs = readJson($notifFile, []);
+                    $newEntry = [
+                        'id' => 'notif_' . time() . '_' . bin2hex(random_bytes(3)),
+                        'type' => 'taaruf_activity',
+                        'title' => $partnerPushTitle,
+                        'body' => $partnerPushBody,
+                        'url' => $notifUrl,
+                        'targetRole' => $senderRole === 'pria' ? 'wanita' : 'pria',
+                        'senderRole' => $senderRole,
+                        'senderName' => $senderRole === 'pria' ? $priaNameDisplay : $wanitaNameDisplay,
+                        'createdAt' => date('c'),
+                        'readBy' => [],
+                    ];
+                    array_unshift($existingNotifs, $newEntry);
+                    if (count($existingNotifs) > 100) {
+                        $existingNotifs = array_slice($existingNotifs, 0, 100);
+                    }
+                    writeJsonAtomic($notifFile, $existingNotifs);
                 }
             } catch (Exception $e) {
                 error_log('WebPush trigger error: ' . $e->getMessage());
