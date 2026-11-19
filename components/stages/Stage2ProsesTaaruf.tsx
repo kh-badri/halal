@@ -44,6 +44,8 @@ import {
   getNotificationPermission,
   requestNotificationPermission,
   showPushNotification,
+  subscribeUserToPush,
+  triggerServerPushTest,
 } from '@/lib/notifications/pwa-notifications';
 
 // Date Helpers for Taaruf Sessions
@@ -254,20 +256,37 @@ export function Stage2ProsesTaaruf({
   const [subQuestionAsker, setSubQuestionAsker] = useState<'pria' | 'wanita'>('pria');
 
   useEffect(() => {
-    setNotificationPermission(getNotificationPermission());
-  }, []);
+    const perm = getNotificationPermission();
+    setNotificationPermission(perm);
+    if (perm === 'granted') {
+      subscribeUserToPush(userRole).catch(() => {});
+    }
+  }, [userRole]);
 
   const handleEnableNotification = async () => {
     const res = await requestNotificationPermission();
     setNotificationPermission(res);
     if (res === 'granted') {
-      showToast('Notifikasi pop-up layar HP berhasil diaktifkan!', 'success');
+      const subscribed = await subscribeUserToPush(userRole);
+      if (subscribed) {
+        showToast('Notifikasi pop-up layar HP aktif & terhubung ke server! Notifikasi akan tetap masuk meski aplikasi ditutup.', 'success');
+      } else {
+        showToast('Izin notifikasi layar HP aktif!', 'success');
+      }
     } else if (res === 'denied') {
       showToast('Izin notifikasi ditolak. Anda dapat mengaktifkannya di pengaturan browser HP.', 'error');
     }
   };
 
   const handleTestNotification = async () => {
+    // 1. Try server-side push first (validates real background delivery)
+    const serverRes = await triggerServerPushTest();
+    if (serverRes.success) {
+      showToast('Sinyal server push berhasil dikirim ke HP Anda!', 'info');
+      return;
+    }
+
+    // 2. Fallback to client-side notification
     const partnerNameDisplay = userRole === 'pria' ? (wanitaName || 'Calon Pasangan') : (priaName || 'Calon Pasangan');
     await showPushNotification('💌 Uji Coba: Jawaban dari Calon Pasangan', {
       body: `${partnerNameDisplay} telah menjawab pertanyaan ta'aruf. Ketuk untuk membuka!`,

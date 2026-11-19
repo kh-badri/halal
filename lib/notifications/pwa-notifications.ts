@@ -87,6 +87,99 @@ export interface PushNotificationOptions extends NotificationOptions {
 }
 
 /**
+ * Convert URL-safe base64 string to Uint8Array for PushManager applicationServerKey
+ */
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+/**
+ * Subscribe device to native Web Push and save subscription on the server.
+ * Enables background screen pop-up notifications even when the app is completely closed.
+ */
+export async function subscribeUserToPush(
+  role?: 'pria' | 'wanita',
+  userId?: string
+): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.debug('PushManager is not supported by this browser environment');
+    return false;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if (!reg.pushManager) return false;
+
+    // 1. Fetch VAPID Public Key from backend
+    const keyRes = await fetch('/api/notifications/vapid-key');
+    if (!keyRes.ok) {
+      console.warn('Failed to retrieve VAPID key from server:', keyRes.status);
+      return false;
+    }
+    const { publicKey } = await keyRes.json();
+    if (!publicKey) return false;
+
+    const applicationServerKey = urlBase64ToUint8Array(publicKey);
+
+    // 2. Subscribe or reuse existing subscription
+    let subscription = await reg.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKey as unknown as BufferSource,
+      });
+    }
+
+    if (!subscription) return false;
+
+    // 3. Register subscription on the backend server
+    const saveRes = await fetch('/api/notifications/subscribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        subscription: subscription.toJSON(),
+        role: role || 'pria',
+        userId,
+      }),
+    });
+
+    return saveRes.ok;
+  } catch (err) {
+    console.warn('Failed to subscribe user to Web Push:', err);
+    return false;
+  }
+}
+
+/**
+ * Trigger immediate background server push test to verify that notifications work when closed
+ */
+export async function triggerServerPushTest(): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch('/api/notifications/test', { method: 'POST' });
+    const data = await res.json();
+    return {
+      success: Boolean(data.success),
+      message: data.message || 'Respons server diterima',
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err?.message || 'Gagal menghubungi endpoint uji coba notifikasi.',
+    };
+  }
+}
+
+/**
  * Display a push notification on the device screen / notification drawer
  */
 export async function showPushNotification(
