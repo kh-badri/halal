@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roadtohalal-cache-v6';
+const CACHE_NAME = 'roadtohalal-cache-v7';
 const PRECACHE_ASSETS = [
   '/',
   '/rute',
@@ -132,6 +132,8 @@ self.addEventListener('push', (event) => {
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
     vibrate: [200, 100, 200, 100, 200],
+    tag: data.tag || 'rth-' + Date.now(),
+    renotify: true,
     data: {
       url: data.url || '/tahap/proses-taaruf',
       timestamp: Date.now(),

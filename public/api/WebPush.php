@@ -231,6 +231,7 @@ class WebPushEngine {
             'TTL: 86400',
             'Urgency: high',
             'Authorization: vapid t=' . $jwt . ', k=' . $vapidKeys['publicKey'],
+            'Crypto-Key: p256ecdsa=' . $vapidKeys['publicKey'],
         ];
 
         $ch = curl_init($endpoint);
