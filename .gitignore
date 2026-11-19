@@ -1,4 +1,6 @@
 node_modules/
 *.log
 .env*
-
+.next/
+out/
+tsconfig.tsbuildinfo
