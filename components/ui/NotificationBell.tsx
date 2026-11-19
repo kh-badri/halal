@@ -184,7 +184,7 @@ export const NotificationBell: React.FC = () => {
     switch (type) {
       case 'answer':
         return (
-          <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[#FEE2E2] text-[#DC2626] flex items-center justify-center shrink-0">
             <Mail className="w-4 h-4" />
           </div>
         );
@@ -231,7 +231,7 @@ export const NotificationBell: React.FC = () => {
 
         {/* Red Badge with Count */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center shadow-xs border-2 border-white animate-scale-up">
+          <span className="absolute -top-1 -right-1 bg-[#EF4444] text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center shadow-xs border-2 border-white animate-scale-up">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -259,7 +259,7 @@ export const NotificationBell: React.FC = () => {
                   <div className="flex items-center gap-1.5">
                     <h3 className="text-xs sm:text-sm font-extrabold text-navy-950">Notifikasi Masuk</h3>
                     {unreadCount > 0 && (
-                      <span className="px-1.5 py-0.2 bg-rose-100 text-rose-700 text-[10px] font-black rounded-full">
+                      <span className="px-1.5 py-0.2 bg-[#FEE2E2] text-[#DC2626] text-[10px] font-black rounded-full">
                         {unreadCount} Baru
                       </span>
                     )}
@@ -310,7 +310,7 @@ export const NotificationBell: React.FC = () => {
                 onClick={() => setFilterTab('unread')}
                 className={`flex-1 py-1 text-[11px] font-extrabold rounded-lg transition-all ${
                   filterTab === 'unread'
-                    ? 'bg-rose-50 text-rose-700 shadow-2xs'
+                    ? 'bg-[#FEE2E2] text-[#DC2626] shadow-2xs'
                     : 'text-slate-500 hover:text-navy-900'
                 }`}
               >
@@ -342,7 +342,7 @@ export const NotificationBell: React.FC = () => {
                           {notif.title}
                         </span>
                         {!notif.isRead && (
-                          <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" title="Belum dibaca" />
+                          <span className="w-2 h-2 rounded-full bg-[#EF4444] shrink-0 shadow-2xs" title="Belum dibaca" />
                         )}
                       </div>
 
