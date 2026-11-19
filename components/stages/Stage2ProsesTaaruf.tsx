@@ -29,6 +29,8 @@ import {
   Calendar,
   ArrowUpDown,
   Filter,
+  ChevronLeft,
+  ChevronRight,
   Bell,
   BellRing,
   BellOff,
@@ -223,6 +225,29 @@ export function Stage2ProsesTaaruf({
   // Sesi Tanggal Filter States
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>('all');
   const [dateSortOrder, setDateSortOrder] = useState<'asc' | 'desc'>('asc');
+  const datePickerInputRef = useRef<HTMLInputElement>(null);
+  const dateScrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenDatePicker = () => {
+    if (datePickerInputRef.current) {
+      try {
+        if (typeof datePickerInputRef.current.showPicker === 'function') {
+          datePickerInputRef.current.showPicker();
+        } else {
+          datePickerInputRef.current.focus();
+        }
+      } catch {
+        datePickerInputRef.current.focus();
+      }
+    }
+  };
+
+  const scrollDatePills = (direction: 'left' | 'right') => {
+    if (dateScrollContainerRef.current) {
+      const offset = direction === 'left' ? -220 : 220;
+      dateScrollContainerRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
 
   // Edit Pertanyaan Modal
   const [editingQuestion, setEditingQuestion] = useState<QuestionItem | null>(null);
@@ -2421,7 +2446,7 @@ export function Stage2ProsesTaaruf({
 
       {/* Sesi Diskusi Berdasarkan Tanggal (Filter Bar) */}
       <div className="bg-white border border-line rounded-2xl p-3 shadow-xs space-y-2.5">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="w-5 h-5 rounded-md bg-sky-100 text-azure-700 flex items-center justify-center text-xs shrink-0 font-bold">
               <Calendar className="w-3 h-3" />
@@ -2430,13 +2455,35 @@ export function Stage2ProsesTaaruf({
               Sesi Tanya Jawab per Tanggal
             </span>
             {selectedDateFilter !== 'all' && (
-              <span className="text-[10px] font-bold text-azure-700 bg-sky-50 border border-sky-200 px-2 py-0.2 rounded-full hidden sm:inline-block">
-                Sesi: {formatDateIndonesian(selectedDateFilter)}
-              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedDateFilter('all')}
+                className="inline-flex items-center gap-1 text-[10px] font-bold text-azure-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                title="Klik untuk reset ke semua sesi"
+              >
+                <span>Sesi: {formatShortDateIndonesian(selectedDateFilter)}</span>
+                <X className="w-2.5 h-2.5" />
+              </button>
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+            {/* Desktop Direct Date Dropdown Selector */}
+            <select
+              value={selectedDateFilter}
+              onChange={(e) => setSelectedDateFilter(e.target.value)}
+              className="text-[11px] font-bold text-azure-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-azure-500 cursor-pointer hidden sm:inline-block transition-colors"
+              aria-label="Pilih tanggal sesi langsung"
+              title="Pilih langsung dari daftar sesi"
+            >
+              <option value="all">Semua Sesi ({activeTab === 'pria' ? priaQuestions.length : activeTab === 'wanita' ? wanitaQuestions.length : totalCount})</option>
+              {availableSessionDates.map((item) => (
+                <option key={item.date} value={item.date}>
+                  {item.isToday ? `Hari Ini (${formatShortDateIndonesian(item.date)})` : formatShortDateIndonesian(item.date)} ({item.count})
+                </option>
+              ))}
+            </select>
+
             {/* Sort Order Toggle */}
             <button
               type="button"
@@ -2448,16 +2495,19 @@ export function Stage2ProsesTaaruf({
               <span>{dateSortOrder === 'asc' ? 'Lama → Baru' : 'Baru → Lama'}</span>
             </button>
 
-            {/* Custom Date Picker Pill */}
+            {/* Native Calendar Picker Button with .showPicker() */}
             <div className="relative">
               <button
                 type="button"
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-azure-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 transition-colors"
+                onClick={handleOpenDatePicker}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-azure-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 transition-colors cursor-pointer active:scale-95"
+                title="Buka kalender untuk memilih tanggal spesifik"
               >
                 <Filter className="w-3 h-3" />
                 <span>Pilih Tgl</span>
               </button>
               <input
+                ref={datePickerInputRef}
                 type="date"
                 value={selectedDateFilter !== 'all' ? selectedDateFilter : getTodayDateString()}
                 onChange={(e) => {
@@ -2465,68 +2515,96 @@ export function Stage2ProsesTaaruf({
                     setSelectedDateFilter(e.target.value);
                   }
                 }}
-                className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                title="Pilih tanggal sesi spesifik"
+                className="sr-only"
+                aria-label="Pilih tanggal sesi spesifik"
               />
             </div>
           </div>
         </div>
 
-        {/* Horizontal Scrollable Date Session Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5 pb-0.5">
-          {/* Semua Sesi Pill */}
+        {/* Date Session Pills with Desktop Left & Right Arrow Buttons */}
+        <div className="relative flex items-center gap-1">
+          {/* Scroll Left Button on Desktop */}
           <button
             type="button"
-            onClick={() => setSelectedDateFilter('all')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
-              selectedDateFilter === 'all'
-                ? 'bg-navy-900 text-white shadow-xs font-black'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            onClick={() => scrollDatePills('left')}
+            className="hidden sm:flex w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 items-center justify-center shrink-0 transition-colors shadow-2xs active:scale-95"
+            title="Geser sesi ke kiri"
+            aria-label="Geser sesi ke kiri"
           >
-            <span>Semua Sesi</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                selectedDateFilter === 'all' ? 'bg-white/20 text-white font-bold' : 'bg-slate-200 text-slate-700'
-              }`}
-            >
-              {activeTab === 'pria' ? priaQuestions.length : activeTab === 'wanita' ? wanitaQuestions.length : totalCount}
-            </span>
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
 
-          {/* Individual Date Session Pills */}
-          {availableSessionDates.map((item) => {
-            const isSelected = selectedDateFilter === item.date;
-            const shortLabel = formatShortDateIndonesian(item.date);
-
-            return (
-              <button
-                key={item.date}
-                type="button"
-                onClick={() => setSelectedDateFilter(item.date)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all border ${
-                  isSelected
-                    ? 'bg-azure border-azure-600 text-white shadow-xs font-black'
-                    : item.count > 0
-                    ? 'bg-white border-slate-200 text-slate-800 hover:border-sky-300'
-                    : 'bg-slate-50/70 border-slate-200 text-slate-400 hover:text-slate-600'
+          {/* Horizontal Scrollable Date Session Pills */}
+          <div
+            ref={dateScrollContainerRef}
+            className="flex-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5 pb-0.5 scroll-smooth"
+          >
+            {/* Semua Sesi Pill */}
+            <button
+              type="button"
+              onClick={() => setSelectedDateFilter('all')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
+                selectedDateFilter === 'all'
+                  ? 'bg-navy-900 text-white shadow-xs font-black'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              <span>Semua Sesi</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  selectedDateFilter === 'all' ? 'bg-white/20 text-white font-bold' : 'bg-slate-200 text-slate-700'
                 }`}
               >
-                <span>{item.isToday ? `Hari Ini (${shortLabel})` : shortLabel}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                {activeTab === 'pria' ? priaQuestions.length : activeTab === 'wanita' ? wanitaQuestions.length : totalCount}
+              </span>
+            </button>
+
+            {/* Individual Date Session Pills */}
+            {availableSessionDates.map((item) => {
+              const isSelected = selectedDateFilter === item.date;
+              const shortLabel = formatShortDateIndonesian(item.date);
+
+              return (
+                <button
+                  key={item.date}
+                  type="button"
+                  onClick={() => setSelectedDateFilter(item.date)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all border ${
                     isSelected
-                      ? 'bg-white/25 text-white'
+                      ? 'bg-azure border-azure-600 text-white shadow-xs font-black'
                       : item.count > 0
-                      ? 'bg-sky-100 text-azure-700'
-                      : 'bg-slate-200 text-slate-500'
+                      ? 'bg-white border-slate-200 text-slate-800 hover:border-sky-300'
+                      : 'bg-slate-50/70 border-slate-200 text-slate-400 hover:text-slate-600'
                   }`}
                 >
-                  {item.count}
-                </span>
-              </button>
-            );
-          })}
+                  <span>{item.isToday ? `Hari Ini (${shortLabel})` : shortLabel}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                      isSelected
+                        ? 'bg-white/25 text-white'
+                        : item.count > 0
+                        ? 'bg-sky-100 text-azure-700'
+                        : 'bg-slate-200 text-slate-500'
+                    }`}
+                  >
+                    {item.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Scroll Right Button on Desktop */}
+          <button
+            type="button"
+            onClick={() => scrollDatePills('right')}
+            className="hidden sm:flex w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 items-center justify-center shrink-0 transition-colors shadow-2xs active:scale-95"
+            title="Geser sesi ke kanan"
+            aria-label="Geser sesi ke kanan"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
