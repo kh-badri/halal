@@ -35,7 +35,7 @@ export const CompleteStageButton: React.FC<CompleteStageButtonProps> = ({
   if (isReadOnly) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center p-3 pointer-events-none pb-safe">
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md border border-line px-4 py-2.5 rounded-full shadow-subtle flex items-center justify-center gap-2 pointer-events-auto">
+        <div className="w-full max-w-md sm:max-w-lg md:max-w-xl bg-white/95 backdrop-blur-md border border-line px-4 py-2.5 rounded-full shadow-subtle flex items-center justify-center gap-2 pointer-events-auto">
           <span className="text-xs font-bold text-slate-600">
             Mode Hanya Baca · Lencana View Only
           </span>
@@ -48,7 +48,7 @@ export const CompleteStageButton: React.FC<CompleteStageButtonProps> = ({
   if (isCompleted) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center p-3 pointer-events-none pb-safe">
-        <div className="w-full max-w-md bg-mint-100 border border-mint-300 px-4 py-2.5 rounded-full shadow-subtle flex items-center justify-between pointer-events-auto">
+        <div className="w-full max-w-md sm:max-w-lg md:max-w-xl bg-mint-100 border border-mint-300 px-4 py-2.5 rounded-full shadow-subtle flex items-center justify-between pointer-events-auto">
           <div className="flex items-center gap-2">
             <Check size={18} className="text-mint-700 stroke-[3]" />
             <span className="text-xs font-extrabold text-mint-700">
@@ -102,7 +102,7 @@ export const CompleteStageButton: React.FC<CompleteStageButtonProps> = ({
   return (
     <>
       <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center p-3 pointer-events-none pb-safe">
-        <div className="w-full max-w-md pointer-events-auto">
+        <div className="w-full max-w-md sm:max-w-lg md:max-w-xl pointer-events-auto">
           {canComplete ? (
             <button
               onClick={() => setShowConfirmModal(true)}

@@ -16,7 +16,7 @@ export function MiniRoute({ currentStageKey, routeData }: MiniRouteProps) {
 
   return (
     <div className="w-full glass-header border-b border-line px-4 py-2.5">
-      <div className="relative flex items-center justify-between max-w-md mx-auto">
+      <div className="relative flex items-center justify-between max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto px-2">
         {/* Connecting line behind the dots */}
         <div className="absolute left-3 right-3 top-1/2 -translate-y-1/2 h-0.5 bg-line z-0" />
 

@@ -130,7 +130,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   return (
     <div className="relative min-h-screen bg-mist text-navy-900 pb-28 select-none">
       {/* 1. Floating Capsule Sticky Navigation */}
-      <div className="sticky top-3 z-40 px-3 max-w-md mx-auto pointer-events-none">
+      <div className="sticky top-3 z-40 px-3 max-w-md sm:max-w-xl md:max-w-2xl mx-auto pointer-events-none">
         <div className="glass-header rounded-full px-4 py-2 shadow-subtle border border-line flex items-center justify-between gap-2 pointer-events-auto transition-all">
           <div className="flex items-center gap-2 truncate">
             <div className="w-7 h-7 rounded-full bg-azure text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
@@ -158,7 +158,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
       {/* 2. Aurora Sky Hero Header */}
       <div className="px-5 pt-5 pb-7 bg-aurora border-b border-line rounded-b-[32px] shadow-card">
-        <div className="max-w-md mx-auto space-y-4">
+        <div className="max-w-md md:max-w-3xl lg:max-w-4xl mx-auto space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azure-700 bg-white/95 px-3 py-1 rounded-full border border-sky-200 shadow-xs">

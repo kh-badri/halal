@@ -63,6 +63,19 @@ export const NotificationBell: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const lastCloseTimeRef = useRef<number>(0);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
+
+  // Calculate desktop position anchored directly beneath the bell icon
+  const updateDropdownPos = useCallback(() => {
+    if (dropdownRef.current && typeof window !== 'undefined') {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      const rightFromEdge = Math.max(12, window.innerWidth - rect.right);
+      setDropdownPos({
+        top: rect.bottom + 8,
+        right: rightFromEdge,
+      });
+    }
+  }, []);
 
   // Close popup with timestamp record to prevent ghost click
   const closePopup = useCallback(() => {
@@ -80,6 +93,7 @@ export const NotificationBell: React.FC = () => {
     if (isOpen) {
       closePopup();
     } else {
+      updateDropdownPos();
       setIsOpen(true);
       fetchNotifications();
     }
@@ -154,11 +168,19 @@ export const NotificationBell: React.FC = () => {
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
 
+    const handleWindowChange = () => {
+      updateDropdownPos();
+    };
+    window.addEventListener('resize', handleWindowChange);
+    window.addEventListener('scroll', handleWindowChange, true);
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleWindowChange);
+      window.removeEventListener('scroll', handleWindowChange, true);
     };
-  }, [isOpen, closePopup]);
+  }, [isOpen, closePopup, updateDropdownPos]);
 
   // Mark a single notification as read and directly navigate to question/answer chat column
   const handleItemClick = async (notif: NotificationItem) => {
@@ -314,7 +336,15 @@ export const NotificationBell: React.FC = () => {
             {/* Modal Card: Native Bottom Sheet on Mobile, Floating Dropdown on Desktop */}
             <div
               ref={modalRef}
-              className="relative z-10 pointer-events-auto w-full max-w-md mx-auto sm:max-w-none sm:w-96 max-h-[85vh] sm:max-h-[540px] bg-white rounded-t-3xl sm:rounded-3xl border border-line shadow-sheet overflow-hidden flex flex-col animate-scale-up sm:mt-14 sm:mr-4 mb-0 sm:mb-auto pb-safe"
+              style={
+                dropdownPos && typeof window !== 'undefined' && window.innerWidth >= 640
+                  ? {
+                      top: `${dropdownPos.top}px`,
+                      right: `${dropdownPos.right}px`,
+                    }
+                  : undefined
+              }
+              className="relative z-10 pointer-events-auto w-full max-w-md mx-auto sm:max-w-none sm:w-96 max-h-[85vh] sm:max-h-[540px] bg-white rounded-t-3xl sm:rounded-3xl border border-line shadow-sheet overflow-hidden flex flex-col animate-scale-up sm:fixed sm:m-0 mb-0 sm:mb-auto pb-safe"
             >
               {/* Mobile Drag Indicator Handle */}
               <div className="pt-2.5 pb-1 flex justify-center sm:hidden bg-slate-50/80 cursor-grab">

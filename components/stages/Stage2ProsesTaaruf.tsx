@@ -1605,9 +1605,9 @@ export function Stage2ProsesTaaruf({
         </div>
 
         {/* DUA KOLOM JAWABAN (RESPONSIF: 1 KOLOM DI MOBILE, 2 KOLOM DI TABLET/DESKTOP) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-4">
           {/* Kolom Jawaban Calon Pria */}
-          <div id={`answer-box-pria-${q.id}`} className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
+          <div id={`answer-box-pria-${q.id}`} className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-2.5 sm:p-4 space-y-1.5 focus-within:border-blue-400 focus-within:bg-blue-50/20 transition-all">
             <div className="flex items-center justify-between gap-1">
               <label className="text-[11px] font-black text-slate-700 flex items-center gap-1.5 min-w-0">
                 <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] shrink-0">
@@ -1665,7 +1665,7 @@ export function Stage2ProsesTaaruf({
                   ? `Tulis jawaban dari ${priaName ? priaName : 'calon pria'}...`
                   : 'Pengisian jawaban terkunci...'
               }
-              className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-slate-200/90 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
+              className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-slate-200/90 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none min-h-[85px] sm:min-h-[115px] ${
                 !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
               }`}
             />
@@ -1694,7 +1694,7 @@ export function Stage2ProsesTaaruf({
           </div>
 
           {/* Kolom Jawaban Calon Perempuan */}
-          <div id={`answer-box-wanita-${q.id}`} className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-3 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
+          <div id={`answer-box-wanita-${q.id}`} className="bg-sky-50/40 border border-sky-200/70 rounded-2xl p-2.5 sm:p-4 space-y-1.5 focus-within:border-rose-400 focus-within:bg-sky-50/60 transition-all">
             <div className="flex items-center justify-between gap-1">
               <label className="text-[11px] font-black text-rose-950 flex items-center gap-1.5 min-w-0">
                 <span className="w-4 h-4 rounded-full bg-sky-100 text-azure-700 flex items-center justify-center text-[10px] shrink-0">
@@ -1752,7 +1752,7 @@ export function Stage2ProsesTaaruf({
                   ? `Tulis jawaban dari ${wanitaName ? wanitaName : 'calon perempuan'}...`
                   : 'Pengisian jawaban terkunci...'
               }
-              className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-sky-200/90 rounded-xl focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none ${
+              className={`w-full px-3 py-2 text-[12px] sm:text-[13px] bg-white border border-sky-200/90 rounded-xl focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-100 transition-all leading-relaxed placeholder:text-slate-400 resize-none min-h-[85px] sm:min-h-[115px] ${
                 !canEditAnswers ? 'opacity-70 bg-slate-100/60 cursor-not-allowed' : ''
               }`}
             />
@@ -2165,26 +2165,26 @@ export function Stage2ProsesTaaruf({
         </div>
 
         {/* Stats Pills */}
-        <div className="grid grid-cols-5 gap-1.5 pt-0.5 text-center">
-          <div className="p-1.5 sm:p-2 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl">
-            <span className="text-xs font-black text-emerald-800 block">{agreedCount}</span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600 truncate block">Sepakat</span>
+        <div className="grid grid-cols-5 gap-1.5 sm:gap-3 pt-0.5 text-center">
+          <div className="p-1.5 sm:p-3 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl">
+            <span className="text-xs sm:text-base font-black text-emerald-800 block">{agreedCount}</span>
+            <span className="text-[9px] sm:text-xs font-bold text-emerald-600 truncate block">Sepakat</span>
           </div>
-          <div className="p-1.5 sm:p-2 bg-sky-50 border border-sky-200 rounded-2xl">
-            <span className="text-xs font-black text-azure-700 block">{discussedCount}</span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-azure-600 truncate block">Dibahas</span>
+          <div className="p-1.5 sm:p-3 bg-sky-50 border border-sky-200 rounded-2xl">
+            <span className="text-xs sm:text-base font-black text-azure-700 block">{discussedCount}</span>
+            <span className="text-[9px] sm:text-xs font-bold text-azure-600 truncate block">Dibahas</span>
           </div>
-          <div className="p-1.5 sm:p-2 bg-purple-50/80 border border-purple-200/80 rounded-2xl">
-            <span className="text-xs font-black text-purple-800 block">{considerationCount}</span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-purple-600 truncate block" title="Dipertimbangkan">Dipertimbangkan</span>
+          <div className="p-1.5 sm:p-3 bg-purple-50/80 border border-purple-200/80 rounded-2xl">
+            <span className="text-xs sm:text-base font-black text-purple-800 block">{considerationCount}</span>
+            <span className="text-[9px] sm:text-xs font-bold text-purple-600 truncate block" title="Dipertimbangkan">Dipertimbangkan</span>
           </div>
-          <div className="p-1.5 sm:p-2 bg-amber-50/80 border border-amber-200/80 rounded-2xl">
-            <span className="text-xs font-black text-amber-800 block">{rediscussCount}</span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-amber-600 truncate block">Bahas Ulang</span>
+          <div className="p-1.5 sm:p-3 bg-amber-50/80 border border-amber-200/80 rounded-2xl">
+            <span className="text-xs sm:text-base font-black text-amber-800 block">{rediscussCount}</span>
+            <span className="text-[9px] sm:text-xs font-bold text-amber-600 truncate block">Bahas Ulang</span>
           </div>
-          <div className="p-1.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-2xl">
-            <span className="text-xs font-black text-slate-700 block">{unhandledCount}</span>
-            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 truncate block">Belum</span>
+          <div className="p-1.5 sm:p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+            <span className="text-xs sm:text-base font-black text-slate-700 block">{unhandledCount}</span>
+            <span className="text-[9px] sm:text-xs font-bold text-slate-400 truncate block">Belum</span>
           </div>
         </div>
 

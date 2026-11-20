@@ -55,8 +55,8 @@ export default function RootLayout({
       </head>
       <body className="bg-mist min-h-screen text-navy-900 font-sans flex justify-center selection:bg-sky-200 selection:text-navy-900">
         <ToastProvider>
-          {/* Main Mobile App Frame (No bottom navigation - Section 8.5 & 8.7) */}
-          <div className="w-full max-w-md min-h-screen bg-white shadow-card border-x border-line relative flex flex-col overflow-x-hidden">
+          {/* Main App Frame: Mobile (<768px) is exact max-w-md, Desktop (>=768px) expands to modern elevated canvas */}
+          <div className="w-full max-w-md md:max-w-4xl lg:max-w-5xl xl:max-w-6xl min-h-screen bg-white md:my-6 md:rounded-3xl border-x md:border border-line shadow-card md:shadow-2xl relative flex flex-col overflow-x-hidden transition-all duration-300">
             <PWAInstallBanner />
             <main className="flex-1 w-full pb-8">{children}</main>
           </div>

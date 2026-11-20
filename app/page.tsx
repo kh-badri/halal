@@ -37,12 +37,12 @@ export default function HomePage() {
         <p className="text-xs text-azure-700 font-extrabold uppercase tracking-widest mt-1">
           Aplikasi Persiapan Pernikahan (PWA)
         </p>
-        <p className="text-xs sm:text-sm text-slate-600 mt-3 max-w-xs mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-600 mt-3 max-w-xs sm:max-w-lg mx-auto leading-relaxed">
           Menemani langkah calon pengantin dari persetujuan ta’aruf sampai hari akad dan walimah, selangkah demi selangkah.
         </p>
       </div>
 
-      <div className="my-6 space-y-3">
+      <div className="my-6 space-y-3 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0">
         <div className="p-4 rounded-2xl bg-white/95 border border-line shadow-subtle flex items-start gap-3">
           <div className="w-8 h-8 rounded-xl bg-sky-100 border border-sky-200 text-azure-700 flex items-center justify-center shrink-0">
             <MapPin size={18} />
@@ -80,7 +80,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="space-y-2.5 pb-6">
+      <div className="space-y-2.5 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-3 max-w-2xl mx-auto w-full pb-6">
         <Link
           href="/register"
           className="w-full py-3.5 bg-azure hover:bg-azure-700 text-white font-extrabold rounded-full text-xs shadow-subtle hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2"

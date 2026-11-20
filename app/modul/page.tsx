@@ -95,7 +95,7 @@ export default function ModulIndexPage() {
     <div className="min-h-screen bg-neutral-50/50 pb-16">
       <AppHeader title="Semua Modul" subtitle="Pusat kontrol persiapan pernikahan Anda" />
 
-      <div className="p-5 space-y-6">
+      <div className="p-5 sm:p-8 space-y-6 max-w-lg md:max-w-4xl lg:max-w-5xl mx-auto">
         {/* Core Modules Section */}
         <div>
           <div className="flex items-center justify-between mb-3">
@@ -103,7 +103,7 @@ export default function ModulIndexPage() {
             <span className="text-[11px] text-ink/60">P0 Wajib</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
             {coreModules.map((mod) => {
               const Icon = mod.icon;
               return (
@@ -135,7 +135,7 @@ export default function ModulIndexPage() {
             <span className="text-[11px] text-ink/60">P1 &amp; P2</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {additionalModules.map((mod) => {
               const Icon = mod.icon;
               return (
