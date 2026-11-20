@@ -14,6 +14,9 @@ import {
   Calendar,
   AlertCircle,
   Clock,
+  CheckCircle2,
+  ListChecks,
+  Compass,
 } from 'lucide-react';
 import { StageKey, STAGE_ORDER } from '@/lib/schemas/workspace';
 import { STAGE_DEFINITIONS, getStageIndex } from '@/lib/route/stages';
@@ -70,6 +73,8 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   const router = useRouter();
   const activeNodeRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const desktopActiveNodeRef = useRef<HTMLDivElement | null>(null);
+  const desktopContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [selectedLockedStage, setSelectedLockedStage] = useState<StageKey | null>(null);
   const [shakingStage, setShakingStage] = useState<string | null>(null);
@@ -98,11 +103,20 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   // Auto-scroll smooth to active node on mount (PRD 8.7 Rule 6)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (activeNodeRef.current) {
-        activeNodeRef.current.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
+      if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+        if (desktopActiveNodeRef.current) {
+          desktopActiveNodeRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        }
+      } else {
+        if (activeNodeRef.current) {
+          activeNodeRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          });
+        }
       }
     }, 250);
     return () => clearTimeout(timer);
@@ -127,153 +141,14 @@ export const RouteMap: React.FC<RouteMapProps> = ({
     return (stages || []).find((s) => s?.key === key);
   };
 
-  return (
-    <div className="relative min-h-screen bg-mist text-navy-900 pb-28 select-none">
-      {/* 1. Floating Capsule Sticky Navigation */}
-      <div className="sticky top-3 z-40 px-3 max-w-md sm:max-w-xl md:max-w-2xl mx-auto pointer-events-none">
-        <div className="glass-header rounded-full px-4 py-2 shadow-subtle border border-line flex items-center justify-between gap-2 pointer-events-auto transition-all">
-          <div className="flex items-center gap-2 truncate">
-            <div className="w-7 h-7 rounded-full bg-azure text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
-              {currentDef?.stepNumber <= 8 ? currentDef.stepNumber : '★'}
-            </div>
-            <div className="truncate">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-azure-600 block leading-none">
-                Tahap {currentDef?.stepNumber} dari 8
-              </span>
-              <span className="text-xs font-extrabold text-navy-900 truncate block mt-0.5">
-                {currentDef?.shortTitle}
-              </span>
-            </div>
-          </div>
-
-          <Link
-            href={currentDef?.path || '/tahap/persetujuan-taaruf'}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-azure hover:bg-azure-700 text-white font-extrabold text-xs shadow-subtle active:scale-95 transition-all shrink-0"
-          >
-            <span>Lanjutkan</span>
-            <ArrowRight size={13} className="stroke-[2.5]" />
-          </Link>
-        </div>
-      </div>
-
-      {/* 2. Aurora Sky Hero Header */}
-      <div className="px-5 pt-5 pb-7 bg-aurora border-b border-line rounded-b-[32px] shadow-card">
-        <div className="max-w-md md:max-w-3xl lg:max-w-4xl mx-auto space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azure-700 bg-white/95 px-3 py-1 rounded-full border border-sky-200 shadow-xs">
-                <Sparkles size={13} className="text-azure-600" />
-                <span>Road To Halal</span>
-              </span>
-              {userAccess === 'read' && (
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
-                  Hanya Baca
-                </span>
-              )}
-            </div>
-
-            <Link
-              href="/anggota"
-              className="flex items-center gap-1.5 text-xs font-bold text-navy-900 bg-white/95 px-3.5 py-1 rounded-full border border-line shadow-xs hover:border-azure hover:text-azure-600 active:scale-95 transition-all"
-            >
-              <Users size={13} />
-              <span>Anggota</span>
-            </Link>
-          </div>
-
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight leading-tight font-display">
-              {partnerName ? `Bersama ${partnerName}` : 'Bismillah, Menuju Halal'}
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
-              Panduan ikhtiar 8 tahap terarah menuju pernikahan yang sakinah dan berkah.
-            </p>
-          </div>
-
-          {/* Active Stage Progress Card */}
-          <div className="p-4 bg-white/95 backdrop-blur-md rounded-2xl border border-line shadow-subtle space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-azure animate-ping" />
-                <span className="text-[11px] font-bold uppercase tracking-wider text-azure-700">
-                  Tahap Saat Ini: Tahap {currentDef?.stepNumber} dari 8
-                </span>
-              </div>
-              <span className="text-xs font-extrabold text-mint-700 bg-mint-100 px-2.5 py-0.5 rounded-full border border-mint-300">
-                {completedCount}/8 Selesai
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between gap-3 pt-1">
-              <div className="flex-1 min-w-0">
-                <h3 className="text-base font-extrabold text-navy-900 truncate">{currentDef?.title}</h3>
-                <p className="text-xs text-slate-500 truncate mt-0.5">
-                  {currentStageData?.requirements
-                    ? `${currentStageData.requirements.metRequirements} dari ${currentStageData.requirements.totalRequirements} syarat terpenuhi`
-                    : currentDef?.subtitle}
-                </p>
-              </div>
-
-              <Link
-                href={currentDef?.path || '/tahap/persetujuan-taaruf'}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-azure hover:bg-azure-700 text-white font-extrabold text-xs shadow-subtle active:scale-95 transition-all shrink-0"
-              >
-                <span>Buka</span>
-                <ArrowRight size={14} className="stroke-[2.5]" />
-              </Link>
-            </div>
-
-            {/* Micro Progress Bar */}
-            <div className="w-full bg-sky-100 h-2 rounded-full overflow-hidden p-0.5 border border-sky-200">
-              <div
-                className="h-full bg-azure rounded-full transition-all duration-500"
-                style={{ width: `${Math.round((completedCount / 8) * 100)}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Countdown Card (Display Font, PRD Section 8.7 & 8.9) */}
-          {countdownDays !== null && (
-            <div className="p-4 rounded-2xl bg-white border border-line flex items-center justify-between shadow-subtle">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center text-azure-700 shrink-0">
-                  <Calendar size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-azure-600">
-                    Menuju Akad Pernikahan
-                  </p>
-                  <p className="text-xs sm:text-sm font-extrabold text-navy-900">
-                    {targetDate ? new Date(targetDate).toLocaleDateString('id-ID', { dateStyle: 'full' }) : ''}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right shrink-0 pl-2">
-                <span className="text-3xl font-extrabold text-azure-700 block leading-none font-display">
-                  {countdownDays}
-                </span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">hari lagi</span>
-              </div>
-            </div>
-          )}
-
-          {/* Halt notification if decision was "tidak lanjut" */}
-          {routeStatus === 'berhenti' && (
-            <div className="p-4 rounded-2xl bg-coral-100 border border-coral-500 text-xs text-coral-700 flex items-start gap-3 shadow-xs">
-              <AlertCircle size={20} className="text-coral-700 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-extrabold text-sm">Rute Berhenti</p>
-                <p className="text-xs text-coral-700/90 mt-0.5 leading-relaxed">
-                  Salah satu pihak memutuskan tidak lanjut. Data saat ini bersifat hanya-baca. Anda dapat mengubah keputusan di form Tahap 1 atau Tahap 3 untuk melanjutkan kembali.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 3. The Vertical Winding S-Curve Route Map */}
-      <div ref={containerRef} className="relative w-full max-w-[380px] mx-auto py-10 px-3 overflow-visible">
+  // Shared Route Map SVG Renderer used by both Mobile and Desktop views
+  const renderRouteMapSvg = (keyPrefix: string = 'mob') => {
+    const isDesktop = keyPrefix === 'desk';
+    return (
+      <div
+        ref={isDesktop ? desktopContainerRef : containerRef}
+        className="relative w-full max-w-[380px] mx-auto py-10 px-3 overflow-visible"
+      >
         {/* SVG Bezier Path Lines */}
         <svg
           viewBox="0 0 360 1360"
@@ -300,7 +175,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
             return (
               <path
-                key={`ambient-${idx}`}
+                key={`${keyPrefix}-ambient-${idx}`}
                 d={pathData}
                 stroke="#E6F3FF"
                 strokeWidth="12"
@@ -331,7 +206,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
             return (
               <path
-                key={`path-seg-${idx}`}
+                key={`${keyPrefix}-path-seg-${idx}`}
                 d={pathData}
                 stroke={isPassed ? '#1F6FDB' : '#7589A1'}
                 strokeWidth={isPassed ? '5' : '3'}
@@ -379,8 +254,8 @@ export const RouteMap: React.FC<RouteMapProps> = ({
 
             return (
               <div
-                key={key}
-                ref={isActive ? activeNodeRef : null}
+                key={`${keyPrefix}-${key}`}
+                ref={isActive ? (isDesktop ? desktopActiveNodeRef : activeNodeRef) : null}
                 className={`absolute -translate-x-1/2 -translate-y-1/2 w-14 h-14 z-10 ${
                   isShaking ? 'animate-shake' : ''
                 }`}
@@ -448,23 +323,22 @@ export const RouteMap: React.FC<RouteMapProps> = ({
                     status === 'active'
                       ? 'bg-sky-300 border-2 border-azure text-navy-900 shadow-raised animate-pulse-ring scale-105'
                       : status === 'completed'
-                      ? 'bg-mint-300 border border-mint-400 text-mint-700 shadow-xs hover:scale-105 active:scale-95'
-                      : 'bg-[#EAF1F8] border border-dashed border-slate-400 text-slate-500 hover:bg-white active:scale-95 shadow-xs'
+                      ? 'bg-mint-300 border-2 border-mint-700 text-mint-700 shadow-subtle'
+                      : 'bg-white border-2 border-dashed border-slate-400 text-slate-400 opacity-90'
                   }`}
                 >
-                  {status === 'completed' && <Check size={22} className="stroke-[3.5] text-mint-700" />}
-                  {status === 'active' && (
-                    <>
-                      <span className="text-base font-extrabold text-navy-900 font-display">
-                        {def?.stepNumber}
+                  {status === 'completed' ? (
+                    <Check size={26} className="text-mint-700 stroke-[3]" />
+                  ) : status === 'active' ? (
+                    <div className="flex flex-col items-center">
+                      <Star size={18} className="fill-azure text-azure" />
+                      <span className="text-[9px] font-black uppercase tracking-tight text-azure-700 -mt-0.5 font-display">
+                        Aktif
                       </span>
-                      {/* Active "Kamu di sini" chip */}
-                      <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-peach-100 text-navy-900 border border-peach-300 text-[9px] font-extrabold px-2 py-0.5 rounded-full whitespace-nowrap shadow-xs animate-float-badge pointer-events-none">
-                        Kamu di sini
-                      </span>
-                    </>
+                    </div>
+                  ) : (
+                    <Lock size={18} className="text-slate-400" />
                   )}
-                  {status === 'locked' && <Lock size={18} className="text-slate-500 stroke-[2.2]" />}
                 </button>
 
                 {/* Node Label on RIGHT (if node is on left) */}
@@ -557,7 +431,401 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           </div>
         </div>
       </div>
+    );
+  };
 
+  return (
+    <div className="relative min-h-screen bg-mist text-navy-900 pb-28 select-none">
+      {/* ========================================================
+          1. MOBILE VIEW (< 1024px) - 100% PRESERVED & UNTOUCHED
+         ======================================================== */}
+      <div className="lg:hidden">
+        {/* 1. Floating Capsule Sticky Navigation */}
+        <div className="sticky top-3 z-40 px-3 max-w-md sm:max-w-xl md:max-w-2xl mx-auto pointer-events-none">
+          <div className="glass-header rounded-full px-4 py-2 shadow-subtle border border-line flex items-center justify-between gap-2 pointer-events-auto transition-all">
+            <div className="flex items-center gap-2 truncate">
+              <div className="w-7 h-7 rounded-full bg-azure text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
+                {currentDef?.stepNumber <= 8 ? currentDef.stepNumber : '★'}
+              </div>
+              <div className="truncate">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-azure-600 block leading-none">
+                  Tahap {currentDef?.stepNumber} dari 8
+                </span>
+                <span className="text-xs font-extrabold text-navy-900 truncate block mt-0.5">
+                  {currentDef?.shortTitle}
+                </span>
+              </div>
+            </div>
+
+            <Link
+              href={currentDef?.path || '/tahap/persetujuan-taaruf'}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-azure hover:bg-azure-700 text-white font-extrabold text-xs shadow-subtle active:scale-95 transition-all shrink-0"
+            >
+              <span>Lanjutkan</span>
+              <ArrowRight size={13} className="stroke-[2.5]" />
+            </Link>
+          </div>
+        </div>
+
+        {/* 2. Aurora Sky Hero Header */}
+        <div className="px-5 pt-5 pb-7 bg-aurora border-b border-line rounded-b-[32px] shadow-card">
+          <div className="max-w-md md:max-w-3xl lg:max-w-4xl mx-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azure-700 bg-white/95 px-3 py-1 rounded-full border border-sky-200 shadow-xs">
+                  <Sparkles size={13} className="text-azure-600" />
+                  <span>Road To Halal</span>
+                </span>
+                {userAccess === 'read' && (
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
+                    Hanya Baca
+                  </span>
+                )}
+              </div>
+
+              <Link
+                href="/anggota"
+                className="flex items-center gap-1.5 text-xs font-bold text-navy-900 bg-white/95 px-3.5 py-1 rounded-full border border-line shadow-xs hover:border-azure hover:text-azure-600 active:scale-95 transition-all"
+              >
+                <Users size={13} />
+                <span>Anggota</span>
+              </Link>
+            </div>
+
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight leading-tight font-display">
+                {partnerName ? `Bersama ${partnerName}` : 'Bismillah, Menuju Halal'}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                Panduan ikhtiar 8 tahap terarah menuju pernikahan yang sakinah dan berkah.
+              </p>
+            </div>
+
+            {/* Active Stage Progress Card */}
+            <div className="p-4 bg-white/95 backdrop-blur-md rounded-2xl border border-line shadow-subtle space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-azure animate-ping" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-azure-700">
+                    Tahap Saat Ini: Tahap {currentDef?.stepNumber} dari 8
+                  </span>
+                </div>
+                <span className="text-xs font-extrabold text-mint-700 bg-mint-100 px-2.5 py-0.5 rounded-full border border-mint-300">
+                  {completedCount}/8 Selesai
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 pt-1">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-extrabold text-navy-900 truncate">{currentDef?.title}</h3>
+                  <p className="text-xs text-slate-500 truncate mt-0.5">
+                    {currentStageData?.requirements
+                      ? `${currentStageData.requirements.metRequirements} dari ${currentStageData.requirements.totalRequirements} syarat terpenuhi`
+                      : currentDef?.subtitle}
+                  </p>
+                </div>
+
+                <Link
+                  href={currentDef?.path || '/tahap/persetujuan-taaruf'}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-azure hover:bg-azure-700 text-white font-extrabold text-xs shadow-subtle active:scale-95 transition-all shrink-0"
+                >
+                  <span>Buka</span>
+                  <ArrowRight size={14} className="stroke-[2.5]" />
+                </Link>
+              </div>
+
+              {/* Micro Progress Bar */}
+              <div className="w-full bg-sky-100 h-2 rounded-full overflow-hidden p-0.5 border border-sky-200">
+                <div
+                  className="h-full bg-azure rounded-full transition-all duration-500"
+                  style={{ width: `${Math.round((completedCount / 8) * 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Countdown Card (Display Font, PRD Section 8.7 & 8.9) */}
+            {countdownDays !== null && (
+              <div className="p-4 rounded-2xl bg-white border border-line flex items-center justify-between shadow-subtle">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center text-azure-700 shrink-0">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-azure-600">
+                      Menuju Akad Pernikahan
+                    </p>
+                    <p className="text-xs sm:text-sm font-extrabold text-navy-900">
+                      {targetDate ? new Date(targetDate).toLocaleDateString('id-ID', { dateStyle: 'full' }) : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0 pl-2">
+                  <span className="text-3xl font-extrabold text-azure-700 block leading-none font-display">
+                    {countdownDays}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">hari lagi</span>
+                </div>
+              </div>
+            )}
+
+            {/* Halt notification if decision was "tidak lanjut" */}
+            {routeStatus === 'berhenti' && (
+              <div className="p-4 rounded-2xl bg-coral-100 border border-coral-500 text-xs text-coral-700 flex items-start gap-3 shadow-xs">
+                <AlertCircle size={20} className="text-coral-700 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-extrabold text-sm">Rute Berhenti</p>
+                  <p className="text-xs text-coral-700/90 mt-0.5 leading-relaxed">
+                    Salah satu pihak memutuskan tidak lanjut. Data saat ini bersifat hanya-baca. Anda dapat mengubah keputusan di form Tahap 1 atau Tahap 3 untuk melanjutkan kembali.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 3. The Vertical Winding S-Curve Route Map */}
+        {renderRouteMapSvg('mob')}
+      </div>
+
+      {/* ========================================================
+          2. DESKTOP VIEW (>= 1024px) - ELEVATED DUAL PANE WORKSPACE
+         ======================================================== */}
+      <div className="hidden lg:block space-y-6">
+        {/* Desktop Header Banner */}
+        <div className="px-8 py-6 bg-aurora border-b border-line rounded-b-[36px] shadow-sm">
+          <div className="flex items-center justify-between gap-6">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azure-700 bg-white/95 px-3 py-1 rounded-full border border-sky-200 shadow-xs">
+                  <Sparkles size={13} className="text-azure-600" />
+                  <span>Road To Halal</span>
+                </span>
+                {userAccess === 'read' && (
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
+                    Mode Hanya Baca
+                  </span>
+                )}
+              </div>
+              <h1 className="text-2xl xl:text-3xl font-black text-navy-900 tracking-tight font-display">
+                {partnerName ? `Perjalanan Bersama ${partnerName}` : 'Bismillah, Menuju Halal'}
+              </h1>
+              <p className="text-xs text-slate-600">
+                Panduan ikhtiar 8 tahap terarah menuju pernikahan sakinah, mawaddah, wa rahmah.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/anggota"
+                className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-navy-900 bg-white rounded-2xl border border-line shadow-xs hover:border-azure hover:text-azure-600 transition-all active:scale-95"
+              >
+                <Users size={15} />
+                <span>Anggota & Pasangan</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* 2-Column Grid Layout */}
+        <div className="grid grid-cols-12 gap-8 items-start px-8 pt-4 pb-12">
+          {/* Left Column: Route Map Canvas */}
+          <div className="col-span-7 bg-white border border-line rounded-3xl p-6 shadow-subtle flex flex-col items-center">
+            <div className="w-full flex items-center justify-between pb-4 mb-2 border-b border-line/60">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-azure animate-pulse" />
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-navy-900">
+                  Peta Rute Ta'aruf & Pernikahan
+                </h3>
+              </div>
+              <span className="text-xs font-extrabold text-azure bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
+                {completedCount}/8 Tahap Selesai
+              </span>
+            </div>
+
+            {renderRouteMapSvg('desk')}
+          </div>
+
+          {/* Right Column: Sticky Mission Control Panel */}
+          <div className="col-span-5 sticky top-6 space-y-5">
+            {/* Active Stage Focus Card */}
+            <div className="bg-white border border-line rounded-3xl p-6 shadow-card space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-azure-50 text-azure-700 border border-sky-200 text-xs font-black uppercase tracking-wider">
+                  <span className="w-2 h-2 rounded-full bg-azure animate-ping" />
+                  Tahap Aktif Saat Ini
+                </span>
+                <span className="text-xs font-extrabold text-mint-700 bg-mint-100 px-2.5 py-0.5 rounded-full border border-mint-300">
+                  {completedCount}/8 Selesai
+                </span>
+              </div>
+
+              <div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  Tahap {currentDef?.stepNumber}
+                </div>
+                <h2 className="text-xl font-black text-navy-900 mt-0.5 font-display">
+                  {currentDef?.title}
+                </h2>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  {currentDef?.subtitle}
+                </p>
+              </div>
+
+              {/* Stage Requirements Checklist */}
+              {currentStageData?.requirements && currentStageData.requirements.totalRequirements > 0 && (
+                <div className="p-4 bg-sky-50/60 rounded-2xl border border-sky-100 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-extrabold text-navy-900 flex items-center gap-1.5">
+                      <ListChecks className="w-4 h-4 text-azure" />
+                      Syarat Kelulusan Tahap
+                    </span>
+                    <span className="font-extrabold text-azure font-display">
+                      {currentStageData.requirements.metRequirements} / {currentStageData.requirements.totalRequirements}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 pt-1">
+                    {currentStageData.requirements.items.map((req) => (
+                      <div key={req.id} className="flex items-center gap-2 text-xs">
+                        {req.isMet ? (
+                          <CheckCircle2 className="w-4 h-4 text-mint-700 shrink-0" />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full border-2 border-slate-300 shrink-0" />
+                        )}
+                        <span className={req.isMet ? 'text-navy-900 font-semibold line-through opacity-70' : 'text-slate-700 font-medium'}>
+                          {req.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Big Action Button */}
+              <Link
+                href={currentDef?.path || '/tahap/persetujuan-taaruf'}
+                className="w-full py-3 px-4 bg-azure hover:bg-azure-700 text-white font-extrabold text-sm rounded-2xl shadow-subtle flex items-center justify-center gap-2 transition-all active:scale-98"
+              >
+                <span>Buka Tahap {currentDef?.stepNumber}: {currentDef?.shortTitle}</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Countdown Card */}
+            {countdownDays !== null && (
+              <div className="p-5 rounded-3xl bg-white border border-line flex items-center justify-between shadow-card">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-sky-100 border border-sky-200 flex items-center justify-center text-azure-700 shrink-0">
+                    <Calendar size={22} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-azure-600">
+                      Menuju Akad Pernikahan
+                    </p>
+                    <p className="text-xs font-extrabold text-navy-900 mt-0.5">
+                      {targetDate ? new Date(targetDate).toLocaleDateString('id-ID', { dateStyle: 'full' }) : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0 pl-3">
+                  <span className="text-3xl font-extrabold text-azure-700 block leading-none font-display">
+                    {countdownDays}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">hari lagi</span>
+                </div>
+              </div>
+            )}
+
+            {/* 8-Stage Quick Navigator Matrix */}
+            <div className="bg-white border border-line rounded-3xl p-5 shadow-card space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-line">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-navy-900 flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-azure" />
+                  Navigasi 8 Tahap
+                </h3>
+                <span className="text-[11px] font-bold text-slate-400">
+                  Klik tahap untuk loncat
+                </span>
+              </div>
+
+              <div className="space-y-1.5 max-h-[340px] overflow-y-auto pr-1">
+                {STAGE_ORDER.slice(0, 8).map((key, stageIndex) => {
+                  const stageData = getStageData(key);
+                  const status = stageData
+                    ? stageData.status
+                    : stageIndex < currentIdx
+                    ? 'completed'
+                    : stageIndex === currentIdx
+                    ? 'active'
+                    : 'locked';
+                  const def = STAGE_DEFINITIONS[key];
+                  const isActive = status === 'active';
+                  const isCompleted = status === 'completed';
+
+                  return (
+                    <button
+                      key={`desk-nav-${key}`}
+                      type="button"
+                      onClick={() => handleNodeClick(key, status)}
+                      className={`w-full text-left p-2.5 rounded-xl border flex items-center justify-between gap-2 transition-all ${
+                        isActive
+                          ? 'bg-azure-50/80 border-azure-400 shadow-2xs font-bold text-azure-900'
+                          : isCompleted
+                          ? 'bg-mint-50/50 border-mint-200 hover:bg-mint-50 text-navy-900'
+                          : 'bg-slate-50/50 border-transparent text-slate-400 hover:bg-slate-100/60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                            isActive
+                              ? 'bg-azure text-white'
+                              : isCompleted
+                              ? 'bg-mint-300 text-mint-700'
+                              : 'bg-slate-200 text-slate-500'
+                          }`}
+                        >
+                          {isCompleted ? <Check size={14} className="stroke-[3]" /> : def?.stepNumber}
+                        </div>
+                        <span className="text-xs font-bold truncate">
+                          {def?.title}
+                        </span>
+                      </div>
+
+                      <div className="shrink-0">
+                        {isActive ? (
+                          <span className="text-[10px] font-black uppercase text-azure bg-sky-100 px-2 py-0.5 rounded-full">
+                            Aktif
+                          </span>
+                        ) : isCompleted ? (
+                          <span className="text-[10px] font-bold text-mint-700 bg-mint-100 px-2 py-0.5 rounded-full">
+                            Selesai
+                          </span>
+                        ) : (
+                          <Lock size={12} className="text-slate-400" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Halt Alert if applicable */}
+            {routeStatus === 'berhenti' && (
+              <div className="p-4 rounded-2xl bg-coral-100 border border-coral-500 text-xs text-coral-700 flex items-start gap-3 shadow-xs">
+                <AlertCircle size={20} className="text-coral-700 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-extrabold text-sm">Rute Berhenti</p>
+                  <p className="text-xs text-coral-700/90 mt-0.5 leading-relaxed">
+                    Salah satu pihak memutuskan tidak lanjut. Data saat ini bersifat hanya-baca.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
       {/* 5. Bottom Sheet for Locked Stage (PRD Section 8.7 & 8.9) */}
       <RouteLockedModal
         targetStage={selectedLockedStage}

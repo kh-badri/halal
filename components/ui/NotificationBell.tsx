@@ -311,7 +311,10 @@ export const NotificationBell: React.FC = () => {
 
         {/* Red Badge with Count */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-[#EF4444] text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center shadow-xs border-2 border-white animate-scale-up pointer-events-none">
+          <span
+            style={{ backgroundColor: '#EF4444', color: '#FFFFFF' }}
+            className="absolute -top-1 -right-1 bg-[#EF4444] text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center shadow-xs border-2 border-white animate-scale-up pointer-events-none"
+          >
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}

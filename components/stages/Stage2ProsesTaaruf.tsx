@@ -192,7 +192,8 @@ export function Stage2ProsesTaaruf({
 
   // Navigation tab: 'pria' = Pertanyaan Calon Pria, 'wanita' = Pertanyaan Calon Perempuan, 'all' = Semua
   const [activeTab, setActiveTab] = useState<'pria' | 'wanita' | 'all'>('pria');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'unagreed' | 'principle'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'unagreed' | 'principle' | 'sepakat' | 'dibahas' | 'pertimbangan' | 'ulang' | 'belum'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modals & Sheets
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -910,17 +911,31 @@ export function Stage2ProsesTaaruf({
     }));
   }, [questions, activeTab, dateSortOrder]);
 
-  // Filtered by active tab, status, and selected date session
+  // Filtered by active tab, status, selected date session, and search query
   const visibleQuestions = useMemo(() => {
     return questions.filter((q) => {
       if (activeTab === 'pria' && q.asker !== 'pria') return false;
       if (activeTab === 'wanita' && q.asker !== 'wanita') return false;
       if (statusFilter === 'unagreed' && q.status === 'sepakat') return false;
       if (statusFilter === 'principle' && !q.principle) return false;
+      if (statusFilter === 'sepakat' && q.status !== 'sepakat') return false;
+      if (statusFilter === 'dibahas' && q.status !== 'dibahas') return false;
+      if (statusFilter === 'pertimbangan' && q.status !== 'pertimbangan') return false;
+      if (statusFilter === 'ulang' && q.status !== 'ulang') return false;
+      if (statusFilter === 'belum' && q.status !== 'belum') return false;
       if (selectedDateFilter !== 'all' && q.sessionDate !== selectedDateFilter) return false;
+
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchQ = q.question.toLowerCase().includes(query);
+        const matchCat = q.category ? q.category.toLowerCase().includes(query) : false;
+        const matchAnsPria = q.answerPria ? q.answerPria.toLowerCase().includes(query) : false;
+        const matchAnsWanita = q.answerWanita ? q.answerWanita.toLowerCase().includes(query) : false;
+        if (!matchQ && !matchCat && !matchAnsPria && !matchAnsWanita) return false;
+      }
       return true;
     });
-  }, [questions, activeTab, statusFilter, selectedDateFilter]);
+  }, [questions, activeTab, statusFilter, selectedDateFilter, searchQuery]);
 
   // Grouped questions by session date for 'all' mode
   const groupedQuestionsByDate = useMemo(() => {
@@ -2104,6 +2119,139 @@ export function Stage2ProsesTaaruf({
     );
   };
 
+  const renderQuestionsListContent = () => {
+    if (visibleQuestions.length === 0) {
+      return (
+        <div className="bg-white border-2 border-dashed border-sky-200 rounded-3xl p-8 text-center space-y-4 shadow-xs">
+          <div className="w-14 h-14 rounded-full bg-sky-50 border border-line flex items-center justify-center mx-auto text-azure-600">
+            <MessageSquare className="w-7 h-7" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="text-base font-black text-slate-800">
+              {searchQuery.trim()
+                ? `Tidak ditemukan pertanyaan dengan kata "${searchQuery}"`
+                : statusFilter !== 'all'
+                ? `Tidak ada pertanyaan berstatus "${statusFilter === 'principle' ? 'Prinsip' : statusFilter}"`
+                : selectedDateFilter !== 'all'
+                ? `Belum Ada Pertanyaan di Sesi ${formatDateIndonesian(selectedDateFilter)}`
+                : `Belum Ada Pertanyaan ${activeTab === 'pria' ? 'dari Calon Pria' : activeTab === 'wanita' ? 'dari Calon Perempuan' : ''}`}
+            </h4>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+              {searchQuery.trim() || statusFilter !== 'all' || selectedDateFilter !== 'all'
+                ? 'Coba ubah kata kunci pencarian atau reset filter untuk menampilkan kembali semua pertanyaan.'
+                : 'Tuliskan pertanyaan penting yang ingin Anda diskusikan bersama pasangan untuk menyatukan visi pranikah.'}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            {(searchQuery.trim() || statusFilter !== 'all' || selectedDateFilter !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setStatusFilter('all');
+                  setSelectedDateFilter('all');
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 bg-navy-900 hover:bg-navy-800 text-white rounded-full text-xs font-bold active:scale-95 transition-all shadow-xs"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Reset Semua Filter
+              </button>
+            )}
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={() => handleOpenAddModal(activeTab === 'wanita' ? 'wanita' : 'pria', selectedDateFilter !== 'all' ? selectedDateFilter : undefined)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-azure text-white rounded-full text-xs font-bold shadow-subtle hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                <Plus className="w-4 h-4" /> Tulis Pertanyaan Baru
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsIdeaSheetOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-sky-50 border border-sky-200 text-azure-700 rounded-full text-xs font-bold hover:bg-sky-100 active:scale-95 transition-all"
+            >
+              <Lightbulb className="w-4 h-4" /> Buka Ide Pertanyaan
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedDateFilter === 'all') {
+      return (
+        <div className="space-y-6">
+          {groupedQuestionsByDate.map((group) => (
+            <div key={group.date} className="space-y-3">
+              <div className="flex items-center justify-between px-1 pt-2 pb-1 border-b border-slate-200/80">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-azure shadow-xs" />
+                  <h4 className="text-xs sm:text-sm font-black text-slate-800">
+                    Sesi {formatDateIndonesian(group.date)}
+                  </h4>
+                  {group.date === getTodayDateString() && (
+                    <span className="text-[10px] font-bold text-azure-700 bg-sky-100 border border-sky-200 px-2 py-0.2 rounded-full">
+                      Hari Ini
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                    {group.items.length} Pertanyaan
+                  </span>
+                  {!isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAddModal(activeTab === 'wanita' ? 'wanita' : 'pria', group.date)}
+                      className="text-[11px] font-bold text-azure-700 hover:text-azure-900 flex items-center gap-0.5 px-2 py-0.5 hover:bg-sky-50 rounded-lg transition-colors"
+                      title={`Tambah pertanyaan ke sesi ${formatShortDateIndonesian(group.date)}`}
+                    >
+                      <Plus className="w-3 h-3" /> Tambah
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3.5">
+                {group.items.map((q) => renderQuestionCard(q))}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3.5">
+        <div className="flex items-center justify-between px-3.5 py-2.5 bg-sky-50/80 border border-sky-200 rounded-2xl shadow-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <Calendar className="w-3.5 h-3.5 text-azure-600 shrink-0" />
+            <span className="text-xs font-black text-slate-800 truncate">
+              Sesi Diskusi: <strong>{formatDateIndonesian(selectedDateFilter)}</strong>
+            </span>
+            {selectedDateFilter === getTodayDateString() && (
+              <span className="text-[10px] font-bold text-azure-700 bg-sky-100 px-1.5 py-0.2 rounded-full shrink-0">
+                Hari Ini
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setSelectedDateFilter('all')}
+            className="text-xs font-bold text-azure-700 hover:underline shrink-0 ml-2"
+          >
+            Lihat Semua Sesi
+          </button>
+        </div>
+
+        <div className="space-y-3.5">
+          {visibleQuestions.map((q) => renderQuestionCard(q))}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-3">
@@ -2114,7 +2262,11 @@ export function Stage2ProsesTaaruf({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* ============================================================== */}
+      {/* 1. MOBILE VIEW (< lg): 100% AS IT WAS (PRESERVED & UNCHANGED)  */}
+      {/* ============================================================== */}
+      <div className="lg:hidden space-y-4">
       {/* Progress & Summary Bar */}
       <div className="bg-white border border-line rounded-3xl p-5 shadow-subtle space-y-3.5">
         <div className="flex items-center justify-between gap-2">
@@ -2623,125 +2775,438 @@ export function Stage2ProsesTaaruf({
         </p>
       </div>
 
-      {/* List of Questions with Dedicated Columns (Mobile Responsive) */}
-      {visibleQuestions.length === 0 ? (
-        <div className="bg-white border-2 border-dashed border-sky-200 rounded-3xl p-8 text-center space-y-4">
-          <div className="w-14 h-14 rounded-full bg-sky-50 border border-line flex items-center justify-center mx-auto text-azure-600">
-            <MessageSquare className="w-7 h-7" />
-          </div>
-          <div className="space-y-1">
-            <h4 className="text-base font-black text-slate-800">
-              {selectedDateFilter !== 'all'
-                ? `Belum Ada Pertanyaan di Sesi ${formatDateIndonesian(selectedDateFilter)}`
-                : `Belum Ada Pertanyaan ${activeTab === 'pria' ? 'dari Calon Pria' : activeTab === 'wanita' ? 'dari Calon Perempuan' : ''}`}
-            </h4>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-              {selectedDateFilter !== 'all'
-                ? 'Belum ada pertanyaan diskusi yang dicatat pada tanggal sesi ini. Klik tombol di bawah untuk menambah pertanyaan ke sesi ini.'
-                : 'Tuliskan pertanyaan penting yang ingin Anda diskusikan bersama pasangan untuk menyatukan visi pranikah.'}
-            </p>
+        {/* Render Question List for Mobile */}
+        {renderQuestionsListContent()}
+      </div>
+
+      {/* ============================================================== */}
+      {/* 2. DESKTOP VIEW (lg+): MODERN DUAL-PANE COLLABORATION SUITE    */}
+      {/* ============================================================== */}
+      <div className="hidden lg:grid lg:grid-cols-12 lg:gap-6 items-start">
+        {/* LEFT COLUMN: DESKTOP SIDEBAR CONTROL CENTER (col-span-4) */}
+        <div className="lg:col-span-4 sticky top-20 space-y-4">
+          {/* Card 1: Ringkasan Progres & Filter Status Interaktif */}
+          <div className="bg-white border border-line rounded-3xl p-5 shadow-subtle space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-azure-600 block">
+                  Progres Tanya Jawab
+                </span>
+                <h3 className="text-base font-black text-slate-900 mt-0.5">
+                  {agreedCount} dari {totalCount} Sepakat ({progressPercent}%)
+                </h3>
+              </div>
+              <span className="text-xs font-black text-azure-700 bg-sky-100 px-2.5 py-1 rounded-full border border-sky-200">
+                {progressPercent}%
+              </span>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-sky-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-line">
+              <div
+                className="h-full bg-azure rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+
+            {/* Filter Status Interaktif */}
+            <div className="space-y-1.5 pt-1">
+              <div className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                Filter Status Kesepakatan
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('all')}
+                  className={`p-2 rounded-xl text-left border text-xs font-bold transition-all flex items-center justify-between ${
+                    statusFilter === 'all'
+                      ? 'bg-navy-900 border-navy-950 text-white shadow-xs font-black'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>Semua Status</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${statusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                    {totalCount}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter((prev) => (prev === 'sepakat' ? 'all' : 'sepakat'))}
+                  className={`p-2 rounded-xl text-left border text-xs font-bold transition-all flex items-center justify-between ${
+                    statusFilter === 'sepakat'
+                      ? 'bg-emerald-600 border-emerald-700 text-white shadow-xs font-black'
+                      : 'bg-emerald-50/80 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                  }`}
+                >
+                  <span>Sepakat</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${statusFilter === 'sepakat' ? 'bg-white/20 text-white' : 'bg-emerald-200/80 text-emerald-900'}`}>
+                    {agreedCount}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter((prev) => (prev === 'dibahas' ? 'all' : 'dibahas'))}
+                  className={`p-2 rounded-xl text-left border text-xs font-bold transition-all flex items-center justify-between ${
+                    statusFilter === 'dibahas'
+                      ? 'bg-sky-600 border-sky-700 text-white shadow-xs font-black'
+                      : 'bg-sky-50 border-sky-200 text-azure-700 hover:bg-sky-100'
+                  }`}
+                >
+                  <span>Dibahas</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${statusFilter === 'dibahas' ? 'bg-white/20 text-white' : 'bg-sky-200 text-azure-900'}`}>
+                    {discussedCount}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter((prev) => (prev === 'pertimbangan' ? 'all' : 'pertimbangan'))}
+                  className={`p-2 rounded-xl text-left border text-xs font-bold transition-all flex items-center justify-between ${
+                    statusFilter === 'pertimbangan'
+                      ? 'bg-purple-600 border-purple-700 text-white shadow-xs font-black'
+                      : 'bg-purple-50/80 border-purple-200 text-purple-800 hover:bg-purple-100'
+                  }`}
+                >
+                  <span className="truncate">Pertimbangan</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${statusFilter === 'pertimbangan' ? 'bg-white/20 text-white' : 'bg-purple-200 text-purple-900'}`}>
+                    {considerationCount}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter((prev) => (prev === 'ulang' ? 'all' : 'ulang'))}
+                  className={`p-2 rounded-xl text-left border text-xs font-bold transition-all flex items-center justify-between ${
+                    statusFilter === 'ulang'
+                      ? 'bg-amber-600 border-amber-700 text-white shadow-xs font-black'
+                      : 'bg-amber-50/80 border-amber-200 text-amber-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <span>Bahas Ulang</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${statusFilter === 'ulang' ? 'bg-white/20 text-white' : 'bg-amber-200 text-amber-900'}`}>
+                    {rediscussCount}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter((prev) => (prev === 'belum' ? 'all' : 'belum'))}
+                  className={`p-2 rounded-xl text-left border text-xs font-bold transition-all flex items-center justify-between ${
+                    statusFilter === 'belum'
+                      ? 'bg-slate-700 border-slate-800 text-white shadow-xs font-black'
+                      : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  <span>Belum</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${statusFilter === 'belum' ? 'bg-white/20 text-white' : 'bg-slate-300 text-slate-800'}`}>
+                    {unhandledCount}
+                  </span>
+                </button>
+              </div>
+
+              {principleQuestions.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter((prev) => (prev === 'principle' ? 'all' : 'principle'))}
+                  className={`w-full mt-1 p-2 rounded-xl text-left border text-xs font-bold transition-all flex items-center justify-between ${
+                    statusFilter === 'principle'
+                      ? 'bg-azure text-white border-azure-700 shadow-xs font-black'
+                      : 'bg-sky-50 border-sky-200 text-azure-700 hover:bg-sky-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>Prinsip (Dealbreaker)</span>
+                  </div>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${statusFilter === 'principle' ? 'bg-white/20 text-white' : 'bg-sky-200 text-azure-900'}`}>
+                    {principleQuestions.length}
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-            {!isReadOnly && (
-              <button
-                type="button"
-                onClick={() => handleOpenAddModal(activeTab === 'wanita' ? 'wanita' : 'pria', selectedDateFilter !== 'all' ? selectedDateFilter : undefined)}
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-azure text-white rounded-full text-xs font-bold shadow-subtle hover:scale-[1.02] active:scale-95 transition-all"
-              >
-                <Plus className="w-4 h-4" /> Tulis Pertanyaan {selectedDateFilter !== 'all' ? 'di Sesi Ini' : 'Baru'}
-              </button>
-            )}
-            {selectedDateFilter !== 'all' && (
+          {/* Card 2: Sesi per Tanggal (Vertical List Card) */}
+          <div className="bg-white border border-line rounded-3xl p-4 shadow-subtle space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-azure-600" />
+                <h4 className="text-xs font-extrabold text-slate-800">Sesi per Tanggal</h4>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setDateSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
+                  className="p-1 text-slate-500 hover:text-navy-900 hover:bg-slate-100 rounded-md transition-colors"
+                  title="Urutan tanggal"
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOpenDatePicker}
+                  className="p-1 text-azure-700 hover:bg-sky-50 rounded-md transition-colors"
+                  title="Pilih tanggal dari kalender"
+                >
+                  <Filter className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
               <button
                 type="button"
                 onClick={() => setSelectedDateFilter('all')}
-                className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-bold active:scale-95 transition-all"
+                className={`w-full p-2 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between ${
+                  selectedDateFilter === 'all'
+                    ? 'bg-navy-900 text-white shadow-xs font-black'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
+                }`}
               >
-                Lihat Semua Sesi
+                <span>Semua Sesi Tanggal</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedDateFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                  {totalCount}
+                </span>
+              </button>
+
+              {availableSessionDates.map((item) => {
+                const isSelected = selectedDateFilter === item.date;
+                const formatted = formatDateIndonesian(item.date);
+                return (
+                  <button
+                    key={item.date}
+                    type="button"
+                    onClick={() => setSelectedDateFilter(item.date)}
+                    className={`w-full p-2 rounded-xl text-left text-xs font-bold transition-all flex items-center justify-between border ${
+                      isSelected
+                        ? 'bg-azure border-azure-600 text-white shadow-xs font-black'
+                        : 'bg-white border-slate-100 hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="truncate">{item.isToday ? `Hari Ini (${formatShortDateIndonesian(item.date)})` : formatted}</span>
+                    </div>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                      {item.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Card 3: Quick Action Panel */}
+          <div className="bg-white border border-line rounded-3xl p-4 shadow-subtle space-y-2">
+            {!isReadOnly && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormAsker(activeTab === 'wanita' ? 'wanita' : 'pria');
+                  setFormQuestion('');
+                  setFormAnswerSelf('');
+                  setFormPrinciple(false);
+                  setIsAddOpen(true);
+                }}
+                className="w-full py-2.5 px-3 bg-azure hover:bg-azure-700 text-white font-black text-xs rounded-2xl shadow-subtle flex items-center justify-center gap-2 active:scale-95 transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Tambah Pertanyaan Baru</span>
               </button>
             )}
+
             <button
               type="button"
               onClick={() => setIsIdeaSheetOpen(true)}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-sky-50 border border-sky-200 text-azure-700 rounded-full text-xs font-bold hover:bg-sky-100 active:scale-95 transition-all"
+              className="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
             >
-              <Lightbulb className="w-4 h-4" /> Buka Ide Pertanyaan
+              <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
+              <span>Ide Topik & Tanya Pranikah</span>
             </button>
-          </div>
-        </div>
-      ) : selectedDateFilter === 'all' ? (
-        /* Render per session date group when viewing All */
-        <div className="space-y-6">
-          {groupedQuestionsByDate.map((group) => (
-            <div key={group.date} className="space-y-3">
-              {/* Session Group Header */}
-              <div className="flex items-center justify-between px-1 pt-2 pb-1 border-b border-slate-200/80">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-azure shadow-xs" />
-                  <h4 className="text-xs sm:text-sm font-black text-slate-800">
-                    Sesi {formatDateIndonesian(group.date)}
-                  </h4>
-                  {group.date === getTodayDateString() && (
-                    <span className="text-[10px] font-bold text-azure-700 bg-sky-100 border border-sky-200 px-2 py-0.2 rounded-full">
-                      Hari Ini
-                    </span>
-                  )}
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                    {group.items.length} Pertanyaan
-                  </span>
-                  {!isReadOnly && (
-                    <button
-                      type="button"
-                      onClick={() => handleOpenAddModal(activeTab === 'wanita' ? 'wanita' : 'pria', group.date)}
-                      className="text-[11px] font-bold text-azure-700 hover:text-azure-900 flex items-center gap-0.5 px-2 py-0.5 hover:bg-sky-50 rounded-lg transition-colors"
-                      title={`Tambah pertanyaan ke sesi ${formatShortDateIndonesian(group.date)}`}
-                    >
-                      <Plus className="w-3 h-3" /> Tambah
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Questions Cards in this Session Date */}
-              <div className="space-y-3.5">
-                {group.items.map((q) => renderQuestionCard(q))}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        /* Render questions for single selected session date */
-        <div className="space-y-3.5">
-          <div className="flex items-center justify-between px-3 py-2 bg-sky-50/70 border border-sky-200 rounded-2xl">
-            <div className="flex items-center gap-2 min-w-0">
-              <Calendar className="w-3.5 h-3.5 text-azure-600 shrink-0" />
-              <span className="text-xs font-black text-slate-800 truncate">
-                Sesi Diskusi: <strong>{formatDateIndonesian(selectedDateFilter)}</strong>
-              </span>
-              {selectedDateFilter === getTodayDateString() && (
-                <span className="text-[10px] font-bold text-azure-700 bg-sky-100 px-1.5 py-0.2 rounded-full shrink-0">
-                  Hari Ini
-                </span>
-              )}
-            </div>
             <button
               type="button"
-              onClick={() => setSelectedDateFilter('all')}
-              className="text-xs font-bold text-azure-700 hover:underline shrink-0 ml-2"
+              onClick={() => setIsSummaryOpen(true)}
+              className="w-full py-2 px-3 bg-sky-50 hover:bg-sky-100 border border-sky-200 text-azure-700 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
             >
-              Lihat Semua Sesi
+              <FileText className="w-3.5 h-3.5" />
+              <span>Ringkasan Kesepakatan</span>
             </button>
+
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => setIsLogOpen(true)}
+                className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>Riwayat Log Aktivitas ({activityLogs.length})</span>
+              </button>
+            )}
           </div>
 
-          <div className="space-y-3.5">
-            {visibleQuestions.map((q) => renderQuestionCard(q))}
-          </div>
+          {/* Card 4: Izin Pengisian Pasangan (Khusus Pemilik) */}
+          {isOwner && (
+            <div className="bg-white border border-line rounded-3xl p-4 shadow-subtle space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-slate-900">Izin Kolom Pasangan</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${allowPartnerAnswers ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                  {allowPartnerAnswers ? 'Diizinkan' : 'Dikunci'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                {allowPartnerAnswers
+                  ? 'Pasangan dapat mengedit kolom jawabannya langsung.'
+                  : 'Jawaban dikunci; pasangan hanya dapat membaca.'}
+              </p>
+              <button
+                type="button"
+                onClick={handleTogglePartnerPermission}
+                className={`w-full py-2 rounded-xl text-xs font-bold transition-all border ${
+                  allowPartnerAnswers
+                    ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                    : 'bg-emerald-600 border-emerald-700 text-white hover:bg-emerald-700 shadow-xs'
+                }`}
+              >
+                {allowPartnerAnswers ? 'Kunci Kolom Pasangan' : 'Beri Izin Pasangan Mengisi'}
+              </button>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* RIGHT COLUMN: MAIN WORKSPACE QUESTIONS FEED (col-span-8) */}
+        <div className="lg:col-span-8 space-y-4">
+          {/* Desktop Top Toolbar Card */}
+          <div className="bg-white border border-line rounded-3xl p-4 shadow-subtle space-y-3">
+            <div className="flex items-center gap-3">
+              {/* Search Bar Input */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari pertanyaan, topik, atau kata kunci..."
+                  className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-azure focus:outline-none focus:ring-2 focus:ring-sky-100 transition-all font-medium"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Segmented Tab Penanya */}
+              <div className="flex bg-slate-100 p-1 rounded-xl shrink-0 gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('pria')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                    activeTab === 'pria'
+                      ? 'bg-white text-blue-700 shadow-xs border border-blue-100 font-black'
+                      : 'text-slate-600 hover:text-navy-900'
+                  }`}
+                >
+                  <span>👨 Calon Pria</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'pria' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'}`}>
+                    {priaQuestions.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('wanita')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                    activeTab === 'wanita'
+                      ? 'bg-white text-azure-700 shadow-xs border border-line font-black'
+                      : 'text-slate-600 hover:text-navy-900'
+                  }`}
+                >
+                  <span>👩 Calon Wanita</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'wanita' ? 'bg-sky-100 text-azure-700' : 'bg-slate-200 text-slate-600'}`}>
+                    {wanitaQuestions.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('all')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                    activeTab === 'all'
+                      ? 'bg-white text-navy-950 shadow-xs border border-slate-200 font-black'
+                      : 'text-slate-600 hover:text-navy-900'
+                  }`}
+                >
+                  <span>📋 Semua</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'all' ? 'bg-slate-200 text-slate-800' : 'bg-slate-200 text-slate-600'}`}>
+                    {totalCount}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Active Filters Summary Chips Bar */}
+            {(statusFilter !== 'all' || selectedDateFilter !== 'all' || searchQuery.trim() !== '') && (
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-slate-500">Filter Aktif:</span>
+
+                  {statusFilter !== 'all' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-azure-800 border border-sky-200">
+                      <span>Status: {statusFilter === 'principle' ? 'Prinsip' : statusFilter}</span>
+                      <button type="button" onClick={() => setStatusFilter('all')} className="hover:text-azure-950">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  {selectedDateFilter !== 'all' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-azure-800 border border-sky-200">
+                      <span>Sesi: {formatShortDateIndonesian(selectedDateFilter)}</span>
+                      <button type="button" onClick={() => setSelectedDateFilter('all')} className="hover:text-azure-950">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  {searchQuery.trim() !== '' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-azure-800 border border-sky-200">
+                      <span>Kata: "{searchQuery}"</span>
+                      <button type="button" onClick={() => setSearchQuery('')} className="hover:text-azure-950">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  )}
+
+                  <span className="text-[11px] font-bold text-slate-400">
+                    ({visibleQuestions.length} ditemukan)
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter('all');
+                    setSelectedDateFilter('all');
+                    setSearchQuery('');
+                  }}
+                  className="text-[11px] font-bold text-azure-700 hover:underline shrink-0"
+                >
+                  Reset Semua
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Questions Feed */}
+          {renderQuestionsListContent()}
+        </div>
+      </div>
 
       {/* BOTTOM SHEET: EDIT PERTANYAAN */}
       <BottomSheet

@@ -157,7 +157,7 @@ export default function StageClientPage({ stage }: StageClientPageProps) {
           <div className="w-24 h-4 bg-slate-200 rounded skeleton-shimmer" />
           <div className="w-8 h-8 rounded-full bg-slate-200 skeleton-shimmer" />
         </div>
-        <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-lg md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full flex-1">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-lg lg:max-w-full mx-auto w-full flex-1">
           <div className="h-28 bg-white rounded-3xl border border-line p-5 skeleton-shimmer" />
           <div className="h-48 bg-white rounded-3xl border border-line p-5 skeleton-shimmer" />
           <p className="text-xs font-bold text-slate-500 text-center pt-4">Memuat data tahap...</p>
@@ -199,7 +199,7 @@ export default function StageClientPage({ stage }: StageClientPageProps) {
       {/* Mini Route 8 Dots */}
       <MiniRoute currentStageKey={stageKey} routeData={routeData} />
 
-      <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-lg md:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto w-full">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-lg lg:max-w-full mx-auto w-full">
         {/* Stage Status Hero Banner */}
         <div
           className={`p-6 rounded-3xl border shadow-subtle relative overflow-hidden ${
