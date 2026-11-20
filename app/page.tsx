@@ -19,8 +19,9 @@ export default function HomePage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-6 bg-aurora">
-      <div className="pt-6 text-center">
+    <div className="min-h-screen bg-aurora flex flex-col justify-between p-4 sm:p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col justify-between py-4 sm:py-6">
+        <div className="pt-4 text-center">
         <div className="w-24 h-24 mx-auto mb-4 relative flex items-center justify-center">
           <div className="absolute inset-0 rounded-3xl bg-sky-300/40 blur-md -z-10" />
           <img
@@ -129,6 +130,7 @@ export default function HomePage() {
           </Link>
           .
         </p>
+      </div>
       </div>
     </div>
   );

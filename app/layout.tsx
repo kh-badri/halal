@@ -53,12 +53,15 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png?v=5" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png?v=5" />
       </head>
-      <body className="bg-mist min-h-screen text-navy-900 font-sans flex justify-center selection:bg-sky-200 selection:text-navy-900">
+      <body className="bg-mist min-h-screen text-navy-900 font-sans flex justify-center lg:block selection:bg-sky-200 selection:text-navy-900">
         <ToastProvider>
-          {/* Main App Frame: Mobile (<1024px) is exact max-w-md, Desktop (>=1024px) expands to modern elevated canvas */}
-          <div className="w-full max-w-md lg:max-w-6xl xl:max-w-7xl min-h-screen bg-white lg:my-6 lg:rounded-3xl border-x lg:border border-line shadow-card lg:shadow-2xl relative flex flex-col overflow-x-hidden transition-all duration-300">
+          {/* Main App Frame:
+              - Mobile (<1024px): strict max-w-md phone container (100% identical to original mobile view).
+              - Desktop (>=1024px): modern standard web app layout where each page controls its optimal ergonomic desktop width.
+          */}
+          <div className="w-full max-w-md lg:max-w-none min-h-screen mx-auto bg-white lg:bg-transparent border-x lg:border-none border-line shadow-card lg:shadow-none relative flex flex-col overflow-x-hidden transition-all duration-300">
             <PWAInstallBanner />
-            <main className="flex-1 w-full pb-8">{children}</main>
+            <main className="flex-1 w-full pb-8 lg:pb-0">{children}</main>
           </div>
         </ToastProvider>
 

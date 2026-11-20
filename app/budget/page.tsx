@@ -446,7 +446,7 @@ function BudgetContent() {
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-4">
         {/* ============================================================== */}
         {/* TAB 1: POS ANGGARAN & DONUT CHART (SECTION 9.3 A)              */}
         {/* ============================================================== */}

@@ -199,7 +199,7 @@ export default function StageClientPage({ stage }: StageClientPageProps) {
       {/* Mini Route 8 Dots */}
       <MiniRoute currentStageKey={stageKey} routeData={routeData} />
 
-      <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-lg lg:max-w-full mx-auto w-full">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-lg lg:max-w-7xl mx-auto w-full">
         {/* Stage Status Hero Banner */}
         <div
           className={`p-6 rounded-3xl border shadow-subtle relative overflow-hidden ${

@@ -592,8 +592,8 @@ export const RouteMap: React.FC<RouteMapProps> = ({
          ======================================================== */}
       <div className="hidden lg:block space-y-6">
         {/* Desktop Header Banner */}
-        <div className="px-8 py-6 bg-aurora border-b border-line rounded-b-[36px] shadow-sm">
-          <div className="flex items-center justify-between gap-6">
+        <div className="px-8 py-6 bg-aurora border-b border-line shadow-sm">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-azure-700 bg-white/95 px-3 py-1 rounded-full border border-sky-200 shadow-xs">
@@ -627,7 +627,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         </div>
 
         {/* 2-Column Grid Layout */}
-        <div className="grid grid-cols-12 gap-8 items-start px-8 pt-4 pb-12">
+        <div className="max-w-7xl mx-auto grid grid-cols-12 gap-8 items-start px-8 pt-6 pb-12">
           {/* Left Column: Route Map Canvas */}
           <div className="col-span-7 bg-white border border-line rounded-3xl p-6 shadow-subtle flex flex-col items-center">
             <div className="w-full flex items-center justify-between pb-4 mb-2 border-b border-line/60">

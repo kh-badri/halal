@@ -236,7 +236,7 @@ export default function KUAPage() {
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-4">
         {/* Official Disclaimer (Section 9.4 C) */}
         <div className="p-3.5 rounded-2xl bg-sky/30 border border-sky/50 flex items-start gap-2.5 text-xs text-ink/80">
           <Info size={16} className="text-ink shrink-0 mt-0.5" />

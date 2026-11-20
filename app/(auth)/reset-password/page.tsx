@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
 
 function ResetPasswordForm() {
@@ -66,85 +66,97 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between p-6 bg-white">
-      <div className="pt-8">
-        <h1 className="text-2xl font-extrabold text-ink">Buat Password Baru</h1>
-        <p className="text-xs text-ink/70 mt-1">Masukkan password baru untuk akun Nikahku Anda</p>
-
-        {success ? (
-          <div className="mt-8 p-6 rounded-3xl bg-blush/40 text-center space-y-3 border border-blush">
-            <div className="w-12 h-12 rounded-full bg-rose text-white mx-auto flex items-center justify-center">
-              <CheckCircle2 size={24} />
-            </div>
-            <h3 className="text-sm font-bold text-ink">Password Berhasil Diperbarui</h3>
-            <p className="text-xs text-ink/75">Mengalihkan Anda ke halaman login...</p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            {errorMsg && (
-              <div className="p-3 rounded-2xl bg-rose/10 border border-rose/30 text-rose text-xs font-medium">
-                {errorMsg}
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-bold text-ink mb-1.5">
-                Password Baru (min. 8 karakter)
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40" size={18} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  minLength={8}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Password baru"
-                  className="w-full pl-10 pr-12 py-3 rounded-2xl bg-white border border-blush focus:border-rose focus:ring-2 focus:ring-rose/20 outline-none text-base text-ink transition-all placeholder:text-ink/30"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-ink mb-1.5">
-                Konfirmasi Password Baru
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40" size={18} />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  minLength={8}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Ulangi password baru"
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white border border-blush focus:border-rose focus:ring-2 focus:ring-rose/20 outline-none text-base text-ink transition-all placeholder:text-ink/30"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 mt-2 bg-rose text-white font-bold rounded-full text-sm shadow-md hover:scale-[1.01] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader2 size={18} className="animate-spin" /> : 'Simpan Password Baru'}
-            </button>
-          </form>
-        )}
-      </div>
-
-      <div className="text-center pb-4 text-xs">
-        <Link href="/login" className="font-bold text-rose hover:underline">
-          Kembali ke Login
+    <div className="min-h-screen bg-aurora flex flex-col justify-center items-center py-8 sm:py-12 px-4 sm:px-6">
+      <div className="w-full max-w-md mx-auto space-y-6">
+        <Link href="/login" className="inline-flex items-center gap-1.5 text-xs font-bold text-azure hover:underline">
+          <ArrowLeft size={16} />
+          <span>Kembali ke Login</span>
         </Link>
+
+        {/* Elevated Card */}
+        <div className="bg-white rounded-3xl border border-line shadow-card p-6 sm:p-8 space-y-5">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-extrabold text-navy-900 font-display">Buat Password Baru</h1>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Masukkan password baru untuk akun Road To Halal Anda
+            </p>
+          </div>
+
+          {success ? (
+            <div className="p-5 rounded-2xl bg-sky-50 border border-sky-200 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-azure text-white mx-auto flex items-center justify-center shadow-xs">
+                <CheckCircle2 size={24} />
+              </div>
+              <h3 className="text-sm font-extrabold text-navy-900">Password Berhasil Diperbarui</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">Mengalihkan Anda ke halaman login...</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {errorMsg && (
+                <div className="p-3 rounded-2xl bg-coral-100 border border-coral-200 text-coral-700 text-xs font-semibold">
+                  {errorMsg}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-navy-900 mb-1.5">
+                  Password Baru (min. 8 karakter)
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Password baru"
+                    className="w-full h-[52px] pl-10 pr-12 rounded-2xl bg-white border border-line text-sm text-navy-900 placeholder:text-slate-400 focus:border-azure focus:ring-2 focus:ring-azure/20 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-navy-900"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-navy-900 mb-1.5">
+                  Konfirmasi Password Baru
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Ulangi password baru"
+                    className="w-full h-[52px] pl-10 pr-4 rounded-2xl bg-white border border-line text-sm text-navy-900 placeholder:text-slate-400 focus:border-azure focus:ring-2 focus:ring-azure/20 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-[52px] mt-2 bg-azure hover:bg-azure-700 text-white font-extrabold rounded-full text-xs shadow-subtle hover:scale-[1.01] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin text-white" /> : 'Simpan Password Baru'}
+              </button>
+            </form>
+          )}
+        </div>
+
+        <div className="text-center text-xs">
+          <Link href="/login" className="font-extrabold text-azure-700 hover:underline">
+            Kembali ke Login
+          </Link>
+        </div>
       </div>
     </div>
   );

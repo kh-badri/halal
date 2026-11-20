@@ -79,35 +79,44 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-aurora">
-      <div className="pt-8 px-6 pb-6">
-        <Link href="/" className="inline-flex items-center gap-2 mb-6 group">
-          <div className="w-8 h-8 rounded-xl bg-sky-300 border border-sky-400 p-0.5 overflow-hidden shadow-subtle group-hover:scale-105 transition-transform">
-            <img
-              src="/icons/icon-192x192.png?v=5"
-              alt="Road To Halal"
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
-          <span className="font-extrabold text-navy-900 text-sm tracking-tight">Road To Halal</span>
-        </Link>
+    <div className="min-h-screen bg-aurora flex flex-col justify-center items-center py-8 sm:py-12 px-4 sm:px-6">
+      <div className="w-full max-w-lg mx-auto space-y-6">
+        {/* Top Branding Section */}
+        <div className="text-center sm:text-left space-y-2">
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-2 group">
+            <div className="w-10 h-10 rounded-2xl bg-sky-300 border border-sky-400 p-0.5 overflow-hidden shadow-subtle group-hover:scale-105 transition-transform">
+              <img
+                src="/icons/icon-192x192.png?v=5"
+                alt="Road To Halal"
+                className="w-full h-full object-cover rounded-xl"
+              />
+            </div>
+            <div className="text-left">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-azure-600 block leading-none">
+                Road To Halal
+              </span>
+              <span className="font-extrabold text-navy-900 text-sm tracking-tight">
+                Persiapan Pernikahan
+              </span>
+            </div>
+          </Link>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight font-display">
-          Bismillah, Mulai Langkah
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
-          Buat ruang data pernikahan pribadi Anda dan pasangan
-        </p>
-      </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight font-display">
+            Bismillah, Mulai Langkah
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600">
+            Buat ruang data pernikahan pribadi Anda dan pasangan
+          </p>
+        </div>
 
-      <div
-        className={`flex-1 bg-white rounded-t-[32px] sm:rounded-[32px] sm:mx-4 sm:mb-6 border-t sm:border border-line shadow-sheet p-6 flex flex-col justify-between ${
-          isShaking ? 'animate-shake' : ''
-        }`}
-      >
-        <div>
+        {/* Elevated Card Form */}
+        <div
+          className={`bg-white rounded-3xl border border-line shadow-card p-6 sm:p-8 space-y-5 ${
+            isShaking ? 'animate-shake' : ''
+          }`}
+        >
           {errorMsg && (
-            <div className="mb-4 p-3 rounded-2xl bg-coral-100 border border-coral-200 text-coral-700 text-xs font-semibold flex items-center gap-2">
+            <div className="p-3 rounded-2xl bg-coral-100 border border-coral-200 text-coral-700 text-xs font-semibold flex items-center gap-2">
               <AlertCircle size={16} className="text-coral-500 shrink-0" />
               <span>{errorMsg}</span>
             </div>
@@ -256,15 +265,15 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <div className="text-center pt-6 pb-2">
-          <p className="text-xs text-slate-600">
-            Sudah punya akun?{' '}
-            <Link href="/login" className="font-extrabold text-azure-700 hover:underline">
-              Masuk di sini
-            </Link>
-          </p>
+          <div className="text-center pt-4 border-t border-line/60">
+            <p className="text-xs text-slate-600">
+              Sudah punya akun?{' '}
+              <Link href="/login" className="font-extrabold text-azure-700 hover:underline">
+                Masuk di sini
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
-    </div>
   );
 }

@@ -76,7 +76,7 @@ export const PWAInstallBanner: React.FC = () => {
 
   return (
     <>
-      <div className="mx-3.5 my-2.5 p-3 bg-white border border-line rounded-2xl shadow-card flex items-center justify-between gap-2.5 animate-in fade-in duration-300">
+      <div className="lg:hidden mx-3.5 my-2.5 p-3 bg-white border border-line rounded-2xl shadow-card flex items-center justify-between gap-2.5 animate-in fade-in duration-300">
         <div className="flex items-center gap-2.5 min-w-0">
           <img
             src="/icons/icon-192x192.png?v=5"

@@ -27,8 +27,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   saveStatus = 'idle',
 }) => {
   return (
-    <header className="sticky top-0 z-30 glass-header border-b border-line px-4 py-3 flex items-center justify-between gap-3 transition-all">
-      <div className="flex items-center gap-2.5 min-w-0">
+    <header className="sticky top-0 z-30 glass-header border-b border-line px-4 py-3 transition-all">
+      <div className="max-w-7xl mx-auto w-full flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
         {backHref ? (
           <Link
             href={backHref}
@@ -108,6 +109,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             <User size={16} className="stroke-[2.2]" />
           </Link>
         )}
+      </div>
       </div>
     </header>
   );
